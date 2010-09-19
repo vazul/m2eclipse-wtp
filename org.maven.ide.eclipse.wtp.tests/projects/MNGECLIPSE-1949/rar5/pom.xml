@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>foo.bar</groupId>
-	<artifactId>rar1</artifactId>
+	<artifactId>rar5</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>rar</packaging>
 	<dependencies>
@@ -18,7 +18,7 @@
 			<artifactId>javaee-api</artifactId>
 			<version>6.0</version>
 			<type>jar</type>
-			<scope>runtime</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>foo.bar</groupId>

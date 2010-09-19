@@ -167,22 +167,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String depPackaging = dependency.getPackaging();
       if ("pom".equals(depPackaging)) continue;//MNGECLIPSE-744 pom dependencies shouldn't be deployed
       
+      preConfigureDependencyProject(dependency, monitor);
       MavenProject depMavenProject =  dependency.getMavenProject(monitor);
-      //jee dependency has not been configured yet - i.e. has not JEE facet-
-      if(JEEPackaging.isJEEPackaging(depPackaging) && !WTPProjectsUtil.isJavaEEProject(dependency.getProject())) {
-        IProjectConfiguratorDelegate delegate = ProjectConfiguratorDelegateFactory
-            .getProjectConfiguratorDelegate(depPackaging);
-        if(delegate != null) {
-          try {
-            delegate.configureProject(dependency.getProject(), depMavenProject, monitor);
-          } catch(MarkedException ex) {
-            //Markers already have been created for this exception 
-          }        
-        }
-      } else {
-        // standard jar project
-        configureWtpUtil(dependency.getProject(), depMavenProject, monitor);
-      }
+
       IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
 
       //in a skinny war the dependency modules are referenced by manifest classpath

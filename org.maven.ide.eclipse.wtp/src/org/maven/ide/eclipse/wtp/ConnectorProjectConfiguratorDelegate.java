@@ -10,7 +10,6 @@ package org.maven.ide.eclipse.wtp;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -26,6 +25,7 @@ import org.eclipse.jst.j2ee.jca.project.facet.ConnectorFacetInstallDataModelProv
 import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelProperties;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
@@ -38,6 +38,7 @@ import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectUtils;
+import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
 
 /**
  * ConnectorProjectConfiguratorDelegate
@@ -45,6 +46,8 @@ import org.maven.ide.eclipse.project.MavenProjectUtils;
  * @author Fred Bricon
  */
 public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate{
+
+  protected static final Path RAR_DD_PATH = new Path("META-INF/ra.xml");
 
   public static final ArtifactFilter SCOPE_FILTER_RUNTIME = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
 
@@ -74,6 +77,8 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       
       IDataModel rarModelCfg = DataModelFactory.createDataModel(new ConnectorFacetInstallDataModelProvider());
       rarModelCfg.setProperty(IConnectorFacetInstallDataModelProperties.CONFIG_FOLDER, contentDir);
+      //Don't generate ra.xml by default - Setting will be ignored for JCA 1.6
+      rarModelCfg.setProperty(IConnectorFacetInstallDataModelProperties.GENERATE_DD, false);
 
       IProjectFacetVersion connectorFv = config.getConnectorFacetVersion(project);
       
@@ -101,10 +106,10 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
   }
 
   /**
-   * Remove custom ra.xml link, if exists.
+   * Remove custom ra.xml link, if it exists.
    */
-  private void removeRaXmlLink(IProject project, IProgressMonitor monitor) {
-    //How do we remove links only knowing their runtimepath?
+  private void removeRaXmlLink(IProject project, IProgressMonitor monitor) throws CoreException{
+    WTPProjectsUtil.deleteLinks(project, RAR_DD_PATH, monitor);
   }
 
   /**
@@ -112,15 +117,13 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
    * @param project 
    * @param customRaXml
    */
-  private void addRaXmlLink(IProject project, IProgressMonitor monitor, String customRaXml) {
+  private void addRaXmlLink(IProject project, IProgressMonitor monitor, String customRaXml) throws CoreException {
     IVirtualComponent component = ComponentCore.createComponent(project);
     if (component != null){
-      IVirtualFolder root = component.getRootFolder().getFolder("/");
-      Properties props = component.getMetaProperties();
-      
-      IPath path = new Path(customRaXml);
+      IVirtualFile virtualRaXml = component.getRootFolder().getFile(RAR_DD_PATH);
+      IPath customRaXmlPath = new Path(customRaXml);
       try {
-        root.createLink(path, 0, monitor);
+        virtualRaXml.createLink(customRaXmlPath, 0, monitor);
       } catch(CoreException ex) {
         //ignore
         MavenLogger.log(ex);
@@ -141,7 +144,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       }
   }
 
-  /* (non-Javadoc)
+  /**
    * @see org.maven.ide.eclipse.wtp.IProjectConfiguratorDelegate#configureClasspath(org.eclipse.core.resources.IProject, org.apache.maven.project.MavenProject, org.maven.ide.eclipse.jdt.IClasspathDescriptor, org.eclipse.core.runtime.IProgressMonitor)
    */
   public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
@@ -150,7 +153,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     
   }
 
-  /* (non-Javadoc)
+  /**
    * @see org.maven.ide.eclipse.wtp.IProjectConfiguratorDelegate#setModuleDependencies(org.eclipse.core.resources.IProject, org.apache.maven.project.MavenProject, org.eclipse.core.runtime.IProgressMonitor)
    */
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
@@ -175,8 +178,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       if(workspaceDependency != null && !workspaceDependency.getProject().equals(project)
           && workspaceDependency.getFullPath(artifact.getFile()) != null) {
         //artifact dependency is a workspace project
-        IProject depProject = workspaceDependency.getProject();
-        newRefs.add(createReference(rarComponent, depProject));
+        IProject depProject = preConfigureDependencyProject(workspaceDependency, monitor);
+        
+        newRefs.add(createReference(rarComponent, depProject, artifact));
       } else {
         //artifact dependency should be added as a JEE module, referenced with M2_REPO variable 
         newRefs.add(createReference(rarComponent, artifact));
@@ -186,15 +190,18 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     IVirtualReference[] newRefsArray = new IVirtualReference[newRefs.size()];
     newRefs.toArray(newRefsArray);
     
-    //Only change the preject references if they've changed
+    //Only change the project references if they've changed
     if (hasChanged(rarComponent.getReferences(), newRefsArray)) {
       rarComponent.setReferences(newRefsArray);
     }
   }
 
-  private IVirtualReference createReference(IVirtualComponent rarComponent, IProject depProject) {
-    IVirtualComponent depComponent = ComponentCore.createComponent(depProject);
-    return ComponentCore.createReference(rarComponent, depComponent);
+  private IVirtualReference createReference(IVirtualComponent rarComponent, IProject project, Artifact artifact) {
+    IVirtualComponent depComponent = ComponentCore.createComponent(project);
+    IVirtualReference depRef = ComponentCore.createReference(rarComponent, depComponent);
+    String deployedFileName = FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping().mapFileName(artifact);
+    depRef.setArchiveName(deployedFileName);
+    return depRef;
   }
   private IVirtualReference createReference(IVirtualComponent rarComponent, Artifact artifact) {
       //Create dependency component, referenced from the local Repo.
@@ -223,4 +230,5 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     return false;    
   }
 
+  
 }

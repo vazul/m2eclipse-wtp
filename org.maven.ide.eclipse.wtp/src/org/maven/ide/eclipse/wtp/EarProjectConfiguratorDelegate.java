@@ -43,8 +43,6 @@ import org.eclipse.jst.jee.project.facet.EarCreateDeploymentFilesDataModelProvid
 import org.eclipse.jst.jee.project.facet.ICreateDeploymentFilesDataModelProperties;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.datamodel.properties.ICreateReferenceComponentsDataModelProperties;
-import org.eclipse.wst.common.componentcore.internal.StructureEdit;
-import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
@@ -213,52 +211,10 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to configure dependent project",e));
     } 
     */
-
-    //XXX Refactor the following w/ Web delegate 
-    IProject project = mavenProjectFacade.getProject();
-    MavenProject mavenProject = mavenProjectFacade.getMavenProject(monitor);
-    String depPackaging = mavenProjectFacade.getPackaging();
-    //jee dependency has not been configured yet - i.e. it has no JEE facet-
-    if(JEEPackaging.isJEEPackaging(depPackaging) && !WTPProjectsUtil.isJavaEEProject(project)) {
-      IProjectConfiguratorDelegate delegate = ProjectConfiguratorDelegateFactory
-          .getProjectConfiguratorDelegate(mavenProjectFacade.getPackaging());
-      if(delegate != null) {
-        //Lets install the proper facets
-        try {
-          delegate.configureProject(project, mavenProject, monitor);
-        } catch(MarkedException ex) {
-          //Markers already have been created for this exception, no more to do.
-          return;
-        }
-      }
-    } else {
-      // XXX Probably should create a UtilProjectConfiguratorDelegate
-      configureWtpUtil(project, mavenProject, monitor);
-    }
+    IProject project = preConfigureDependencyProject(mavenProjectFacade, monitor);
 
     //MNGECLIPSE-965 : project deployed name should use the same pattern as non workspace artifacts.
     configureDeployedName(project, earModule.getBundleFileName());
-  }
-
-  private void configureDeployedName(IProject project, String deployedFileName) {
-    //We need to remove the file extension from deployedFileName 
-    int extSeparatorPos  = deployedFileName.lastIndexOf('.');
-    String deployedName = extSeparatorPos > -1? deployedFileName.substring(0, extSeparatorPos): deployedFileName;
-    //From jerr's patch in MNGECLIPSE-965
-    IVirtualComponent projectComponent = ComponentCore.createComponent(project);
-    if(!deployedName.equals(projectComponent.getDeployedName())){//MNGECLIPSE-2331 : Seems projectComponent.getDeployedName() can be null 
-      StructureEdit moduleCore = null;
-      try {
-        moduleCore = StructureEdit.getStructureEditForWrite(project);
-        WorkbenchComponent component = moduleCore.getComponent();
-        component.setName(deployedName);
-        moduleCore.saveIfNecessary(null);
-      } finally {
-        if (moduleCore != null) {
-          moduleCore.dispose();
-        }
-      }
-    }  
   }
 
   private void addComponentsToEAR(EarComponentWrapper earComponentWrapper, IProgressMonitor monitor)

@@ -29,6 +29,8 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.internal.StructureEdit;
+import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -166,6 +168,57 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       }
     }
     javaProject.setRawClasspath(cp, monitor);
+  }
+
+  /**
+   * @param dependencyMavenProjectFacade
+   * @param monitor
+   * @return
+   * @throws CoreException
+   */
+  protected IProject preConfigureDependencyProject(IMavenProjectFacade dependencyMavenProjectFacade, IProgressMonitor monitor) throws CoreException {
+    IProject dependency = dependencyMavenProjectFacade.getProject();
+    MavenProject mavenDependency = dependencyMavenProjectFacade.getMavenProject(monitor);
+    String depPackaging = dependencyMavenProjectFacade.getPackaging();
+    //jee dependency has not been configured yet - i.e. it has no JEE facet-
+    if(JEEPackaging.isJEEPackaging(depPackaging) && !WTPProjectsUtil.isJavaEEProject(dependency)) {
+      IProjectConfiguratorDelegate delegate = ProjectConfiguratorDelegateFactory
+          .getProjectConfiguratorDelegate(dependencyMavenProjectFacade.getPackaging());
+      if(delegate != null) {
+        //Lets install the proper facets
+        try {
+          delegate.configureProject(dependency, mavenDependency, monitor);
+        } catch(MarkedException ex) {
+          //Markers already have been created for this exception, no more to do.
+          return dependency;
+        }
+      }
+    } else {
+      // XXX Probably should create a UtilProjectConfiguratorDelegate
+      configureWtpUtil(dependency, mavenDependency, monitor);
+    }
+    return dependency;
+  }
+
+  protected void configureDeployedName(IProject project, String deployedFileName) {
+    //We need to remove the file extension from deployedFileName 
+    int extSeparatorPos  = deployedFileName.lastIndexOf('.');
+    String deployedName = extSeparatorPos > -1? deployedFileName.substring(0, extSeparatorPos): deployedFileName;
+    //From jerr's patch in MNGECLIPSE-965
+    IVirtualComponent projectComponent = ComponentCore.createComponent(project);
+    if(!deployedName.equals(projectComponent.getDeployedName())){//MNGECLIPSE-2331 : Seems projectComponent.getDeployedName() can be null 
+      StructureEdit moduleCore = null;
+      try {
+        moduleCore = StructureEdit.getStructureEditForWrite(project);
+        WorkbenchComponent component = moduleCore.getComponent();
+        component.setName(deployedName);
+        moduleCore.saveIfNecessary(null);
+      } finally {
+        if (moduleCore != null) {
+          moduleCore.dispose();
+        }
+      }
+    }  
   }
 
 }

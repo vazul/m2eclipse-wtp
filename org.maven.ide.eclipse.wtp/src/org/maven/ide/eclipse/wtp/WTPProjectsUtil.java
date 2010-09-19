@@ -2,12 +2,19 @@
 package org.maven.ide.eclipse.wtp;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.wst.common.componentcore.internal.ComponentResource;
+import org.eclipse.wst.common.componentcore.internal.StructureEdit;
+import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
+import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeRoot;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
@@ -59,10 +66,10 @@ public class WTPProjectsUtil {
   
   
   /**
-   * Checks if a project has a class in its classpath 
+   * Checks if a project has a given class in its classpath 
    * @param project : the workspace project
    * @param className : the fully qualified name of the class to search for
-   * @return true if fullyQualifiedName is found in the project's classpath (provided the project is a JavaProject and its classpath has been set.)   
+   * @return true if className is found in the project's classpath (provided the project is a JavaProject and its classpath has been set.)   
    */
   public static boolean hasInClassPath(IProject project, String className) {
     boolean result = false;
@@ -89,4 +96,36 @@ public class WTPProjectsUtil {
     return (J2EEProjectUtilities.isLegacyJ2EEProject(project) || J2EEProjectUtilities.isJEEProject(project)) && !JavaEEProjectUtilities.isUtilityProject(project); 
   }
   
+  /**
+   * Delete a project's component resources having a given runtimePath
+   * @param project - the project to modify
+   * @param runtimePath - the component resource runtime path (i.e. deploy path)
+   * @param monitor - an eclipse monitor
+   * @throws CoreException
+   */
+  public static void deleteLinks(IProject project, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    //Looks like WTP'APIS doesn't have such feature, hence this implementation.
+    StructureEdit moduleCore = null;
+    try {
+      moduleCore = StructureEdit.getStructureEditForWrite(project);
+      if (moduleCore == null) {
+        return;
+      }
+      WorkbenchComponent component = moduleCore.getComponent();
+      if (component == null)  {
+        return;
+      }
+      ResourceTreeRoot root = ResourceTreeRoot.getDeployResourceTreeRoot(component);
+      ComponentResource[] resources = root.findModuleResources(runtimePath, 0);
+      for (ComponentResource link : resources) {
+        component.getResources().remove(link);
+      }
+   }
+   finally {
+     if (moduleCore != null) {
+       moduleCore.saveIfNecessary(monitor);
+       moduleCore.dispose();
+     }
+    }
+  }
 }
