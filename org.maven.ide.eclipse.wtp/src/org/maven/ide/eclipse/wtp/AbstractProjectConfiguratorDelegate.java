@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -32,6 +33,7 @@ import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
@@ -221,4 +223,26 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }  
   }
 
+  /**
+   * Link a project's file to a specific deployment destination. Existing links will be deleted beforehand. 
+   * @param project 
+   * @param customFile the existing file to deploy
+   * @param targetRuntimePath the target runtime/deployment location of the file
+   * @param monitor
+   * @throws CoreException
+   */
+  protected void linkFile(IProject project, String customFile, String targetRuntimePath, IProgressMonitor monitor) throws CoreException {
+      IPath runtimePath = new Path(targetRuntimePath);
+      //We first delete any existing links
+      WTPProjectsUtil.deleteLinks(project, runtimePath, monitor);
+      if (customFile != null) {
+        //Create the new link
+        IVirtualComponent component = ComponentCore.createComponent(project);
+        if (component != null){
+          IVirtualFile virtualCustomFile = component.getRootFolder().getFile(runtimePath);
+          IPath virtualCustomFilePath = new Path(customFile);
+          virtualCustomFile.createLink(virtualCustomFilePath, 0, monitor);
+        }
+      }
+  }
 }

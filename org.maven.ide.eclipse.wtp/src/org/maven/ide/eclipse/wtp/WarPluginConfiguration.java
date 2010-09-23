@@ -53,10 +53,21 @@ class WarPluginConfiguration {
     return WAR_PACKAGING.equals(mavenProject.getPackaging());
   }
 
+
+  /**
+   * @return war plugin configuration or null.
+   */
+  private Xpp3Dom getConfiguration() {
+    if(plugin == null) {
+      return null;
+    }
+    return (Xpp3Dom) plugin.getConfiguration();
+  }
+
   public Xpp3Dom[] getWebResources() {
-    if(plugin != null) {
-      Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
-      Xpp3Dom[] children = dom.getChildren("webResources");
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom[] children = config.getChildren("webResources");
       return children;
     }
     return null;
@@ -82,11 +93,7 @@ class WarPluginConfiguration {
   }
 
   public String getWarSourceDirectory() {
-    if(plugin == null) {
-      return WAR_SOURCE_FOLDER;
-    }
-
-    Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
+    Xpp3Dom dom = getConfiguration();
     if(dom == null) {
       return WAR_SOURCE_FOLDER;
     }
@@ -112,64 +119,54 @@ class WarPluginConfiguration {
   }
 
   public String[] getPackagingExcludes() {
-    if(plugin != null) {
-      Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
-      if(dom != null) {
-        Xpp3Dom excl = dom.getChild("packagingExcludes");
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+        Xpp3Dom excl = config.getChild("packagingExcludes");
         if(excl != null) {
           return StringUtils.tokenizeToStringArray(excl.getValue(), ",");
         }
-      }
     }
     return new String[0];
   }
 
   public String[] getPackagingIncludes() {
-    if(plugin != null) {
-      Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
-      if(dom != null) {
-        Xpp3Dom incl = dom.getChild("packagingIncludes");
-        if(incl != null && incl.getValue() != null) {
-          return StringUtils.tokenizeToStringArray(incl.getValue(), ",");
-        }
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom incl = config.getChild("packagingIncludes");
+      if(incl != null && incl.getValue() != null) {
+        return StringUtils.tokenizeToStringArray(incl.getValue(), ",");
       }
     }
     return new String[0];
   }
 
   public boolean isAddManifestClasspath() {
-
-    if(plugin != null) {
-      Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
-      if(dom != null) {
-        Xpp3Dom arch = dom.getChild("archive");
-        if(arch != null) {
-          Xpp3Dom manifest = arch.getChild("manifest");
-          if(manifest != null) {
-            Xpp3Dom addToClp = manifest.getChild("addClasspath");
-            if(addToClp != null) {
-              return Boolean.valueOf(addToClp.getValue());
-            }
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom arch = config.getChild("archive");
+      if(arch != null) {
+        Xpp3Dom manifest = arch.getChild("manifest");
+        if(manifest != null) {
+          Xpp3Dom addToClp = manifest.getChild("addClasspath");
+          if(addToClp != null) {
+            return Boolean.valueOf(addToClp.getValue());
           }
         }
       }
-    }
+  }
     return false;
   }
 
   public String getManifestClasspathPrefix() {
-
-    if(plugin != null) {
-      Xpp3Dom dom = (Xpp3Dom) plugin.getConfiguration();
-      if(dom != null) {
-        Xpp3Dom arch = dom.getChild("archive");
-        if(arch != null) {
-          Xpp3Dom manifest = arch.getChild("manifest");
-          if(manifest != null) {
-            Xpp3Dom prefix = manifest.getChild("classpathPrefix");
-            if(prefix != null) {
-              return prefix.getValue();
-            }
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom arch = config.getChild("archive");
+      if(arch != null) {
+        Xpp3Dom manifest = arch.getChild("manifest");
+        if(manifest != null) {
+          Xpp3Dom prefix = manifest.getChild("classpathPrefix");
+          if(prefix != null) {
+            return prefix.getValue();
           }
         }
       }
@@ -178,7 +175,14 @@ class WarPluginConfiguration {
   }
 
   public IProjectFacetVersion getWebFacetVersion(IProject project) {
-    IFile webXml = project.getFolder(getWarSourceDirectory()).getFile(WEB_XML);
+    IFile webXml;
+    String customWebXml = getCustomWebXml(project);
+    if (customWebXml == null) {
+      webXml = project.getFolder(getWarSourceDirectory()).getFile(WEB_XML);
+    } else {
+      webXml = project.getFile(customWebXml);
+    }
+
     if(webXml.isAccessible()) {
       try {
         InputStream is = webXml.getContents();
@@ -218,4 +222,22 @@ class WarPluginConfiguration {
     //IProjectFacetVersion javaFv = JavaFacetUtils.compilerLevelToFacet(JavaFacetUtils.getCompilerLevel(project));
     //return (JavaFacetUtils.JAVA_50.compareTo(javaFv) > 0)?WebFacetUtils.WEB_24:WebFacetUtils.WEB_25; 
   }
+  /**
+   * Get the custom location of web.xml, as set in &lt;webXml&gt;.
+   * @return the custom location of web.xml or null if &lt;webXml&gt; is not set
+   */
+  public String getCustomWebXml(IProject project) {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom webXmlDom = config.getChild("webXml");
+      if(webXmlDom != null && webXmlDom.getValue() != null) {
+        String webXmlFile = webXmlDom.getValue().trim();
+        webXmlFile = ProjectUtils.getRelativePath(project, webXmlFile);
+        return webXmlFile;
+      }
+    }
+    return null;
+  }
+
+
 }

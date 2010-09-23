@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>test.project</groupId>
+	<artifactId>MNGECLIPSE-2357</artifactId>
+	<packaging>war</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.1-alpha-2</version>
+					<configuration>
+						<webXml>resources/web.xml</webXml>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+	</build>
+</project>

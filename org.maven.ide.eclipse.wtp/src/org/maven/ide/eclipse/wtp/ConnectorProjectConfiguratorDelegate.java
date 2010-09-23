@@ -20,12 +20,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.jca.project.facet.ConnectorFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelProperties;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
@@ -46,8 +44,6 @@ import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
  * @author Fred Bricon
  */
 public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate{
-
-  protected static final Path RAR_DD_PATH = new Path("META-INF/ra.xml");
 
   public static final ArtifactFilter SCOPE_FILTER_RUNTIME = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
 
@@ -96,39 +92,10 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     removeTestFolderLinks(project, mavenProject, monitor, "/"); 
     
     String customRaXml = config.getCustomRaXml(project);
-    removeRaXmlLink(project, monitor);
-    if (customRaXml != null) {
-      addRaXmlLink(project, monitor, customRaXml);
-    }
+    linkFile(project, customRaXml, "META-INF/ra.xml", monitor);
     
     //Remove "library unavailable at runtime" warning. TODO is it relevant for connector projects?
     addContainerAttribute(project, NONDEPENDENCY_ATTRIBUTE, monitor);
-  }
-
-  /**
-   * Remove custom ra.xml link, if it exists.
-   */
-  private void removeRaXmlLink(IProject project, IProgressMonitor monitor) throws CoreException{
-    WTPProjectsUtil.deleteLinks(project, RAR_DD_PATH, monitor);
-  }
-
-  /**
-   * @param monitor 
-   * @param project 
-   * @param customRaXml
-   */
-  private void addRaXmlLink(IProject project, IProgressMonitor monitor, String customRaXml) throws CoreException {
-    IVirtualComponent component = ComponentCore.createComponent(project);
-    if (component != null){
-      IVirtualFile virtualRaXml = component.getRootFolder().getFile(RAR_DD_PATH);
-      IPath customRaXmlPath = new Path(customRaXml);
-      try {
-        virtualRaXml.createLink(customRaXmlPath, 0, monitor);
-      } catch(CoreException ex) {
-        //ignore
-        MavenLogger.log(ex);
-      }
-    }
   }
 
   private void removeSourceLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor, String folder) throws CoreException {

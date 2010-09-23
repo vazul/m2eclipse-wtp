@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>test.project</groupId>
+	<artifactId>MNGECLIPSE-2357</artifactId>
+	<packaging>war</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.1-alpha-2</version>
+					<configuration>
+						<webXml>${webXmlFile}</webXml>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<properties>
+		<webXmlFile>resources/web.xml</webXmlFile>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>test</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<webXmlFile>profile/web.xml</webXmlFile>
+			</properties>
+		</profile>
+	</profiles>
+</project>

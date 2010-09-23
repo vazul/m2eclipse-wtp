@@ -126,6 +126,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if (!contextRoot.equals(J2EEProjectUtilities.getServerContextRoot(project))) {
       J2EEProjectUtilities.setServerContextRoot(project, contextRoot);
     }
+
+    //MNGECLIPSE-2357 support custom location of web.xml
+    String customWebXml = config.getCustomWebXml(project);
+    linkFile(project, customWebXml, "META-INF/web.xml", monitor);
     
   }
 
