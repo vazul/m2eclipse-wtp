@@ -21,7 +21,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -80,6 +80,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     // make sure to update the main deployment folder
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     String warSourceDirectory = config.getWarSourceDirectory();
+    IFile defaultWebXml = project.getFolder(warSourceDirectory).getFile("WEB-INF/web.xml");
+     
+    boolean alreadyHasWebXml = defaultWebXml.exists();
     
     IVirtualComponent component = ComponentCore.createComponent(project);
     if(component != null && warSourceDirectory != null) {
@@ -129,7 +132,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     //MNGECLIPSE-2357 support custom location of web.xml
     String customWebXml = config.getCustomWebXml(project);
-    linkFile(project, customWebXml, "META-INF/web.xml", monitor);
+    //If we have a custom web.xml but WTP created one against our will, we delete it 
+    if (customWebXml != null && !alreadyHasWebXml && defaultWebXml.exists()) {
+      defaultWebXml.delete(true, monitor);
+    }
+    linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
     
   }
 
@@ -146,6 +153,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IDataModel webModelCfg = DataModelFactory.createDataModel(new WebFacetInstallDataModelProvider());
     webModelCfg.setProperty(IJ2EEModuleFacetInstallDataModelProperties.CONFIG_FOLDER, warSourceDirectory);
     webModelCfg.setProperty(IWebFacetInstallDataModelProperties.CONTEXT_ROOT, contextRoot);
+    webModelCfg.setProperty(IJ2EEModuleFacetInstallDataModelProperties.GENERATE_DD, false);
     actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, webFv, webModelCfg));
   }
 
@@ -213,10 +221,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
    * @return the final name of the project if it exists, or the project's artifactId.
    */
   protected String getContextRoot(MavenProject mavenProject) {
-    String contextRoot = mavenProject.getBuild().getFinalName();
-    if (StringUtils.isBlank(contextRoot)) {
-      contextRoot = mavenProject.getArtifactId();
-    }
+    //String contextRoot = mavenProject.getBuild().getFinalName();
+    //if (StringUtils.isBlank(contextRoot)) {
+    //  contextRoot = mavenProject.getArtifactId();
+    //}
+    String contextRoot = mavenProject.getArtifactId();
     return contextRoot.trim().replace(" ", "_");
   }
 

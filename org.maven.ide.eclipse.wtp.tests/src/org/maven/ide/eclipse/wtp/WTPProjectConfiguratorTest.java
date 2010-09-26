@@ -71,7 +71,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IResource[] underlyingResources = getUnderlyingResources(project);
     assertEquals(1, underlyingResources.length);
     assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[0]);
-  }
+
+}
 
   public void testSimple02_import() throws Exception {
     IProject project = importProject("projects/simple/p02/pom.xml", new ResolverConfiguration());
@@ -1182,7 +1183,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
  }
 
 
-  public void testMNGECLIPSE2279_finalNameAsContextRoot() throws Exception {
+  //Test disabled as the fix breaks default behavior
+  public void XXXtestMNGECLIPSE2279_finalNameAsContextRoot() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-2279/pom.xml", new ResolverConfiguration());
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
@@ -1206,6 +1208,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   public void testMNGECLIPSE2357_customWebXml() throws Exception {
     IProject web = importProject("projects/MNGECLIPSE-2357/pom.xml", new ResolverConfiguration());
+    assertEquals("MNGECLIPSE-2357",J2EEProjectUtilities.getServerContextRoot(web));
+    
     IFacetedProject facetedProject = ProjectFacetsManager.create(web);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
@@ -1218,12 +1222,14 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(1, webResources.length);
     assertEquals(web.getFolder("/src/main/webapp"), webResources[0]);
     
-    IVirtualFile virtualWebXml = rootWeb.getFile("META-INF/web.xml");
+    IVirtualFile virtualWebXml = rootWeb.getFile("WEB-INF/web.xml");
     assertTrue(virtualWebXml.exists());
     IFile[] webXmlFiles = virtualWebXml.getUnderlyingFiles();
     assertEquals("found "+toString(webXmlFiles),  1, webXmlFiles.length);
     //Check non default web.xml
     assertEquals(web.getFile("/resources/web.xml"), webXmlFiles[0]);
+    IFile defaultWebXml = web.getFile("/src/main/webapp/WEB-INF/web.xml"); 
+    assertFalse(defaultWebXml.exists());//Check te default web.xml is not created
 
     
     //Let's spice it up : use a profile to change the web.xml, which incidentally will trigger a facet change
@@ -1242,9 +1248,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     webXmlFiles = virtualWebXml.getUnderlyingFiles();
     assertEquals("found "+toString(webXmlFiles),  1, webXmlFiles.length);
-    //Check non default rarSourceDirectory 
+    //Check non default web.xml 
     assertEquals(web.getFile("/profile/web.xml"), webXmlFiles[0]);
-
   }
 
 
