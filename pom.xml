@@ -107,9 +107,9 @@
               <include>**/*Test.java</include>
             </includes>
             <argLine>${tycho.test.jvmArgs}</argLine>
-            <!-- kill test JVM it tests take more than 10 minutes (600 seconds) 
+            <!-- kill test JVM it tests take more than 20 minutes (1200 seconds) 
               to finish -->
-            <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+            <forkedProcessTimeoutInSeconds>1200</forkedProcessTimeoutInSeconds>
           </configuration>
         </plugin>
       </plugins>
