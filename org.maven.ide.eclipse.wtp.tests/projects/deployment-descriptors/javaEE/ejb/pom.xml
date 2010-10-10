@@ -6,7 +6,7 @@
 	<packaging>ejb</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<parent>
-		<artifactId>pom</artifactId>
+		<artifactId>javaEE</artifactId>
 		<groupId>test.project</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>

@@ -28,6 +28,7 @@ package org.maven.ide.eclipse.wtp.earmodules;
  */
 
 import org.apache.maven.artifact.Artifact;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 
 /**
@@ -91,4 +92,9 @@ public interface EarModule {
    * @return the module fileName in the bundle directory 
    */
   public String getBundleFileName();
+
+  /**
+   * @return
+   */
+  public Xpp3Dom getAsDom();
 }

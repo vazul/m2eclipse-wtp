@@ -48,4 +48,11 @@ public class EjbModule extends AbstractEarModule {
   public String getType() {
     return "ejb";
   }
+  
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.wtp.earmodules.AbstractEarModule#getModuleType()
+   */
+  protected String getModuleType() {
+    return "ejbModule";
+  }
 }

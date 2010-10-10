@@ -20,8 +20,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public interface DeploymentDescriptorManagement {
 
-  //static final DeploymentDescriptorManagement INSTANCE = new MavenDeploymentDescriptorManagement();
-  static final DeploymentDescriptorManagement INSTANCE = new WTPDeploymentDescriptorManagement();
+  static final DeploymentDescriptorManagement INSTANCE = new MavenDeploymentDescriptorManagement();
+  //static final DeploymentDescriptorManagement INSTANCE = new WTPDeploymentDescriptorManagement();
   
   void updateConfiguration(IProject project, MavenProject mavenProject, EarPluginConfiguration plugin, IProgressMonitor monitor) throws CoreException;
 }

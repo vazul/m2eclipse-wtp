@@ -171,10 +171,11 @@ public final class EarModuleFactory {
     earModule.setUri(getChildValue(domModule, "uri"));
     earModule.setExcluded(getBooleanChildValue(domModule, "excluded"));
 
+    earModule.setAltDeploymentDescriptor(getChildValue(domModule, "altDeploymentDescriptor"));
+    
     //The following will be ignored by WTP - so far
     String unpack = getChildValue(domModule, "unpack");
     earModule.setShouldUnpack(unpack==null?null:Boolean.valueOf(unpack));
-    earModule.setAltDeploymentDescriptor(getChildValue(domModule, "altDeploymentDescriptor"));
     
     return earModule;
   }

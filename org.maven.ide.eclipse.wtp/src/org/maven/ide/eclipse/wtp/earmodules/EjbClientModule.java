@@ -48,4 +48,9 @@ public class EjbClientModule extends JarModule {
   public String getType() {
     return "ejb-client";
   }
+  
+  protected String getModuleType() {
+    return "ejbClientModule";
+  }
+  
 }

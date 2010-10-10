@@ -35,6 +35,7 @@ import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
+import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -244,5 +245,26 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
           virtualCustomFile.createLink(virtualCustomFilePath, 0, monitor);
         }
       }
+  }
+
+  protected boolean hasChanged(IVirtualReference[] existingRefs, IVirtualReference[] refArray) {
+  
+    if (existingRefs==refArray) {
+      return false;
+    }
+    if (existingRefs == null || existingRefs.length != refArray.length) {
+      return true;
+    }
+    for (int i=0; i<existingRefs.length;i++){
+      IVirtualReference existingRef = existingRefs[i];
+      IVirtualReference newRef = refArray[i];
+      if ((existingRef.getArchiveName() != null && !existingRef.getArchiveName().equals(newRef.getArchiveName())) ||
+          !existingRef.getReferencedComponent().equals(newRef.getReferencedComponent()) ||
+          !existingRef.getRuntimePath().equals(newRef.getRuntimePath())) 
+      {
+        return true;  
+      }
+    }
+    return false;    
   }
 }

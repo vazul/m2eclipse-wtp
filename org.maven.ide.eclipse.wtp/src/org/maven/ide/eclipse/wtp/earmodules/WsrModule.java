@@ -48,4 +48,9 @@ public class WsrModule extends RarModule {
   public String getType() {
     return "wsr";
   }
+
+  protected String getModuleType() {
+    return "wsrModule";
+  }
+  
 }

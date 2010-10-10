@@ -48,4 +48,9 @@ public class RarModule extends AbstractEarModule {
   public String getType() {
     return "rar";
   }
+  
+  protected String getModuleType() {
+    return "rarModule";
+  }
+  
 }

@@ -289,7 +289,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   public void testMNGECLIPSE688_Ear50 () throws Exception {
     IProject ear = importProject("projects/MNGECLIPSE-688/ear50-1/pom.xml", new ResolverConfiguration());
-
+    waitForJobsToComplete();
     assertMarkers(ear, 0);
     
     IFacetedProject fpEar = ProjectFacetsManager.create(ear);
@@ -656,9 +656,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
   //FIXME Test crashes on ear project update when WTPProjectConfiguratorTest tests are run as a whole. Works fine when run standalone.  
-  public void XXXtestDeploymentDescriptorsJavaEE() throws Exception {
+  public void testDeploymentDescriptorsJavaEE() throws Exception {
     
-    deleteProject("pom");
+    deleteProject("javaEE");
     deleteProject("ear");
     deleteProject("ejb");
     deleteProject("war");
@@ -715,8 +715,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(roles);
     assertEquals(2, roles.size());
 
-    updateProject(ear, "pom.step2.xml"); //FIXME crash cannot find pom/ear/target    
+    updateProject(ear, "pom.step2.xml"); //FIXME crash cannot find javaEE/ear/target if run in test suite    
     
+    app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
     assertEquals(2,app.getModules().size());
     coreModule = app.getFirstModule(coreRef.getArchiveName());
     assertNull(coreRef.getArchiveName()+" javamodule should be missing",coreModule);
@@ -730,12 +731,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("altdd-ejb.jar",ejbModule.getAltDd());
 
     roles = app.getSecurityRoles();
-    assertEquals(4, roles.size());//TODO remove deleted roles
+    assertEquals(3, roles.size());
 }
 
   //FIXME Test crashes on ear project update when WTPProjectConfiguratorTest tests are run as a whole. Works fine when run standalone.  
-  public void XXXtestDeploymentDescriptorsJ2EE() throws Exception {
-    deleteProject("pom");
+  public void testDeploymentDescriptorsJ2EE() throws Exception {
+    deleteProject("J2EE");
     deleteProject("ear");
     deleteProject("ejb");
     deleteProject("war");
@@ -794,8 +795,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(roles);
     assertEquals(2, roles.size());
 
-    updateProject(ear, "pom.step2.xml"); //FIXME crash cannot find pom/ear/target    
+    updateProject(ear, "pom.step2.xml"); //FIXME crash cannot find J2EE/ear/target if run in test suite    
     
+    app = (org.eclipse.jst.j2ee.application.Application)ModelProviderManager.getModelProvider(ear).getModelObject();
     assertEquals(2,app.getModules().size());
     coreModule = app.getFirstModule(coreRef.getArchiveName());
     assertNull(coreRef.getArchiveName()+" javamodule should be missing",coreModule);
@@ -809,7 +811,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("altdd-ejb.jar",ejbModule.getAltDD());
 
     roles = app.getSecurityRoles();
-    assertEquals(4, roles.size());//TODO remove deleted roles
+    assertEquals(3, roles.size());//TODO remove deleted roles
 }
 
   public void testMNGECLIPSE1088_generateApplicationXml() throws Exception {
@@ -839,11 +841,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull("missing jarmodule for C",app1.getFirstModule("A-0.0.1-SNAPSHOT.jar"));
     assertNotNull("missing webmodule for C",app1.getFirstModule("website.war"));//MNGECLIPSE-2145 EAR should use finalName 
 
-    Application app2 = (Application)ModelProviderManager.getModelProvider(ear2).getModelObject();
-    assertEquals(2,app2.getModules().size());
-    assertNotNull("missing jarmodule for D",app2.getFirstModule("A.jar"));
-    assertNotNull("missing webmodule for D",app2.getFirstModule("B.war"));
     assertFalse(ear2.getFile(applicationXmlRelativePath).exists());// application.xml is not created as per maven-ear-plugin configuration 
+//    If maven doesn't generate application.xml, the Application app2 will be empty, since WTP's API is not used     
+//    Application app2 = (Application)ModelProviderManager.getModelProvider(ear2).getModelObject();
+//    assertEquals(2,app2.getModules().size());
+//    assertNotNull("missing jarmodule for D",app2.getFirstModule("A.jar"));
+//    assertNotNull("missing webmodule for D",app2.getFirstModule("B.war"));
     
 }
 

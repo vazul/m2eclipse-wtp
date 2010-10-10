@@ -29,6 +29,7 @@ package org.maven.ide.eclipse.wtp.earmodules;
 
 import org.apache.maven.artifact.Artifact;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 
 /**
@@ -271,4 +272,34 @@ public abstract class AbstractEarModule implements EarModule {
   void setShouldUnpack(Boolean unpack) {
     this.unpack = unpack;
   }
+  
+  public Xpp3Dom getAsDom() {
+    Xpp3Dom moduleDom = new Xpp3Dom(getModuleType());
+    Xpp3Dom groupIdDom = new Xpp3Dom("groupId");
+    groupIdDom.setValue(getGroupId());  
+    moduleDom.addChild(groupIdDom);
+    Xpp3Dom artifactIdDom = new Xpp3Dom("artifactId");
+    artifactIdDom.setValue(getArtifactId());  
+    moduleDom.addChild(artifactIdDom);
+    Xpp3Dom uriDom = new Xpp3Dom("uri");
+    uriDom.setValue(getUri());  
+    moduleDom.addChild(uriDom);
+    Xpp3Dom altDdDom = new Xpp3Dom("altDeploymentDescriptor");
+    altDdDom.setValue(getAltDeploymentDescriptor());  
+    moduleDom.addChild(altDdDom);
+    setCustomValues(moduleDom);
+    return moduleDom;
+  }
+
+  /**
+   * @return
+   */
+  protected String getModuleType() {
+    return "jarModule";
+  }
+  
+  protected void setCustomValues(Xpp3Dom module) {
+  }
+  
+  
 }
