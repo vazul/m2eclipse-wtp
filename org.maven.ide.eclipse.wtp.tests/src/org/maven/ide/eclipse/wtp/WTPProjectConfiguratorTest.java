@@ -811,7 +811,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("altdd-ejb.jar",ejbModule.getAltDD());
 
     roles = app.getSecurityRoles();
-    assertEquals(3, roles.size());//TODO remove deleted roles
+    assertEquals(3, roles.size());
 }
 
   public void testMNGECLIPSE1088_generateApplicationXml() throws Exception {

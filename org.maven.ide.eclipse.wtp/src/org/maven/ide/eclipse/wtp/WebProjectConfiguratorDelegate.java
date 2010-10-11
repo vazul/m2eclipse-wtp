@@ -213,12 +213,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         }
       }
     }
-    
-    System.err.println(component.getName() + " has " + component.getReferences().length + " refs :");
-    for (IVirtualReference r : component.getReferences())
-    {
-      System.err.println(" - "+r.getArchiveName());
-    }
   }
   
   /**
