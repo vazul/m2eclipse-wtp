@@ -369,7 +369,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualReference warRef = comp.getReference("war");
     assertNotNull(warRef);
     assertEquals("war-0.0.1-SNAPSHOT.war",warRef.getArchiveName());    
-}
+  }
 
   public void testMNGECLIPSE688_Pom14_1() throws Exception {
     // these projects can actually be deployed to JBoss
@@ -429,9 +429,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     }
   }
 
-  
-  
-  
   public void testMNGECLIPSE597() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-597", 
         new String[] {"DWPMain/pom.xml", "DWPDependency/pom.xml", }, 
@@ -519,7 +516,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
   }
 
-  // FIXME fails on the CI server.
   public void testMNGECLIPSE1045_TimestampedSnapshots() throws Exception {
     IProject ear = importProject("projects/MNGECLIPSE-1045/pom.xml", new ResolverConfiguration());
 
@@ -655,7 +651,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     return mf1;
   }
 
-  //FIXME Test crashes on ear project update when WTPProjectConfiguratorTest tests are run as a whole. Works fine when run standalone.  
   public void testDeploymentDescriptorsJavaEE() throws Exception {
     
     deleteProject("javaEE");
@@ -732,9 +727,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
     roles = app.getSecurityRoles();
     assertEquals(3, roles.size());
-}
+  }
 
-  //FIXME Test crashes on ear project update when WTPProjectConfiguratorTest tests are run as a whole. Works fine when run standalone.  
   public void testDeploymentDescriptorsJ2EE() throws Exception {
     deleteProject("J2EE");
     deleteProject("ear");
