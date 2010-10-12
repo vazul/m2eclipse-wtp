@@ -48,4 +48,9 @@ public class ParModule extends EjbModule {
   public String getType() {
     return "par";
   }
+  
+  protected String getModuleType() {
+    return "parModule";
+  }
+  
 }

@@ -28,6 +28,7 @@ package org.maven.ide.eclipse.wtp.earmodules;
  */
 
 import org.apache.maven.artifact.Artifact;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 
 /**
@@ -80,5 +81,15 @@ public class WebModule extends AbstractEarModule {
 
   public void setContextRoot(String contextRoot) {
     this.contextRoot = contextRoot;
+  }
+  
+  protected void setCustomValues(Xpp3Dom module) {
+    Xpp3Dom contextRootDom = new Xpp3Dom("contextRoot");
+    contextRootDom.setValue(getContextRoot());
+    module.addChild(contextRootDom);
+  }
+
+  protected String getModuleType() {
+    return "webModule";
   }
 }

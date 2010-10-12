@@ -28,6 +28,7 @@ package org.maven.ide.eclipse.wtp.earmodules;
  */
 
 import org.apache.maven.artifact.Artifact;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 
 /**
@@ -70,4 +71,10 @@ public class JarModule extends AbstractEarModule {
     this.includeInApplicationXml = includeInApplicationXml;
   }
 
+  protected void setCustomValues(Xpp3Dom module) {
+    Xpp3Dom contextRootDom = new Xpp3Dom("includeInApplicationXml");
+    contextRootDom.setValue(Boolean.toString(includeInApplicationXml));
+    module.addChild(contextRootDom); 
+  }
+  
 }

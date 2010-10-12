@@ -11,6 +11,7 @@ package org.maven.ide.eclipse.wtp;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -189,7 +190,7 @@ class EarPluginConfiguration {
       return Collections.<EarModule> emptySet();
     }
 
-    Set<EarModule> earModules = new HashSet<EarModule>(artifacts.size());
+    Set<EarModule> earModules = new LinkedHashSet<EarModule>(artifacts.size());
     String defaultBundleDir = getDefaultBundleDirectory();
     EarModuleFactory earModuleFactory = EarModuleFactory.createEarModuleFactory(getArtifactTypeMappingService(),
         getFileNameMapping(), getMainArtifactId(), artifacts);
@@ -265,7 +266,7 @@ class EarPluginConfiguration {
    * @param earModuleFactory
    */
   private Set<EarModule> getEarModulesFromConfig(EarModuleFactory earModuleFactory, String defaultBundleDir) throws EarPluginException {
-    Set<EarModule> earModules = new HashSet<EarModule>();
+    Set<EarModule> earModules = new LinkedHashSet<EarModule>();
     Xpp3Dom configuration = getConfiguration();
     if(configuration == null) {
       return earModules;

@@ -20,6 +20,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.3.2</version>
 					<configuration>
 						<source>1.5</source>
 						<target>1.5</target>
@@ -28,7 +29,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-war-plugin</artifactId>
-					<version>2.0.2</version>
+					<version>2.1</version>
 					<configuration>
 						<warSourceDirectory>WebContent</warSourceDirectory>
 					</configuration>
@@ -44,7 +45,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-ear-plugin</artifactId>
-					<version>2.3.2</version>
+					<version>2.4.2</version>
 					<configuration>
 						<version>5</version>
 						<earSourceDirectory>EarContent</earSourceDirectory>
