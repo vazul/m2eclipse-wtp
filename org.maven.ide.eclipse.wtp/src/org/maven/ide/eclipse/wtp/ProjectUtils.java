@@ -15,14 +15,14 @@ import org.eclipse.core.runtime.Path;
 /**
  * ProjectUtils
  *
- * @author fbricon
+ * @author Fred Bricon
  */
 public class ProjectUtils {
 
   /**
    * Transform an absolute path into a relative path to a project, if possible
    * @param project
-   * @param absolutePath
+   * @param absolutePath : relative path to the project
    * @return
    */
   public static String getRelativePath(IProject project, String absolutePath){

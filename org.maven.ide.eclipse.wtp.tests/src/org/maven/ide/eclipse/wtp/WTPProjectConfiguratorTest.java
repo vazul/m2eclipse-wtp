@@ -1253,4 +1253,76 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
 
+  public void testMNGECLIPSE2393_Libs_SkinnyWars() throws Exception {
+    
+    if (!WTPProjectsUtil.isJavaEE6Available()) {
+      //This feature is bugged on WTP < 3.2, so we skip the test
+      return;
+    }
+    IProject[] projects = importProjects(
+        "projects/MNGECLIPSE-2393/", //
+        new String[] {"ear/pom.xml", "utility1/pom.xml", "ejb/pom.xml", "skinny-war/pom.xml", "utility2/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    assertEquals(5, projects.length);
+    IProject ear = projects[0];
+    IProject utility1 = projects[1];
+    IProject ejb = projects[2];
+    IProject fullskinnywar = projects[3];
+    
+    assertMarkers(ear, 0);
+    assertMarkers(utility1, 0);
+    assertMarkers(ejb, 0);
+    assertMarkers(fullskinnywar, 0);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    
+    IVirtualReference utilityRef1 = comp.getReference("utility1");
+    assertNotNull(utilityRef1);
+    IVirtualReference ejbRef = comp.getReference("ejb");
+    assertNotNull(ejbRef);
+    
+    ////////////
+    //check the war project
+    ////////////
+    IVirtualReference skinnyWarRef = comp.getReference("skinny-war");
+    assertNotNull(skinnyWarRef);
+    assertEquals("skinny-war-0.0.1-SNAPSHOT.war",skinnyWarRef.getArchiveName());    
+    
+    //the fully skinny war contains to project refs whatsoever
+    IVirtualComponent skinnyWarComp = skinnyWarRef.getReferencedComponent();
+    IVirtualReference[] warRefs = skinnyWarComp.getReferences();
+    assertEquals(toString(warRefs),5, warRefs.length);
+    
+    assertEquals(utility1, warRefs[0].getReferencedComponent().getProject());
+    assertEquals("/", warRefs[0].getRuntimePath().toString());
+    assertEquals(ejb, warRefs[1].getReferencedComponent().getProject());
+    assertEquals("/", warRefs[1].getRuntimePath().toString());    
+    assertTrue(warRefs[2].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
+    assertEquals("/", warRefs[2].getRuntimePath().toString());  
+    assertTrue(warRefs[3].getReferencedComponent().getDeployedName().endsWith("commons-collections-2.0.jar"));  
+    assertEquals("/", warRefs[3].getRuntimePath().toString());  
+    
+    //check for all expected dependencies in the manifest
+    IFile war1ManifestFile = ComponentUtilities.findFile(skinnyWarComp, new Path(J2EEConstants.MANIFEST_URI));
+    Manifest mf1 = loadManifest(war1ManifestFile);
+
+    //check that manifest classpath contains all dependencies
+    String classpath = mf1.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+    assertTrue(classpath.contains("lib/"+utilityRef1.getArchiveName()));
+    assertTrue(classpath.contains(ejbRef.getArchiveName()));
+    assertFalse(classpath.contains("lib/"+ejbRef.getArchiveName()));
+    assertTrue(classpath.contains("lib/commons-lang-2.4.jar"));
+    assertTrue(classpath.contains("lib/commons-collections-2.0.jar"));
+    //...but not junit, which is a test dependency
+    assertFalse(classpath.contains("junit-3.8.1.jar"));
+    
+    //check that junit is in the maven classpath container instead
+    IClasspathEntry[] mavenContainerEntries = getMavenContainerEntries(fullskinnywar);
+    assertEquals(1, mavenContainerEntries.length);
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
+  }
+
+  
 }

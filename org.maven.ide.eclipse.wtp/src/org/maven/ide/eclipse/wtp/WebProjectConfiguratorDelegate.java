@@ -184,15 +184,16 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
       IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
 
+      String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
+      Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
       //in a skinny war the dependency modules are referenced by manifest classpath
       //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
-      if(opts.isSkinnyWar() && opts.isReferenceFromEar(depComponent)) {
+      if(opts.isSkinnyWar() && opts.isReferenceFromEar(depComponent, artifact.getArtifactHandler().getExtension())) {
         continue;
       }
 
       //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-      String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
-      if (!mavenProject.getArtifactMap().get(artifactKey).isOptional()) {
+      if (!artifact.isOptional()) {
         IVirtualReference reference = ComponentCore.createReference(component, depComponent);
         reference.setRuntimePath(new Path("/WEB-INF/lib"));
         references.add(reference);
@@ -260,20 +261,28 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       IClasspathEntryDescriptor descriptor = iter.next();
       IClasspathEntry entry = descriptor.getClasspathEntry();
       String scope = descriptor.getScope();
+      String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
+      Artifact artifact = mavenProject.getArtifactMap().get(key);
+      String extension = artifact.getArtifactHandler().getExtension();
 
       if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() && Artifact.SCOPE_COMPILE.equals(scope)) {
-
         //get deployed name for project dependencies
         //TODO can this be done somehow more elegantly?
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
+        
         IVirtualComponent component = ComponentCore.createComponent(p);
 
-        boolean usedInEar = opts.isReferenceFromEar(component);
+        boolean usedInEar = opts.isReferenceFromEar(component, extension);
         if(opts.isSkinnyWar() && usedInEar) {
           if(manifestCp.length() > 0) {
             manifestCp.append(" ");
           }
-          manifestCp.append(component.getDeployedName()).append(".jar");
+          //MNGECLIPSE-2393 prepend ManifestClasspath prefix
+          if (config.getManifestClasspathPrefix() != null && !JEEPackaging.isJEEPackaging(artifact.getType())) {
+              manifestCp.append(config.getManifestClasspathPrefix());
+          }
+          
+          manifestCp.append(component.getDeployedName()).append(".").append(extension);
         }
 
         if (!descriptor.isOptionalDependency() || usedInEar) {
@@ -288,7 +297,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         if(manifestCp.length() > 0) {
           manifestCp.append(" ");
         }
-        if(config.getManifestClasspathPrefix() != null) {
+        if(config.getManifestClasspathPrefix() != null && !JEEPackaging.isJEEPackaging(artifact.getType())) {
           manifestCp.append(config.getManifestClasspathPrefix());
         }
         manifestCp.append(entry.getPath().lastSegment());
@@ -423,7 +432,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
      * @param depComponent
      * @return
      */
-    public boolean isReferenceFromEar(IVirtualComponent depComponent) {
+    public boolean isReferenceFromEar(IVirtualComponent depComponent, String extension) {
       
       if (depComponent==null) {
         return false;
@@ -431,7 +440,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
       //calculate in regard to includes/excludes wether this jar is
       //to be packaged into  WEB-INF/lib
-      String jarFileName = "WEB-INF/lib/" + depComponent.getDeployedName() + ".jar";
+      String jarFileName = "WEB-INF/lib/" + depComponent.getDeployedName() + "." + extension;
       return isExcludedFromWebInfLib(jarFileName);
     }
 
