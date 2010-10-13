@@ -11,7 +11,9 @@ package org.maven.ide.eclipse.wtp;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -53,6 +55,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
   private final VersionRange VALID_EAR_PLUGIN_RANGE = VersionRange.createFromVersion("2.4.3");
 
+  
   private static final IOverwriteQuery OVERWRITE_ALL_QUERY = new IOverwriteQuery() {
     public String queryOverwrite(String pathString) {
       return IOverwriteQuery.ALL;
@@ -187,13 +190,30 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
     return (path.delete());
   }
 
-  private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId, String goal) {
-    for(MojoExecution execution : executionPlan.getMojoExecutions()) {
+  private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId, String goal) throws CoreException {
+    for(MojoExecution execution : getMojoExecutions(executionPlan)) {
       if(artifactId.equals(execution.getArtifactId()) && goal.equals(execution.getGoal())) {
         return execution;
       }
     }
     return null;
+  }
+
+  private Collection<MojoExecution> getMojoExecutions(MavenExecutionPlan executionPlan) throws CoreException {
+    Collection<MojoExecution> mojoExecutions;
+    try {
+      mojoExecutions = executionPlan.getMojoExecutions();
+    } catch (NoSuchMethodError nsme) {
+      //Support older versions of m2eclipse-core (pre Maven 3 era)
+      try {
+        Method getExecutionsMethod = MavenExecutionPlan.class.getMethod("getExecutions");
+        mojoExecutions = (Collection<MojoExecution>) getExecutionsMethod.invoke(executionPlan);
+      } catch(Exception e) {
+        IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, IStatus.ERROR, e.getMessage(), e);
+        throw new CoreException(status);
+      }
+    }
+    return mojoExecutions;
   }
 
 }
