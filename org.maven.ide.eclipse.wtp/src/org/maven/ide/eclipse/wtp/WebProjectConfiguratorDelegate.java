@@ -22,6 +22,7 @@ import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -81,8 +82,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     String warSourceDirectory = config.getWarSourceDirectory();
     IFile defaultWebXml = project.getFolder(warSourceDirectory).getFile("WEB-INF/web.xml");
-     
+    IFolder libDir = project.getFolder(warSourceDirectory).getFolder("WEB-INF/lib");
+    
     boolean alreadyHasWebXml = defaultWebXml.exists();
+    boolean alreadyHasLibDir = libDir.exists();
     
     IVirtualComponent component = ComponentCore.createComponent(project);
     if(component != null && warSourceDirectory != null) {
@@ -135,6 +138,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //If we have a custom web.xml but WTP created one against our will, we delete it 
     if (customWebXml != null && !alreadyHasWebXml && defaultWebXml.exists()) {
       defaultWebXml.delete(true, monitor);
+    }
+    //Maven /m2eclipse doesn't need a new lib dir. 
+    if (!alreadyHasLibDir && libDir.exists()) {
+      libDir.delete(true, monitor);
     }
     linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
     

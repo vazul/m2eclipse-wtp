@@ -72,6 +72,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(1, underlyingResources.length);
     assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[0]);
 
+    assertFalse(project.exists(new Path("/src/main/webapp/WEB-INF/lib")));
 }
 
   public void testSimple02_import() throws Exception {
@@ -80,7 +81,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
     assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
-  }
+
+    assertTrue(project.exists(new Path("/src/main/webapp/WEB-INF/lib")));
+}
 
   public void testSimple03_import() throws Exception {
     IProject project = importProject("projects/simple/p03/pom.xml", new ResolverConfiguration());
