@@ -86,4 +86,11 @@
       </viewerContentBinding>
    </extension> 
   
+     <extension
+         point="org.eclipse.wst.common.modulecore.referenceResolver">
+      <resolver
+            class="org.maven.ide.eclipse.wtp.modulecore.OverlayReferenceResolver"
+            id="org.maven.ide.eclipse.wtp.modulecore.OverlayReferenceResolver">
+      </resolver>
+   </extension>
 </plugin>
