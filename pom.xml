@@ -18,7 +18,7 @@
 
   <groupId>org.maven.ide.eclipse.wtp</groupId>
   <artifactId>org.maven.ide.eclipse.wtp.parent</artifactId>
-  <version>0.11.0.20101018-1330</version>
+  <version>0.11.0.20101024-0955</version>
   <packaging>pom</packaging>
 
   <name>Maven Integration for Eclipse WTP (Parent)</name>
