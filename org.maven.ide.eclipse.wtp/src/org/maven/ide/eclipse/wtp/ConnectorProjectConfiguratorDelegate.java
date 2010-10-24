@@ -95,7 +95,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     linkFile(project, customRaXml, "META-INF/ra.xml", monitor);
     
     //Remove "library unavailable at runtime" warning. TODO is it relevant for connector projects?
-    addContainerAttribute(project, NONDEPENDENCY_ATTRIBUTE, monitor);
+    setNonDependencyAttributeToContainer(project, monitor);
   }
 
   private void removeSourceLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor, String folder) throws CoreException {
