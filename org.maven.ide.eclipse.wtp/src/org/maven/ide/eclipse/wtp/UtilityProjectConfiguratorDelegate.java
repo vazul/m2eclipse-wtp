@@ -42,7 +42,7 @@ class UtilityProjectConfiguratorDelegate extends AbstractProjectConfiguratorDele
       removeTestFolderLinks(project, mavenProject, monitor, "/"); 
 
       // Remove "library unavailable at runtime" warning.
-      addContainerAttribute(project, NONDEPENDENCY_ATTRIBUTE, monitor);
+      setNonDependencyAttributeToContainer(project, monitor);
     }
 }
 
