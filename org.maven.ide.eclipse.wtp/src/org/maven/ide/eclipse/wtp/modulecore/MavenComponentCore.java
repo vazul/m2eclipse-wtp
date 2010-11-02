@@ -19,11 +19,11 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
  */
 public class MavenComponentCore {
 
-  public static IVirtualComponent createComponent(IProject aProject) {
+  public static IVirtualComponent createOverlayComponent(IProject aProject) {
     return new WarOverlayVirtualComponent();
   }
   
-  public static IVirtualComponent createArchiveComponent(IProject aProject, Artifact artifact) {
+  public static IVirtualComponent createOverlayArchiveComponent(IProject aProject, Artifact artifact) {
     return new WarOverlayVirtualArchiveComponent();
   }
 }

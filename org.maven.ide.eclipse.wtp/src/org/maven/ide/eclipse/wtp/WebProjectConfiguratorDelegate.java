@@ -57,6 +57,8 @@ import org.maven.ide.eclipse.jdt.IClasspathEntryDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
+import org.maven.ide.eclipse.wtp.modulecore.IWarOverlayVirtualComponent;
+import org.maven.ide.eclipse.wtp.modulecore.MavenComponentCore;
 
 
 /**
@@ -188,8 +190,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       
       preConfigureDependencyProject(dependency, monitor);
       MavenProject depMavenProject =  dependency.getMavenProject(monitor);
-
-      IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+      
+      IVirtualComponent depComponent; 
+      if ("war".equals(depPackaging)) {
+        depComponent = MavenComponentCore.createOverlayComponent(dependency.getProject());
+      } else {
+        depComponent = ComponentCore.createComponent(dependency.getProject());
+      }
 
       String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
       Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
@@ -202,6 +209,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
       if (!artifact.isOptional()) {
         IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+        if (!(depComponent instanceof IWarOverlayVirtualComponent))
         reference.setRuntimePath(new Path("/WEB-INF/lib"));
         references.add(reference);
       }

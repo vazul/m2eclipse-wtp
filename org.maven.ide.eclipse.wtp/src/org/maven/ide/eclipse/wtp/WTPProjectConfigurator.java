@@ -39,7 +39,6 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
         .getProjectConfiguratorDelegate(mavenProject.getPackaging());
     if(configuratorDelegate != null) {
       IProject project = request.getProject();
-//      console.logMessage("Configuring " +project.getName());
       try {
         configuratorDelegate.configureProject(project, mavenProject, monitor);
         configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
@@ -54,7 +53,6 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
     IMavenProjectFacade facade = event.getMavenProject();
     if(facade != null) {
       IProject project = facade.getProject();
-//      console.logMessage(project.getName()+ " changed");
       if(isWTPProject(project)) {
         MavenProject mavenProject = facade.getMavenProject(monitor);
         IProjectConfiguratorDelegate configuratorDelegate = ProjectConfiguratorDelegateFactory
