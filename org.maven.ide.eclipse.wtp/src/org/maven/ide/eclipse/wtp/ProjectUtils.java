@@ -8,9 +8,9 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.io.File;
+
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 /**
  * ProjectUtils
@@ -26,13 +26,17 @@ public class ProjectUtils {
    * @return
    */
   public static String getRelativePath(IProject project, String absolutePath){
-    if(project != null && absolutePath != null) {
-      IPath projectLocationPath = project.getLocation();
-      if(projectLocationPath != null) {
-        IPath path = new Path(absolutePath);
-        return path.makeRelativeTo(projectLocationPath).toOSString();
-      }
+	//Code copied from org.maven.ide.eclipse.jdt.internal.AbstractJavaProjectConfigurator 
+	//since Path.makeRelativeTo() doesn't work on Linux
+    File basedir = project.getLocation().toFile();
+    String relative;
+    if(absolutePath.equals(basedir.getAbsolutePath())) {
+      relative = ".";
+    } else if(absolutePath.startsWith(basedir.getAbsolutePath())) {
+      relative = absolutePath.substring(basedir.getAbsolutePath().length() + 1);
+    } else {
+      relative = absolutePath;
     }
-    return absolutePath;
+    return relative.replace('\\', '/'); //$NON-NLS-1$ //$NON-NLS-2$
   }
 }
