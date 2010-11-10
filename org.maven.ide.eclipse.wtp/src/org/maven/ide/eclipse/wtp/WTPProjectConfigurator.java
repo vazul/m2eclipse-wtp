@@ -49,7 +49,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
   }
 
   @Override
-  protected void mavenProjectChanged(MavenProjectChangedEvent event, IProgressMonitor monitor) throws CoreException {
+  public void mavenProjectChanged(MavenProjectChangedEvent event, IProgressMonitor monitor) throws CoreException {
     IMavenProjectFacade facade = event.getMavenProject();
     if(facade != null) {
       IProject project = facade.getProject();

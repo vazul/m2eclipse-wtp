@@ -125,7 +125,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     //Remove "library unavailable at runtime" warning.
-    addContainerAttribute(project, NONDEPENDENCY_ATTRIBUTE, monitor);
+    setNonDependencyAttributeToContainer(project, monitor);
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
@@ -151,27 +151,37 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
   }
 
-  // XXX move to IJavaProjectConfiguration#configureRawClasspath
   protected void addContainerAttribute(IProject project, IClasspathAttribute attribute, IProgressMonitor monitor)
       throws JavaModelException {
+    updateContainerAttributes(project, attribute, null, monitor);
+  }
+
+  protected void setNonDependencyAttributeToContainer(IProject project, IProgressMonitor monitor) throws JavaModelException {
+    updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
+  }
+
+  protected void updateContainerAttributes(IProject project, IClasspathAttribute attributeToAdd, String attributeToDelete, IProgressMonitor monitor)
+  throws JavaModelException {
     IJavaProject javaProject = JavaCore.create(project);
-	if (javaProject == null) return;
+    if (javaProject == null) return;
     IClasspathEntry[] cp = javaProject.getRawClasspath();
     for(int i = 0; i < cp.length; i++ ) {
       if(IClasspathEntry.CPE_CONTAINER == cp[i].getEntryKind()
           && BuildPathManager.isMaven2ClasspathContainer(cp[i].getPath())) {
         LinkedHashMap<String, IClasspathAttribute> attrs = new LinkedHashMap<String, IClasspathAttribute>();
         for(IClasspathAttribute attr : cp[i].getExtraAttributes()) {
-          attrs.put(attr.getName(), attr);
+          if (!attr.getName().equals(attributeToDelete)) {
+            attrs.put(attr.getName(), attr);            
+          }
         }
-        attrs.put(attribute.getName(), attribute);
+        attrs.put(attributeToAdd.getName(), attributeToAdd);
         IClasspathAttribute[] newAttrs = attrs.values().toArray(new IClasspathAttribute[attrs.size()]);
         cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
         break;
       }
-    }
-    javaProject.setRawClasspath(cp, monitor);
-  }
+}
+javaProject.setRawClasspath(cp, monitor);
+}
 
   /**
    * @param dependencyMavenProjectFacade
