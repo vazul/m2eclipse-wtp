@@ -6,24 +6,16 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.modulecore;
+package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
-import org.apache.maven.artifact.Artifact;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.wst.common.componentcore.internal.resources.VirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 
 /**
- * MavenComponentCore
+ * Overlay Virtual Archive Component
  *
  * @author Fred Bricon
  */
-public class MavenComponentCore {
+public class OverlayVirtualArchiveComponent extends VirtualComponent implements IOverlayVirtualComponent {
 
-  public static IVirtualComponent createOverlayComponent(IProject aProject) {
-    return new WarOverlayVirtualComponent();
-  }
-  
-  public static IVirtualComponent createOverlayArchiveComponent(IProject aProject, Artifact artifact) {
-    return new WarOverlayVirtualArchiveComponent();
-  }
 }

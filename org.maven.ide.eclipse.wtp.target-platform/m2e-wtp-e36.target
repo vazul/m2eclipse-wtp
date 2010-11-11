@@ -33,12 +33,8 @@
 <repository location="http://download.eclipse.org/releases/helios"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
-<!--
-<unit id="org.maven.ide.eclipse.feature.feature.group" version="0.11.0.201008030706"/>
-<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.11.0/N/0.11.0.201008030706/"/>
--->
-<unit id="org.maven.ide.eclipse.feature.feature.group" version="0.12.0.201009252211"/>
-<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.12.0/N/0.12.0.201009252211/"/>
+<unit id="org.maven.ide.eclipse.feature.feature.group" version="0.12.0.20101102-1505"/>
+<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.12.0/S/0.12.0.20101102-1505/"/>
 </location>
 </locations>
 </target>

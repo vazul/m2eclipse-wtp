@@ -30,7 +30,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.wst.common.emfworkbench.integration,
  org.eclipse.jst.jee,
  org.eclipse.jst.j2ee.jca,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.maven.ide.eclipse.wtp.overlay
 Bundle-Vendor: Sonatype, Inc.
 Export-Package: org.maven.ide.eclipse.wtp
 Bundle-Activator: org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin

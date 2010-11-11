@@ -8,6 +8,8 @@
 
 package org.maven.ide.eclipse.wtp.internal;
 
+import java.io.File;
+
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -22,13 +24,24 @@ public class MavenWtpPlugin extends AbstractUIPlugin {
   
   private static MavenWtpPlugin instance;
 
+  private File explodedWarsDir;
+  
+  
   public MavenWtpPlugin() {
     instance = this;
   }
 
+  
+  
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+    
+    File stateLocationDir = getStateLocation().toFile();
+    explodedWarsDir = new File(stateLocationDir, "exploded-wars");
+    if (!explodedWarsDir.exists()) {
+      explodedWarsDir.mkdirs();
+    }
   }
 
   @Override
@@ -38,6 +51,13 @@ public class MavenWtpPlugin extends AbstractUIPlugin {
   
   public static MavenWtpPlugin getDefault() {
     return instance;
+  }
+
+  /**
+   * @return Returns the explodedWarsDir.
+   */
+  public File getExplodedWarsDir() {
+    return explodedWarsDir;
   }
   
 }

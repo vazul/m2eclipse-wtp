@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
@@ -57,8 +58,8 @@ import org.maven.ide.eclipse.jdt.IClasspathEntryDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
-import org.maven.ide.eclipse.wtp.modulecore.IWarOverlayVirtualComponent;
-import org.maven.ide.eclipse.wtp.modulecore.MavenComponentCore;
+import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
+import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
 
 
 /**
@@ -69,7 +70,7 @@ import org.maven.ide.eclipse.wtp.modulecore.MavenComponentCore;
  */
 @SuppressWarnings("restriction")
 class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
-
+  EcoreFactory f;
   /**
    * See http://wiki.eclipse.org/ClasspathEntriesPublishExportSupport
    */
@@ -193,7 +194,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       
       IVirtualComponent depComponent; 
       if ("war".equals(depPackaging)) {
-        depComponent = MavenComponentCore.createOverlayComponent(dependency.getProject());
+        depComponent = OverlayComponentCore.createOverlayComponent(dependency.getProject());
       } else {
         depComponent = ComponentCore.createComponent(dependency.getProject());
       }
@@ -209,8 +210,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
       if (!artifact.isOptional()) {
         IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-        if (!(depComponent instanceof IWarOverlayVirtualComponent))
-        reference.setRuntimePath(new Path("/WEB-INF/lib"));
+        if (!(depComponent instanceof IOverlayVirtualComponent)) {
+          reference.setRuntimePath(new Path("/WEB-INF/lib"));
+        }
         references.add(reference);
       }
     }

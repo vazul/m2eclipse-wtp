@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.modulecore;
+package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -41,7 +41,7 @@ public class OverlayReferenceResolver implements IReferenceResolver {
     else
       p = component.getProject();
     
-    IVirtualComponent comp = new WarOverlayVirtualComponent();
+    IVirtualComponent comp = new OverlayVirtualComponent(p);
     IVirtualReference ref = ComponentCore.createReference(component, comp);
     ref.setArchiveName(referencedComponent.getArchiveName());
     ref.setRuntimePath(referencedComponent.getRuntimePath());
@@ -50,18 +50,18 @@ public class OverlayReferenceResolver implements IReferenceResolver {
   }
 
   public boolean canResolve(IVirtualReference reference) {
-    return  reference != null && reference.getReferencedComponent() instanceof IWarOverlayVirtualComponent;
+    return  reference != null && reference.getReferencedComponent() instanceof IOverlayVirtualComponent;
   }
 
   public ReferencedComponent resolve(IVirtualReference reference) {
     
     if(canResolve(reference)) {
-      IWarOverlayVirtualComponent comp = (IWarOverlayVirtualComponent)reference.getReferencedComponent();
+      IOverlayVirtualComponent comp = (IOverlayVirtualComponent)reference.getReferencedComponent();
       IProject p = reference.getReferencedComponent().getProject();
       ReferencedComponent rc = ComponentcorePackage.eINSTANCE.getComponentcoreFactory().createReferencedComponent();
       rc.setArchiveName(reference.getArchiveName());
       rc.setRuntimePath(reference.getRuntimePath());
-      //rc.setHandle(URI.createURI(comp.getId())); TODO
+      rc.setHandle(URI.createURI(PROTOCOL+p.getName())); 
       rc.setDependencyType(DependencyType.CONSUMES_LITERAL);
       return rc;
     }
