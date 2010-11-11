@@ -24,6 +24,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
  *
  * @author Fred Bricon
  */
+@SuppressWarnings("restriction")
 public class OverlayReferenceResolver implements IReferenceResolver {
 
   public static final String PROTOCOL = "module:/overlay/";
@@ -33,13 +34,14 @@ public class OverlayReferenceResolver implements IReferenceResolver {
     return ((uri.segmentCount() > 1) && (uri.segment(0).equals("overlay")));
   }
 
-  public IVirtualReference resolve(IVirtualComponent component, ReferencedComponent referencedComponent) {
+public IVirtualReference resolve(IVirtualComponent component, ReferencedComponent referencedComponent) {
     String project = referencedComponent.getHandle().segment(1);
     IProject p = null;
-    if( !project.equals("")) 
-      p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);
-    else
-      p = component.getProject();
+    if("".equals(project)) {
+    	p = component.getProject();
+    } else {
+        p = ResourcesPlugin.getWorkspace().getRoot().getProject(project);    	
+    }
     
     IVirtualComponent comp = new OverlayVirtualComponent(p);
     IVirtualReference ref = ComponentCore.createReference(component, comp);
@@ -54,7 +56,6 @@ public class OverlayReferenceResolver implements IReferenceResolver {
   }
 
   public ReferencedComponent resolve(IVirtualReference reference) {
-    
     if(canResolve(reference)) {
       IOverlayVirtualComponent comp = (IOverlayVirtualComponent)reference.getReferencedComponent();
       IProject p = reference.getReferencedComponent().getProject();
