@@ -9,6 +9,8 @@
 package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
@@ -22,10 +24,12 @@ import org.eclipse.jst.j2ee.internal.common.exportmodel.JavaEESingleRootCallback
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent;
 import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent.FlatComponentTaskModel;
+import org.eclipse.wst.common.componentcore.internal.flat.IChildModuleReference;
 import org.eclipse.wst.common.componentcore.internal.flat.IFlattenParticipant;
 import org.eclipse.wst.common.componentcore.internal.resources.VirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
+import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 
 /**
  * Overlay Virtual Component
@@ -38,29 +42,39 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 
 	protected IProject project;
 
+	protected FlatVirtualComponent flatVirtualComponent; 
+	
 	protected Set<String> exclusionPatterns;
 	
 	protected Set<String> inclusionPatterns;
 	
+	protected Set<IVirtualReference> references;
+	
+	protected CompositeVirtualFolder root = null;
+	
 	public OverlayVirtualComponent(IProject project) {
 		super(project, ROOT);
 		this.project = project;
-	}
-
-	public IVirtualFolder getRootFolder() {
-		IVirtualFolder root = null;
 		if (project != null) {
 			IVirtualComponent component = ComponentCore.createComponent(project);
 			if (component != null) {
 				//FlatVirtualComponent will build the project structure from the definition in .component
-				FlatVirtualComponent flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
-				//we need to convert the component into a VirtualResource
-				root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
+				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
 			}
+		}
+	}
+
+	public IVirtualFolder getRootFolder() {
+		return getRoot();
+	}
+
+	private CompositeVirtualFolder getRoot() {
+		if (root == null && flatVirtualComponent != null) {
+			root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
 		}
 		return root;
 	}
-
+	
 	private FlatComponentTaskModel getOptions() {
 		FlatComponentTaskModel options = new FlatComponentTaskModel();
 		//Participants produce IFlatResources[]
@@ -83,6 +97,24 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 
 	public void setExclusions(Set<String> inclusionPatterns) {
 		this.inclusionPatterns = inclusionPatterns;
+	}
+
+	@Override
+	public IVirtualReference[] getReferences(Map<String, Object> paramMap){;
+		if (getRoot() != null) {
+			IVirtualReference[] references = getRoot().getReferences(); 
+			return references;
+		}
+		return new IVirtualReference[0];
+	}
+
+
+	private Set<IVirtualReference> getReferences(IChildModuleReference[] childModules) {
+		Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>(childModules.length);
+		for (IChildModuleReference child : childModules){
+			references.add(child.getReference());
+		}
+		return references;
 	}
 
 }
