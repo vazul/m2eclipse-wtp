@@ -11,7 +11,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.wst.common.modulecore,
  org.eclipse.emf.common,
  org.eclipse.emf.ecore,
- org.eclipse.jst.common.frameworks;bundle-version="1.1.400"
+ org.eclipse.jst.common.frameworks;bundle-version="1.1.400",
+ org.eclipse.jst.j2ee;bundle-version="1.1.400"
 Bundle-Vendor: Sonatype, Inc.
 Export-Package: org.maven.ide.eclipse.wtp.overlay.modulecore
 Bundle-ActivationPolicy: lazy

@@ -1,6 +1,11 @@
 package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -11,6 +16,8 @@ import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent;
 import org.eclipse.wst.common.componentcore.internal.flat.IFlatFile;
 import org.eclipse.wst.common.componentcore.internal.flat.IFlatFolder;
 import org.eclipse.wst.common.componentcore.internal.flat.IFlatResource;
+import org.eclipse.wst.common.componentcore.internal.resources.VirtualFile;
+import org.eclipse.wst.common.componentcore.internal.resources.VirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualContainer;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
@@ -26,27 +33,39 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 public class CompositeVirtualFolder implements IVirtualFolder {
 
 	private FlatVirtualComponent flatVirtualComponent;
+	private IPath runtimePath;
+	private IProject project;
 	
-	public CompositeVirtualFolder(FlatVirtualComponent flatVirtualComponent, IPath aRuntimePath) {
-		this.flatVirtualComponent = flatVirtualComponent;
+	public CompositeVirtualFolder(FlatVirtualComponent aFlatVirtualComponent, IPath aRuntimePath) {
+		this.flatVirtualComponent = aFlatVirtualComponent;
+		if (flatVirtualComponent != null && flatVirtualComponent.getComponent() != null) {
+			project = flatVirtualComponent.getComponent().getProject();
+		}
+		this.runtimePath = aRuntimePath;
 	}
 
 	public IProject getProject() {
-		if (flatVirtualComponent != null && flatVirtualComponent.getComponent() != null) {
-			return flatVirtualComponent.getComponent().getProject();
-		}
-		return null;
+		return project;
+	}
+
+	public IPath getRuntimePath() {
+		return runtimePath;
 	}
 
 	public IVirtualResource[] members() throws CoreException {	 
+		System.out.println("Getting members from "+project.getName());
 		IFlatResource[] flatResources = flatVirtualComponent.fetchResources();
-		IVirtualResource[] members = new IVirtualResource[flatResources.length];
-		int i = 0;
+		List<IVirtualResource> members = new ArrayList<IVirtualResource>(flatResources.length);
 		for (IFlatResource flatResource : flatResources) {
-			members[i] = convert(flatResource);
-			i++;
+			IVirtualResource resource = convert(flatResource);
+			if (resource != null) {
+				members.add(resource);	
+			}
 		}
-		return members;
+		IVirtualResource[] result = new IVirtualResource[members.size()];
+		members.toArray(result);
+		System.out.println("-------------------");
+		return result;
 	}
 
 	private IVirtualResource convert(IFlatResource flatResource) {
@@ -62,19 +81,42 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	}
 
 	private IVirtualFolder convertFolder(IFlatFolder flatFolder) {
-		//Do we need to go recursive? Please no!!! for (IFlatResource flatResource  : flatFolder.members()) { convert(...)}; 
-		return null;
+		//Do we need to go recursive? Please no!!! for (IFlatResource flatResource  : flatFolder.members()) { convert(...)};
+		IFlatResource[] flatMembers = flatFolder.members();
+		List<IVirtualResource> membersList = new ArrayList<IVirtualResource>(flatMembers.length);
+		for (IFlatResource flatResource : flatMembers) {
+			IVirtualResource resource = convert(flatResource);
+			if (resource != null) {
+				membersList.add(resource);	
+			}
+		}
+		final IVirtualResource[] folderMembers = new IVirtualResource[membersList.size()];
+		membersList.toArray(folderMembers);
+		VirtualFolder vf = new VirtualFolder(project, flatFolder.getModuleRelativePath().append(flatFolder.getName())) {
+			@Override
+			public IVirtualResource[] members() throws CoreException {
+				return folderMembers; 
+			}
+		}; 
+		return vf;
+		
 	}
 
 	private IVirtualFile convertFile(IFlatFile flatFile) {
-		//Do we need to create a new implementation of IVirtualFile?
-		IPath path = flatFile.getModuleRelativePath();
-		return null;
+		IFile f = (IFile)flatFile.getAdapter(IFile.class);
+		VirtualFile vf = null;
+		if (f == null) {
+			File underlyingFile = (File)flatFile.getAdapter(File.class);
+			//How do we get external files? 
+			System.err.println("need to get " + underlyingFile);
+		} else {
+			vf = new VirtualFile(project, flatFile.getModuleRelativePath(), f);
+		}
+		return vf;
 	}
 	
 	public void create(int arg0, IProgressMonitor arg1) throws CoreException {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public boolean exists(IPath arg0) {
@@ -174,11 +216,6 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	}
 
 	public String getResourceType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public IPath getRuntimePath() {
 		// TODO Auto-generated method stub
 		return null;
 	}

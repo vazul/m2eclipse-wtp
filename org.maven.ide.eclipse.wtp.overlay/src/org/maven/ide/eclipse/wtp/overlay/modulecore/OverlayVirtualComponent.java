@@ -15,6 +15,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jst.common.internal.modulecore.AddClasspathFoldersParticipant;
 import org.eclipse.jst.common.internal.modulecore.AddClasspathLibReferencesParticipant;
 import org.eclipse.jst.common.internal.modulecore.AddMappedOutputFoldersParticipant;
+import org.eclipse.jst.common.internal.modulecore.IgnoreJavaInSourceFolderParticipant;
+import org.eclipse.jst.common.internal.modulecore.SingleRootExportParticipant;
+import org.eclipse.jst.j2ee.internal.common.exportmodel.JEEHeirarchyExportParticipant;
+import org.eclipse.jst.j2ee.internal.common.exportmodel.JavaEESingleRootCallback;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent;
 import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent.FlatComponentTaskModel;
@@ -60,13 +64,14 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	private FlatComponentTaskModel getOptions() {
 		FlatComponentTaskModel options = new FlatComponentTaskModel();
 		//Participants produce IFlatResources[]
+		//TODO Maybe deal with the inclusion/exclusion stuff on the participant level (using an Adapter or a Callback pattern)
 		IFlattenParticipant[] participants = new IFlattenParticipant[] { 
-	    	       //new SingleRootExportParticipant(new JavaEESingleRootCallback()), 
-	    	       //new JEEHeirarchyExportParticipant(), 
+	    	       new SingleRootExportParticipant(new JavaEESingleRootCallback()), 
+	    	       new JEEHeirarchyExportParticipant(), 
 	    	       new AddClasspathLibReferencesParticipant(), 
 	    	       new AddClasspathFoldersParticipant(), 
-	    	       new AddMappedOutputFoldersParticipant() 
-	    	       //,new IgnoreJavaInSourceFolderParticipant() 
+	    	       new AddMappedOutputFoldersParticipant(),
+	    	       new IgnoreJavaInSourceFolderParticipant() 
 	    	       };
 		options.put(FlatVirtualComponent.PARTICIPANT_LIST, Arrays.asList(participants));
 		return options;
