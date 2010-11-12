@@ -9,8 +9,12 @@
 package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jst.common.internal.modulecore.AddClasspathFoldersParticipant;
+import org.eclipse.jst.common.internal.modulecore.AddClasspathLibReferencesParticipant;
+import org.eclipse.jst.common.internal.modulecore.AddMappedOutputFoldersParticipant;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent;
 import org.eclipse.wst.common.componentcore.internal.flat.FlatVirtualComponent.FlatComponentTaskModel;
@@ -30,6 +34,10 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 
 	protected IProject project;
 
+	protected Set<String> exclusionPatterns;
+	
+	protected Set<String> inclusionPatterns;
+	
 	public OverlayVirtualComponent(IProject project) {
 		super(project, ROOT);
 		this.project = project;
@@ -60,8 +68,16 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	    	       new AddMappedOutputFoldersParticipant() 
 	    	       //,new IgnoreJavaInSourceFolderParticipant() 
 	    	       };
-		options.put(FlatVirtualComponent.PARTICIPANT_LIST, Arrays.asList(getParticipants()));
+		options.put(FlatVirtualComponent.PARTICIPANT_LIST, Arrays.asList(participants));
 		return options;
+	}
+
+	public void setInclusions(Set<String> inclusionPatterns) {
+		this.exclusionPatterns = exclusionPatterns;
+	}
+
+	public void setExclusions(Set<String> inclusionPatterns) {
+		this.inclusionPatterns = inclusionPatterns;
 	}
 
 }

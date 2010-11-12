@@ -8,8 +8,9 @@
 
 package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
+import java.util.Set;
+
 import org.eclipse.wst.common.componentcore.internal.resources.VirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 
 /**
  * Overlay Virtual Archive Component
@@ -17,5 +18,15 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
  * @author Fred Bricon
  */
 public class OverlayVirtualArchiveComponent extends VirtualComponent implements IOverlayVirtualComponent {
+
+	public void setInclusions(Set<String> inclusionPatterns) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setExclusions(Set<String> inclusionPatterns) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

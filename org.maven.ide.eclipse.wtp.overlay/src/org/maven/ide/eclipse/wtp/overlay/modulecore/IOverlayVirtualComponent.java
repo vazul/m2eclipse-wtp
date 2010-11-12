@@ -8,6 +8,8 @@
 
 package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
+import java.util.Set;
+
 /**
  * IOverlayVirtualComponent
  *
@@ -15,4 +17,13 @@ package org.maven.ide.eclipse.wtp.overlay.modulecore;
  */
 public interface IOverlayVirtualComponent {
 
+	/**
+	 * Specify the resources to include.
+	 */
+	void setInclusions(Set<String> inclusionPatterns);
+	
+	/**
+	 * Specify the resources to exclude.
+	 */
+	void setExclusions(Set<String> inclusionPatterns);
 }
