@@ -54,24 +54,32 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	
 	public OverlayVirtualComponent(IProject project) {
 		super(project, ROOT);
+//		System.err.println("Creating OverlayVirtualComponent for " +project);
 		this.project = project;
-		if (project != null) {
-			IVirtualComponent component = ComponentCore.createComponent(project);
-			if (component != null) {
-				//FlatVirtualComponent will build the project structure from the definition in .component
-				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
-			}
-		}
+//		if (project != null) {
+//			IVirtualComponent component = ComponentCore.createComponent(project);
+//			if (component != null) {
+//				//FlatVirtualComponent will build the project structure from the definition in .component
+//				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
+//			}
+//		}
 	}
 
 	public IVirtualFolder getRootFolder() {
+		//System.err.println("getting root folder for "+project);
 		return getRoot();
 	}
 
 	private CompositeVirtualFolder getRoot() {
-		if (root == null && flatVirtualComponent != null) {
-			root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
+
+		IVirtualComponent component = ComponentCore.createComponent(project);
+		if (component != null) {
+			//FlatVirtualComponent will build the project structure from the definition in .component
+			flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
 		}
+
+		root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
+		
 		return root;
 	}
 	

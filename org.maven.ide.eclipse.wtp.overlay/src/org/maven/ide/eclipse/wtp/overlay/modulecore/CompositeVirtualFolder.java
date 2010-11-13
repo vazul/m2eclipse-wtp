@@ -71,6 +71,7 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 		}
 		IVirtualResource[] result = new IVirtualResource[members.size()];
 		members.toArray(result);
+		//System.out.println(project+ " has "+members.size()+ " members");
 		return result;
 	}
 
