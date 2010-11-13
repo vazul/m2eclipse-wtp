@@ -49,37 +49,26 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	protected Set<String> inclusionPatterns;
 	
 	protected Set<IVirtualReference> references;
-	
-	protected CompositeVirtualFolder root = null;
-	
+		
 	public OverlayVirtualComponent(IProject project) {
 		super(project, ROOT);
-//		System.err.println("Creating OverlayVirtualComponent for " +project);
 		this.project = project;
-//		if (project != null) {
-//			IVirtualComponent component = ComponentCore.createComponent(project);
-//			if (component != null) {
-//				//FlatVirtualComponent will build the project structure from the definition in .component
-//				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
-//			}
-//		}
 	}
 
 	public IVirtualFolder getRootFolder() {
-		//System.err.println("getting root folder for "+project);
 		return getRoot();
 	}
 
 	private CompositeVirtualFolder getRoot() {
-
-		IVirtualComponent component = ComponentCore.createComponent(project);
-		if (component != null) {
-			//FlatVirtualComponent will build the project structure from the definition in .component
-			flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
+		CompositeVirtualFolder root = null;
+		if (project != null) {
+			IVirtualComponent component = ComponentCore.createComponent(project);
+			if (component != null) {
+				//FlatVirtualComponent will build the project structure from the definition in .component
+				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
+				root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
+			}
 		}
-
-		root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
-		
 		return root;
 	}
 	
@@ -109,9 +98,15 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 
 	@Override
 	public IVirtualReference[] getReferences(Map<String, Object> paramMap){;
-		if (getRoot() != null) {
-			IVirtualReference[] references = getRoot().getReferences(); 
-			return references;
+		CompositeVirtualFolder  root = getRoot(); 
+		if (root != null) {
+			try {
+				root.members();//Temporary treewalk to populate references. 
+				IVirtualReference[] references = root.getReferences(); 
+				return references;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return new IVirtualReference[0];
 	}
