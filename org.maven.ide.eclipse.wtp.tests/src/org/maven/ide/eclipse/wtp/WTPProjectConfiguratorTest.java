@@ -1184,7 +1184,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
 
   //Test disabled as the fix breaks default behavior
-  public void XXXtestMNGECLIPSE2279_finalNameAsContextRoot() throws Exception {
+  public void testMNGECLIPSE2279_finalNameAsContextRoot() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-2279/pom.xml", new ResolverConfiguration());
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
@@ -1203,7 +1203,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     updateProject(project, "pom.step3.xml");     
     assertEquals("web_appli.cation",J2EEProjectUtilities.getServerContextRoot(project));
     assertMarkers(project, 0);
-  }
+
+    //Test no finalName
+    updateProject(project, "pom.step4.xml");     
+    assertEquals("MNGECLIPSE-2279",J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+}
 
 
   public void testMNGECLIPSE2357_customWebXml() throws Exception {
