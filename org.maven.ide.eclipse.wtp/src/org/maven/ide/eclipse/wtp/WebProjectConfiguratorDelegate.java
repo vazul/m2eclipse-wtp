@@ -21,6 +21,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -229,11 +230,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
    * @return the final name of the project if it exists, or the project's artifactId.
    */
   protected String getContextRoot(MavenProject mavenProject) {
-    //String contextRoot = mavenProject.getBuild().getFinalName();
-    //if (StringUtils.isBlank(contextRoot)) {
-    //  contextRoot = mavenProject.getArtifactId();
-    //}
-    String contextRoot = mavenProject.getArtifactId();
+    String contextRoot;
+    String finalName = mavenProject.getBuild().getFinalName();
+    if (StringUtils.isBlank(finalName) 
+       || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
+      contextRoot = mavenProject.getArtifactId();
+    }  else {
+      contextRoot = finalName;
+    }
     return contextRoot.trim().replace(" ", "_");
   }
 
