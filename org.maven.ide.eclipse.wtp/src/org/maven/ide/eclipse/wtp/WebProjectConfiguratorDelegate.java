@@ -208,8 +208,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       }
     }
 
-    component.setReferences(references.toArray(new IVirtualReference[references.size()]));
-
+    
+    IVirtualReference[] newRefs = references.toArray(new IVirtualReference[references.size()]);
+    if (hasChanged(component.getReferences(), newRefs)){
+      //Only write in the .component file if necessary 
+      component.setReferences(newRefs);
+    }
+    
     //TODO why a 2nd loop???
     for(IMavenProjectFacade dependency : exportedDependencies) {
       MavenProject depMavenProject =  dependency.getMavenProject(monitor);
