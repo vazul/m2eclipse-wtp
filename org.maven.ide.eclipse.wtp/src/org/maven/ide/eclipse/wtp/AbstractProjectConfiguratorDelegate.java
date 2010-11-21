@@ -117,8 +117,10 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, WTPProjectsUtil.UTILITY_10,
           null));
     }
-
-    facetedProject.modify(actions, monitor);
+    
+    if (!actions.isEmpty()) {
+      facetedProject.modify(actions, monitor);      
+    }
     
     //MNGECLIPSE-904 remove tests folder links for utility jars
     //TODO handle modules in a parent pom (the following doesn't work)

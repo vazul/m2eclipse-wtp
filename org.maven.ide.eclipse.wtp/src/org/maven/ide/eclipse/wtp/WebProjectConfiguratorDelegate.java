@@ -122,8 +122,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       }
     }
 
-    facetedProject.modify(actions, monitor);
-
+    if(!actions.isEmpty()) {
+      facetedProject.modify(actions, monitor);
+    }
+    
     // MNGECLIPSE-632 remove test sources/resources from WEB-INF/classes
     removeTestFolderLinks(project, mavenProject, monitor, "/WEB-INF/classes");
 
