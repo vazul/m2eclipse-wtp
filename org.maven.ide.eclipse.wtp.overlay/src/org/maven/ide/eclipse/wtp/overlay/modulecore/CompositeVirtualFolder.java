@@ -42,6 +42,7 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	private IPath runtimePath;
 	private IProject project;
 	private Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>();
+	private IVirtualResource[] members;
 	
 	public CompositeVirtualFolder(FlatVirtualComponent aFlatVirtualComponent, IPath aRuntimePath) {
 		this.flatVirtualComponent = aFlatVirtualComponent;
@@ -49,7 +50,14 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 			project = flatVirtualComponent.getComponent().getProject();
 		}
 		this.runtimePath = aRuntimePath;
-		
+		try {
+			treeWalk();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		if (members == null) {
+			members = new IVirtualResource[0]; 
+		}
 	}
 
 	public IProject getProject() {
@@ -60,19 +68,21 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 		return runtimePath;
 	}
 
-	public IVirtualResource[] members() throws CoreException {	 
+	public IVirtualResource[] members() throws CoreException {
+		return members;
+	}
+	
+	public void treeWalk() throws CoreException {	 
 		IFlatResource[] flatResources = flatVirtualComponent.fetchResources();
-		List<IVirtualResource> members = new ArrayList<IVirtualResource>(flatResources.length);
+		List<IVirtualResource> membersList = new ArrayList<IVirtualResource>(flatResources.length);
 		for (IFlatResource flatResource : flatResources) {
 			IVirtualResource resource = convert(flatResource);
 			if (resource != null) {
-				members.add(resource);	
+				membersList.add(resource);	
 			}
 		}
-		IVirtualResource[] result = new IVirtualResource[members.size()];
-		members.toArray(result);
-		//System.out.println(project+ " has "+members.size()+ " members");
-		return result;
+		IVirtualResource[] members = new IVirtualResource[membersList.size()];
+		membersList.toArray(members);
 	}
 
 	private IVirtualResource convert(IFlatResource flatResource) {

@@ -49,27 +49,39 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	protected Set<String> inclusionPatterns;
 	
 	protected Set<IVirtualReference> references;
-		
+	
+	private CompositeVirtualFolder cachedRoot;
+	
+	private long lastCacheUpdate;
+	
+	private static int MAX_CACHE = 1000;
+	
 	public OverlayVirtualComponent(IProject project) {
 		super(project, ROOT);
 		this.project = project;
 	}
 
 	public IVirtualFolder getRootFolder() {
+		System.err.println("returning rootFolder "); 
 		return getRoot();
 	}
 
 	private CompositeVirtualFolder getRoot() {
-		CompositeVirtualFolder root = null;
+		if (cachedRoot != null && (System.currentTimeMillis() - lastCacheUpdate) < MAX_CACHE){
+			return cachedRoot;
+		}
+		
+		System.err.println("returning new root "); 
 		if (project != null) {
 			IVirtualComponent component = ComponentCore.createComponent(project);
 			if (component != null) {
 				//FlatVirtualComponent will build the project structure from the definition in .component
 				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
-				root = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
+				cachedRoot = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
 			}
 		}
-		return root;
+		lastCacheUpdate = System.currentTimeMillis();
+		return cachedRoot;
 	}
 	
 	private FlatComponentTaskModel getOptions() {
@@ -101,8 +113,8 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 		CompositeVirtualFolder  root = getRoot(); 
 		if (root != null) {
 			try {
-				root.members();//Temporary treewalk to populate references. 
 				IVirtualReference[] references = root.getReferences(); 
+				System.err.println("returning "+references.length + " refs"); 
 				return references;
 			} catch (Exception e) {
 				e.printStackTrace();
