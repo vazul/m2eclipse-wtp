@@ -215,19 +215,24 @@ javaProject.setRawClasspath(cp, monitor);
     return dependency;
   }
 
+  @SuppressWarnings("restriction")
   protected void configureDeployedName(IProject project, String deployedFileName) {
     //We need to remove the file extension from deployedFileName 
     int extSeparatorPos  = deployedFileName.lastIndexOf('.');
     String deployedName = extSeparatorPos > -1? deployedFileName.substring(0, extSeparatorPos): deployedFileName;
     //From jerr's patch in MNGECLIPSE-965
     IVirtualComponent projectComponent = ComponentCore.createComponent(project);
-    if(!deployedName.equals(projectComponent.getDeployedName())){//MNGECLIPSE-2331 : Seems projectComponent.getDeployedName() can be null 
+    if(projectComponent != null && !deployedName.equals(projectComponent.getDeployedName())){//MNGECLIPSE-2331 : Seems projectComponent.getDeployedName() can be null 
       StructureEdit moduleCore = null;
       try {
         moduleCore = StructureEdit.getStructureEditForWrite(project);
-        WorkbenchComponent component = moduleCore.getComponent();
-        component.setName(deployedName);
-        moduleCore.saveIfNecessary(null);
+        if (moduleCore != null){
+          WorkbenchComponent component = moduleCore.getComponent();
+          if (component != null) {
+            component.setName(deployedName);
+            moduleCore.saveIfNecessary(null);
+          }
+        }
       } finally {
         if (moduleCore != null) {
           moduleCore.dispose();
