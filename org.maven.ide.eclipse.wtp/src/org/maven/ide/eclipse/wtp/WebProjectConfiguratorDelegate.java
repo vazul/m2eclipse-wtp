@@ -87,19 +87,18 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     boolean alreadyHasWebXml = defaultWebXml.exists();
     boolean alreadyHasLibDir = libDir.exists();
+        
+    Set<Action> actions = new LinkedHashSet<Action>();
+
+    installJavaFacet(actions, project, facetedProject);
     
     IVirtualComponent component = ComponentCore.createComponent(project);
     if(component != null && warSourceDirectory != null) {
       IPath warPath = new Path(warSourceDirectory);
-      component.create(IVirtualResource.NONE, monitor);
       //remove the old links (if there is one) before adding the new one.
       component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
       component.getRootFolder().createLink(warPath, IVirtualResource.NONE, monitor);
     }
-    
-    Set<Action> actions = new LinkedHashSet<Action>();
-
-    installJavaFacet(actions, project, facetedProject);
     
     //MNGECLIPSE-2279 get the context root from the final name of the project, or artifactId by default.
     String contextRoot = getContextRoot(mavenProject);
