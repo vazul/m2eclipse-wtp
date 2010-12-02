@@ -192,11 +192,12 @@ class EarPluginConfiguration {
 
     Set<EarModule> earModules = new LinkedHashSet<EarModule>(artifacts.size());
     String defaultBundleDir = getDefaultBundleDirectory();
+    IProjectFacetVersion javaEEVersion = getEarFacetVersion();
     EarModuleFactory earModuleFactory = EarModuleFactory.createEarModuleFactory(getArtifactTypeMappingService(),
         getFileNameMapping(), getMainArtifactId(), artifacts);
 
     //Resolve Ear modules from plugin config
-    earModules.addAll(getEarModulesFromConfig(earModuleFactory, defaultBundleDir)); 
+    earModules.addAll(getEarModulesFromConfig(earModuleFactory, defaultBundleDir, javaEEVersion)); 
 
     ScopeArtifactFilter filter = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
 
@@ -212,7 +213,7 @@ class EarPluginConfiguration {
       // Artifact is not yet registered and it has neither test, nor a
       // provided scope, nor is it optional
       if(!isArtifactRegistered(artifact, earModules) && filter.include(artifact) && !artifact.isOptional()) {
-        EarModule module = earModuleFactory.newEarModule(artifact, defaultBundleDir);
+        EarModule module = earModuleFactory.newEarModule(artifact, defaultBundleDir, javaEEVersion);
         if(module != null) {
           earModules.add(module);
         }
@@ -265,7 +266,7 @@ class EarPluginConfiguration {
    * 
    * @param earModuleFactory
    */
-  private Set<EarModule> getEarModulesFromConfig(EarModuleFactory earModuleFactory, String defaultBundleDir) throws EarPluginException {
+  private Set<EarModule> getEarModulesFromConfig(EarModuleFactory earModuleFactory, String defaultBundleDir, IProjectFacetVersion javaEEVersion) throws EarPluginException {
     Set<EarModule> earModules = new LinkedHashSet<EarModule>();
     Xpp3Dom configuration = getConfiguration();
     if(configuration == null) {
@@ -283,7 +284,7 @@ class EarPluginConfiguration {
     }
     
     for(Xpp3Dom domModule : domModules) {
-      EarModule earModule = earModuleFactory.newEarModule(domModule, defaultBundleDir);
+      EarModule earModule = earModuleFactory.newEarModule(domModule, defaultBundleDir, javaEEVersion);
       if(earModule != null) {
         earModules.add(earModule);
       }

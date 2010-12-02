@@ -33,7 +33,10 @@ import static org.maven.ide.eclipse.wtp.DomUtils.getChildValue;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
+import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMapping;
 import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
 
@@ -77,9 +80,10 @@ public final class EarModuleFactory {
    * 
    * @param artifact the artifact
    * @param defaultLibBundleDir the default bundle dir for {@link JarModule}
+   * @param javaEEVersion 
    * @return an ear module for this artifact
    */
-  public EarModule newEarModule(Artifact artifact, String defaultLibBundleDir) throws UnknownArtifactTypeException {
+  public EarModule newEarModule(Artifact artifact, String defaultLibBundleDir, IProjectFacetVersion javaEEVersion) throws UnknownArtifactTypeException {
     // Get the standard artifact type based on default config and user-defined mapping(s)
     final String artifactType = artifactTypeMappingService.getStandardType(artifact.getType());
     AbstractEarModule earModule = null;
@@ -92,6 +96,10 @@ public final class EarModuleFactory {
       earModule  = new ParModule(artifact);
     } else if("ejb-client".equals(artifactType)) {
       earModule  = new EjbClientModule(artifact);
+      if (javaEEVersion.compareTo(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_14) >  0)
+      {
+        ((EjbClientModule)earModule).setLibBundleDir(defaultLibBundleDir);
+      }
     } else if("rar".equals(artifactType)) {
       earModule  = new RarModule(artifact);
     } else if("war".equals(artifactType)) {
@@ -112,7 +120,7 @@ public final class EarModuleFactory {
 
   }
 
-  public EarModule newEarModule(Xpp3Dom domModule, String defaultLibBundleDir) throws EarPluginException {
+  public EarModule newEarModule(Xpp3Dom domModule, String defaultLibBundleDir, IProjectFacetVersion javaEEVersion) throws EarPluginException {
     String artifactType = domModule.getName();
     String groupId      = getChildValue(domModule, "groupId");
     String artifactId   = getChildValue(domModule, "artifactId");
@@ -122,6 +130,7 @@ public final class EarModuleFactory {
     // Get the standard artifact type based on default config and user-defined mapping(s)
     if ( "jarModule".equals(artifactType) || "javaModule".equals(artifactType)) {
       JarModule jarModule = new JarModule();
+      jarModule.setBundleDir(defaultLibBundleDir);
       jarModule.setIncludeInApplicationXml(getBooleanChildValue(domModule, "includeInApplicationXml"));
       earModule = jarModule;
     } 
@@ -138,6 +147,10 @@ public final class EarModuleFactory {
     }
     else if ( "ejbClientModule".equals(artifactType)){
       earModule = new EjbClientModule();
+      if (javaEEVersion.compareTo(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_14) >  0)
+      {
+        ((EjbClientModule)earModule).setLibBundleDir(defaultLibBundleDir);
+      }
     }
     else if ( "rarModule".equals(artifactType)){
       earModule = new RarModule();
@@ -161,7 +174,10 @@ public final class EarModuleFactory {
     Artifact artifact   = artifactRepository.resolveArtifact(groupId, artifactId, earModule.getType(), classifier);
     earModule.setArtifact(artifact);
     
-    earModule.setBundleDir(getChildValue(domModule, "bundleDir"));
+    String bundleDir = getChildValue(domModule, "bundleDir");
+    if (StringUtils.isNotBlank(bundleDir)){
+      earModule.setBundleDir(bundleDir);      
+    }
     //To this point, we're sure to have a valid earModule ...
     String bundleFileName  = getChildValue(domModule, "bundleFileName");
     if (null==bundleFileName){
