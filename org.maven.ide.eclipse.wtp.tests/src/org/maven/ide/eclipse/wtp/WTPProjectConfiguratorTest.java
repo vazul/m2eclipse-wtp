@@ -1329,5 +1329,74 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
   }
 
+  public void testMECLIPSEWTP73_EjbClientInLib_JavaEE5() throws Exception {
+        
+    IProject[] projects = importProjects(
+        "projects/MECLIPSEWTP-73/", //
+        new String[] {"ear5-with-ejb-client/pom.xml", "ear5-with-ejb-client/ear/pom.xml", "ear5-with-ejb-client/ejb/pom.xml", "ear5-with-ejb-client/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(4, projects.length);
+    IProject ear = projects[1];
+    IProject ejb = projects[2];
+    IProject war = projects[3];
+    
+    assertMarkers(ejb, 0);
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+   
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference warRef = comp.getReference("war");
+    assertNotNull(warRef);
+    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+   
+    IVirtualReference ejbRef = comp.getReference("ejb");
+    assertNotNull(ejbRef);
+    assertEquals("ejb-1.0-SNAPSHOT.jar",ejbRef.getArchiveName());
+    assertEquals("/lib",ejbRef.getRuntimePath().toPortableString());
+    
+    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertEquals(1,app.getModules().size());
+    Module webModule = app.getFirstModule(warRef.getArchiveName());
+    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+    assertEquals("war",webModule.getWeb().getContextRoot());
+  }
+
+  public void testMECLIPSEWTP73_EjbClientInLib_J2ee14() throws Exception {
+    
+    IProject[] projects = importProjects(
+        "projects/MECLIPSEWTP-73/", //
+        new String[] {"ear14-with-ejb-client/pom.xml", "ear14-with-ejb-client/ear/pom.xml", "ear14-with-ejb-client/ejb/pom.xml", "ear14-with-ejb-client/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(4, projects.length);
+    IProject ear = projects[1];
+    IProject ejb = projects[2];
+    IProject war = projects[3];
+    
+    assertMarkers(ejb, 0);
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+   
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference warRef = comp.getReference("war");
+    assertNotNull(warRef);
+    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+   
+    IVirtualReference ejbRef = comp.getReference("ejb");
+    assertNotNull(ejbRef);
+    assertEquals("ejb-1.0-SNAPSHOT.jar",ejbRef.getArchiveName());
+    assertEquals("/",ejbRef.getRuntimePath().toPortableString());
+    
+    org.eclipse.jst.j2ee.application.Application app = (org.eclipse.jst.j2ee.application.Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertEquals(1,app.getModules().size());
+    org.eclipse.jst.j2ee.application.WebModule webModule = (WebModule)app.getFirstModule(warRef.getArchiveName());
+    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+    assertEquals("war",webModule.getContextRoot());
+  }
   
 }

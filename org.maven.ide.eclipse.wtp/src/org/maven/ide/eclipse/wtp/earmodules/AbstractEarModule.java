@@ -91,10 +91,10 @@ public abstract class AbstractEarModule implements EarModule {
 
   public String getUri() {
     if(uri == null) {
-      if(getBundleDir() == null) {
+      String bd = getBundleDir();
+      if(StringUtils.isEmpty(bd) || "/".equals(bd)) {
         uri = getBundleFileName();
       } else {
-        String bd = getBundleDir();
         if(!bd.endsWith("/")) {
           bd = bd + "/";
         }
