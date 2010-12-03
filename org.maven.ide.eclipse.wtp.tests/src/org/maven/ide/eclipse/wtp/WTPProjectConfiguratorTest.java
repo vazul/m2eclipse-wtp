@@ -1398,5 +1398,39 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
     assertEquals("war",webModule.getContextRoot());
   }
+
+  public void testMECLIPSEWTP72_SkinnyWar_Redux() throws Exception {
+    
+    IProject[] projects = importProjects(
+        "projects/MECLIPSEWTP-72/", //
+        new String[] {"ear-with-skinny-war/pom.xml", "ear-with-skinny-war/ear/pom.xml", "ear-with-skinny-war/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(3, projects.length);
+    IProject ear = projects[1];
+    IProject war = projects[2];
+
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference warRef = comp.getReference("war");
+    assertNotNull(warRef);
+    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+
+    IVirtualComponent warComp = warRef.getReferencedComponent();
+    IVirtualReference[] fullSkinnyReferences = warComp.getReferences();
+    assertEquals(1, fullSkinnyReferences.length);
+    assertTrue(fullSkinnyReferences[0].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
+    
+    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertEquals(1,app.getModules().size());
+    Module webModule = app.getFirstModule(warRef.getArchiveName());
+    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+    assertEquals("war",webModule.getWeb().getContextRoot());
+  }
+
   
 }

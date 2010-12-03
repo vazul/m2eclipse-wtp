@@ -165,8 +165,12 @@ class WarPluginConfiguration {
         Xpp3Dom manifest = arch.getChild("manifest");
         if(manifest != null) {
           Xpp3Dom prefix = manifest.getChild("classpathPrefix");
-          if(prefix != null) {
-            return prefix.getValue();
+          if(prefix != null && !StringUtils.nullOrEmpty(prefix.getValue())) {
+            String rawPrefix = prefix.getValue().trim();
+            if (!rawPrefix.endsWith("/")){
+              rawPrefix += "/";
+            }
+            return rawPrefix;
           }
         }
       }
