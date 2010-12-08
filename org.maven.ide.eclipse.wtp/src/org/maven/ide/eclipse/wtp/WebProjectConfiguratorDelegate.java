@@ -75,6 +75,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   static final IClasspathAttribute DEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
       IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, "/WEB-INF/lib");
 
+  /**
+  * Name of maven property that overrides WTP context root.
+  */
+  private static final String M2ECLIPSE_WTP_CONTEXT_ROOT = "m2eclipse.wtp.contextRoot";
+
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
@@ -237,17 +242,22 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
    */
   protected String getContextRoot(MavenProject mavenProject) {
     String contextRoot;
-    String finalName = mavenProject.getBuild().getFinalName();
-    if (StringUtils.isBlank(finalName) 
-       || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
-      contextRoot = mavenProject.getArtifactId();
-    }  else {
-      contextRoot = finalName;
-    }
+
+	//MECLIPSEWTP-43 : Override with maven property
+   String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
+   if (StringUtils.isEmpty(property)) {
+		String finalName = mavenProject.getBuild().getFinalName();
+		if (StringUtils.isBlank(finalName) 
+		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
+		  contextRoot = mavenProject.getArtifactId();
+		}  else {
+		  contextRoot = finalName;
+		}
+	} else {
+		contextRoot = property;
+	}
     return contextRoot.trim().replace(" ", "_");
   }
-
-  
 
   public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
       IProgressMonitor monitor) throws CoreException {

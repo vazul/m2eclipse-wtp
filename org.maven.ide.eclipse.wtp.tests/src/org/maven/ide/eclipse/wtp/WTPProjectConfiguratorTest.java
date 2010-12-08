@@ -1209,6 +1209,32 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("MNGECLIPSE-2279",J2EEProjectUtilities.getServerContextRoot(project));
     assertMarkers(project, 0);
 }
+  
+  public void testMECLIPSEWTP43_customContextRoot() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-43/pom.xml", new ResolverConfiguration());
+    IFacetedProject facetedProject = ProjectFacetsManager.create(project);
+    assertNotNull(facetedProject);
+    assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    //Test blank finalName
+    assertEquals("MECLIPSEWTP-43", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+    
+    //Test custom finalName
+    updateProject(project, "pom.step2.xml");     
+    assertEquals("webapp", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+    
+    //Test finalName with dots and spaces
+    updateProject(project, "pom.step3.xml");     
+    assertEquals("web_appli.cation", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+
+    //Test no finalName
+    updateProject(project, "pom.step4.xml");     
+    assertEquals("/", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+}
 
 
   public void testMNGECLIPSE2357_customWebXml() throws Exception {
