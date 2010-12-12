@@ -75,7 +75,7 @@ public class ProjectUtils {
     if (folder.exists()) {
       IProgressMonitor monitor = new NullProgressMonitor();
       if (!folder.isDerived()) {
-        folder.setDerived(true, monitor);
+        folder.setDerived(true);
       }
       if (!folder.isHidden()) {
         folder.setHidden(true);
