@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>	
+		<groupId>org.htfv.maven.tests.ear-with-ejb-client</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>ear</artifactId>
+	<packaging>ear</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.htfv.maven.tests.ear-with-ejb-client</groupId>
+			<artifactId>ejb</artifactId>
+			<version>${project.version}</version>
+			<type>ejb-client</type>
+		</dependency>
+		<dependency>
+			<groupId>org.htfv.maven.tests.ear-with-ejb-client</groupId>
+			<artifactId>war</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-ear-plugin</artifactId>
+				<version>2.4.2</version>
+				<configuration>
+					<version>1.4</version>
+					<defaultLibBundleDir>lib</defaultLibBundleDir>
+					<modules>
+						<webModule>
+							<groupId>org.htfv.maven.tests.ear-with-ejb-client</groupId>
+							<artifactId>war</artifactId>
+							<contextRoot>war</contextRoot>
+						</webModule>
+					</modules>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

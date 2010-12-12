@@ -1209,6 +1209,32 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("MNGECLIPSE-2279",J2EEProjectUtilities.getServerContextRoot(project));
     assertMarkers(project, 0);
 }
+  
+  public void testMECLIPSEWTP43_customContextRoot() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-43/pom.xml", new ResolverConfiguration());
+    IFacetedProject facetedProject = ProjectFacetsManager.create(project);
+    assertNotNull(facetedProject);
+    assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    //Test blank finalName
+    assertEquals("MECLIPSEWTP-43", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+    
+    //Test custom finalName
+    updateProject(project, "pom.step2.xml");     
+    assertEquals("webapp", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+    
+    //Test finalName with dots and spaces
+    updateProject(project, "pom.step3.xml");     
+    assertEquals("web_appli.cation", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+
+    //Test no finalName
+    updateProject(project, "pom.step4.xml");     
+    assertEquals("/", J2EEProjectUtilities.getServerContextRoot(project));
+    assertMarkers(project, 0);
+}
 
 
   public void testMNGECLIPSE2357_customWebXml() throws Exception {
@@ -1327,6 +1353,109 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IClasspathEntry[] mavenContainerEntries = getMavenContainerEntries(fullskinnywar);
     assertEquals(1, mavenContainerEntries.length);
     assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
+  }
+
+  public void testMECLIPSEWTP73_EjbClientInLib_JavaEE5() throws Exception {
+        
+    IProject[] projects = importProjects(
+        "projects/MECLIPSEWTP-73/", //
+        new String[] {"ear5-with-ejb-client/pom.xml", "ear5-with-ejb-client/ear/pom.xml", "ear5-with-ejb-client/ejb/pom.xml", "ear5-with-ejb-client/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(4, projects.length);
+    IProject ear = projects[1];
+    IProject ejb = projects[2];
+    IProject war = projects[3];
+    
+    assertMarkers(ejb, 0);
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+   
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference warRef = comp.getReference("war");
+    assertNotNull(warRef);
+    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+   
+    IVirtualReference ejbRef = comp.getReference("ejb");
+    assertNotNull(ejbRef);
+    assertEquals("ejb-1.0-SNAPSHOT.jar",ejbRef.getArchiveName());
+    assertEquals("/lib",ejbRef.getRuntimePath().toPortableString());
+    
+    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertEquals(1,app.getModules().size());
+    Module webModule = app.getFirstModule(warRef.getArchiveName());
+    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+    assertEquals("war",webModule.getWeb().getContextRoot());
+  }
+
+  public void testMECLIPSEWTP73_EjbClientInLib_J2ee14() throws Exception {
+    
+    IProject[] projects = importProjects(
+        "projects/MECLIPSEWTP-73/", //
+        new String[] {"ear14-with-ejb-client/pom.xml", "ear14-with-ejb-client/ear/pom.xml", "ear14-with-ejb-client/ejb/pom.xml", "ear14-with-ejb-client/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(4, projects.length);
+    IProject ear = projects[1];
+    IProject ejb = projects[2];
+    IProject war = projects[3];
+    
+    assertMarkers(ejb, 0);
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+   
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference warRef = comp.getReference("war");
+    assertNotNull(warRef);
+    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+   
+    IVirtualReference ejbRef = comp.getReference("ejb");
+    assertNotNull(ejbRef);
+    assertEquals("ejb-1.0-SNAPSHOT.jar",ejbRef.getArchiveName());
+    assertEquals("/",ejbRef.getRuntimePath().toPortableString());
+    
+    org.eclipse.jst.j2ee.application.Application app = (org.eclipse.jst.j2ee.application.Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertEquals(1,app.getModules().size());
+    org.eclipse.jst.j2ee.application.WebModule webModule = (WebModule)app.getFirstModule(warRef.getArchiveName());
+    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+    assertEquals("war",webModule.getContextRoot());
+  }
+
+  public void testMECLIPSEWTP72_SkinnyWar_Redux() throws Exception {
+    
+    IProject[] projects = importProjects(
+        "projects/MECLIPSEWTP-72/", //
+        new String[] {"ear-with-skinny-war/pom.xml", "ear-with-skinny-war/ear/pom.xml", "ear-with-skinny-war/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(3, projects.length);
+    IProject ear = projects[1];
+    IProject war = projects[2];
+
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference warRef = comp.getReference("war");
+    assertNotNull(warRef);
+    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+
+    IVirtualComponent warComp = warRef.getReferencedComponent();
+    IVirtualReference[] fullSkinnyReferences = warComp.getReferences();
+    assertEquals(1, fullSkinnyReferences.length);
+    assertTrue(fullSkinnyReferences[0].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
+    
+    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertEquals(1,app.getModules().size());
+    Module webModule = app.getFirstModule(warRef.getArchiveName());
+    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+    assertEquals("war",webModule.getWeb().getContextRoot());
   }
 
   
