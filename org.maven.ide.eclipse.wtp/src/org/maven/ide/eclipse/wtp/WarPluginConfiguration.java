@@ -10,10 +10,14 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomUtils;
+import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -31,7 +35,7 @@ import org.maven.ide.eclipse.wtp.internal.StringUtils;
  * @author Igor Fedorenko
  */
 @SuppressWarnings("restriction")
-class WarPluginConfiguration {
+public class WarPluginConfiguration {
   private static final String WAR_SOURCE_FOLDER = "/src/main/webapp";
 
   private static final String WAR_PACKAGING = "war";
@@ -64,11 +68,15 @@ class WarPluginConfiguration {
     return (Xpp3Dom) plugin.getConfiguration();
   }
 
+ 
   public Xpp3Dom[] getWebResources() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
-      Xpp3Dom[] children = config.getChildren("webResources");
-      return children;
+      Xpp3Dom webResources = config.getChild("webResources");
+      if (webResources != null && webResources.getChildCount() > 0)
+      {
+        return webResources.getChildren();
+      }
     }
     return null;
   }

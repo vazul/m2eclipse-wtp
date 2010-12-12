@@ -10,7 +10,15 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.File;
 
+import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 /**
  * ProjectUtils
@@ -38,5 +46,41 @@ public class ProjectUtils {
       relative = absolutePath;
     }
     return relative.replace('\\', '/'); //$NON-NLS-1$ //$NON-NLS-2$
+  }
+  
+  /*
+  public static IPath getM2eclipseWtpFolder(IMavenProjectFacade facade) {
+    return getM2eclipseWtpFolder(facade.getMavenProject(), facade.getProject());
+  }
+  */
+  
+  /**
+   * @param mavenProject
+   * @param project
+   * @return
+   */
+  public static IPath getM2eclipseWtpFolder(MavenProject mavenProject, IProject project) {
+    String buildOutputDir = mavenProject.getBuild().getDirectory();
+    String relativeBuildOutputDir = getRelativePath(project, buildOutputDir);
+    return new Path(relativeBuildOutputDir).append("m2eclipse-wtp");
+  }
+
+  /**
+   * @param project
+   * @throws CoreException 
+   */
+  public static void hideM2eclipseWtpFolder(MavenProject mavenProject, IProject project) throws CoreException {
+    IPath m2eclipseWtpPath = getM2eclipseWtpFolder(mavenProject, project);
+    IFolder folder = project.getFolder(m2eclipseWtpPath);
+    if (folder.exists()) {
+      IProgressMonitor monitor = new NullProgressMonitor();
+      if (!folder.isDerived()) {
+        folder.setDerived(true, monitor);
+      }
+      if (!folder.isHidden()) {
+        folder.setHidden(true);
+      }
+      folder.getParent().refreshLocal(IResource.DEPTH_ZERO,monitor);
+    }
   }
 }

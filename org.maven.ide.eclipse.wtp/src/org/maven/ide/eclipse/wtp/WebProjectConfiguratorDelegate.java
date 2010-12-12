@@ -56,6 +56,7 @@ import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.jdt.IClasspathEntryDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
+import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
 
@@ -146,7 +147,17 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       libDir.delete(true, monitor);
     }
     linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
+
     
+    IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
+    if (component != null) {
+      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
+      if (config.getWebResources() != null && config.getWebResources().length > 0) {
+        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);      
+      }      
+    }
+
   }
 
 

@@ -8,6 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -18,8 +19,10 @@ import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.jdt.IJavaProjectConfigurator;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectChangedEvent;
+import org.maven.ide.eclipse.project.configurator.AbstractBuildParticipant;
 import org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator;
 import org.maven.ide.eclipse.project.configurator.ProjectConfigurationRequest;
+import org.maven.ide.eclipse.wtp.filtering.ResourceFilteringBuildParticipant;
 
 
 /**
@@ -91,4 +94,11 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
     // we do not change raw project classpath, do we? 
   }
 
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator#getBuildParticipant(org.apache.maven.plugin.MojoExecution)
+   */
+  public AbstractBuildParticipant getBuildParticipant(MojoExecution execution) {
+    return ResourceFilteringBuildParticipant.getParticipant(execution);
+  }
+  
 }
