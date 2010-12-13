@@ -9,6 +9,7 @@
 package org.maven.ide.eclipse.wtp.filtering;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.project.MavenProject;
@@ -43,7 +44,11 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
   }
 
   public List<Xpp3Dom> getResources() {
-    return Arrays.asList(pluginConfiguration.getWebResources());
+    Xpp3Dom[] domResources = pluginConfiguration.getWebResources();
+    if(domResources == null || domResources.length == 0){
+      return Collections.emptyList();
+    }
+    return Arrays.asList(domResources);
   }
 
 }
