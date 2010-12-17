@@ -127,7 +127,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
     String outputDir = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).toPortableString()+Path.SEPARATOR+"application";
     //String outputDir = plugin.getEarContentDirectory(project);
-    //MECLIPSE-22 : application.xml should not be generated in the source directory
+    //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     //TODO refactor this value with EarProjectConfiguratorDelegate
     IFolder metaInfFolder = project.getFolder(outputDir + "/META-INF/");
 
@@ -142,8 +142,6 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
             new FileSystemStructureProvider(), OVERWRITE_ALL_QUERY, filesToImport);
         op.setCreateContainerStructure(false);
         op.run(monitor);
-    
-      
       } catch(InvocationTargetException ex) {
         IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, IStatus.ERROR, ex.getMessage(), ex);
         throw new CoreException(status);
@@ -158,8 +156,6 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       }
     }
     deleteDirectory(generatedDescriptorLocation);    
-    
-
   }
 
   private void overrideModules(Xpp3Dom configuration, Set<EarModule> earModules) {

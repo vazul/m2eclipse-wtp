@@ -97,7 +97,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     // FIXME Sometimes, test folders are still added to org.eclipse.wst.common.component
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
-    //MECLIPSE-22 : application.xml should not be generated in the source directory
+    //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
     IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+"application");//TODO refactor this value
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
