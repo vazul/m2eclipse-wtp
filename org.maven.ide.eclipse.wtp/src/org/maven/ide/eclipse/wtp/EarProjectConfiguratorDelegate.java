@@ -17,10 +17,13 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.earcreation.IEarFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.J2EEConstants;
@@ -32,6 +35,7 @@ import org.eclipse.jst.javaee.application.Application;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
+import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelProvider;
@@ -72,13 +76,13 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     EarPluginConfiguration config = new EarPluginConfiguration(mavenProject);
     Set<Action> actions = new LinkedHashSet<Action>();
     // WTP doesn't allow facet versions changes for JEE facets
-    String contentDir = config.getEarContentDirectory(project);
     
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
+      String contentDirPath = config.getEarContentDirectory(project);
       IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
 
       // Configuring content directory
-      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDir);
+      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDirPath);
 
       IProjectFacetVersion earFv = config.getEarFacetVersion();
       
@@ -89,9 +93,20 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       facetedProject.modify(actions, monitor);
     }
 
+    
     // FIXME Sometimes, test folders are still added to org.eclipse.wst.common.component
     removeTestFolderLinks(project, mavenProject, monitor, "/");
-
+    
+    //MECLIPSE-22 : application.xml should not be generated in the source directory
+    IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
+    IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+"application");//TODO refactor this value
+    IVirtualComponent earComponent = ComponentCore.createComponent(project);
+    if (earComponent != null) {
+      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+      earComponent.getRootFolder().removeLink(generatedResourcesPath,IVirtualResource.NONE, monitor);
+      earComponent.getRootFolder().createLink(generatedResourcesPath, IVirtualResource.NONE, monitor);      
+    }
+    
   }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)

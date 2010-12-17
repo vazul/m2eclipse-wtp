@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
@@ -81,12 +82,14 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       //TODO Better error management
       return;
     }
+    
     //Let's force the generated config files location
     Xpp3Dom configuration = genConfigMojo.getConfiguration();
     if(configuration == null) {
       configuration = new Xpp3Dom("configuration");
       genConfigMojo.setConfiguration(configuration);
     }
+    
     File generatedDescriptorLocation;
     try {
       generatedDescriptorLocation = getTempDirectory();
@@ -118,28 +121,45 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
     //Execute our hacked mojo 
     maven.execute(session, genConfigMojo, monitor);
-
+    
     //Copy generated files to their final location
     File[] files = generatedDescriptorLocation.listFiles();
+
+    String outputDir = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).toPortableString()+Path.SEPARATOR+"application";
+    //String outputDir = plugin.getEarContentDirectory(project);
+    //MECLIPSE-22 : application.xml should not be generated in the source directory
+    //TODO refactor this value with EarProjectConfiguratorDelegate
+    IFolder metaInfFolder = project.getFolder(outputDir + "/META-INF/");
+
     if(files.length > 0) {
+      
       List<File> filesToImport = new ArrayList<File>();
       for(int i = 0; i < files.length; i++ ) {
         filesToImport.add(files[i]);
       }
       try {
-        IFolder metaInfFolder = project.getFolder(plugin.getEarContentDirectory(project) + "/META-INF/");
         ImportOperation op = new ImportOperation(metaInfFolder.getFullPath(), generatedDescriptorLocation,
             new FileSystemStructureProvider(), OVERWRITE_ALL_QUERY, filesToImport);
         op.setCreateContainerStructure(false);
         op.run(monitor);
+    
+      
       } catch(InvocationTargetException ex) {
         IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, IStatus.ERROR, ex.getMessage(), ex);
         throw new CoreException(status);
       } catch(InterruptedException ex) {
         throw new OperationCanceledException(ex.getMessage());
       }
+    } else {
+      //We shouldn't deploy application.xml created by previous builds
+      IFile applicationXml = metaInfFolder.getFile("application.xml"); 
+      if (!plugin.isGenerateApplicationXml() && applicationXml.exists()) {
+        applicationXml.delete(true, monitor);
+      }
     }
-    deleteDirectory(generatedDescriptorLocation);
+    deleteDirectory(generatedDescriptorLocation);    
+    
+
   }
 
   private void overrideModules(Xpp3Dom configuration, Set<EarModule> earModules) {
