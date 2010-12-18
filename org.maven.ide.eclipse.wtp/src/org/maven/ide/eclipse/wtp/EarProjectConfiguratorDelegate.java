@@ -17,8 +17,10 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -72,13 +74,20 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         MavenLogger.log("Error removing EAR facet", ex);
       }
     }
-
+    
     EarPluginConfiguration config = new EarPluginConfiguration(mavenProject);
+
+    String contentDirPath = config.getEarContentDirectory(project);
+
+    IFolder firstEmptyFolder = null;
+    if (!project.getFolder(contentDirPath).exists()) {
+      firstEmptyFolder = findFirstEmptyFolder(project, contentDirPath);
+    }
+    
     Set<Action> actions = new LinkedHashSet<Action>();
     // WTP doesn't allow facet versions changes for JEE facets
     
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
-      String contentDirPath = config.getEarContentDirectory(project);
       IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
 
       // Configuring content directory
@@ -102,11 +111,35 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+"application");//TODO refactor this value
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
     if (earComponent != null) {
-      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+      //ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
       earComponent.getRootFolder().removeLink(generatedResourcesPath,IVirtualResource.NONE, monitor);
       earComponent.getRootFolder().createLink(generatedResourcesPath, IVirtualResource.NONE, monitor);      
     }
-    
+
+    if (firstEmptyFolder != null && firstEmptyFolder.exists())
+    {
+      firstEmptyFolder.delete(true, monitor);
+    }
+  }
+
+  /**
+   * @param project
+   * @param contentDirPath
+   * @return
+   * @throws CoreException 
+   */
+  private IFolder findFirstEmptyFolder(IProject project, String contentDirPath) {
+    StringBuilder path = new StringBuilder();
+    IPath targetPath = new Path(contentDirPath);
+    for (String segment : targetPath.segments()) {
+      path.append(IPath.SEPARATOR);
+      path.append(segment);
+      IFolder curFolder = project.getFolder(path.toString());
+      if (!curFolder.exists()) {
+        return curFolder;
+      }
+    }
+    return null;
   }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
