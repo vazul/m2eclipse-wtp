@@ -14,9 +14,9 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.m2e.core.core.MavenLogger;
+import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
-import org.maven.ide.eclipse.core.MavenLogger;
-import org.maven.ide.eclipse.project.MavenProjectUtils;
 
 /**
  * See http://maven.apache.org/plugins/maven-ejb-plugin/ejb-mojo.html

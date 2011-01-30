@@ -22,6 +22,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jst.j2ee.jca.project.facet.ConnectorFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelProperties;
+import org.eclipse.m2e.core.core.MavenLogger;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.MavenProjectUtils;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
@@ -32,10 +36,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.core.MavenLogger;
-import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
-import org.maven.ide.eclipse.project.MavenProjectUtils;
 import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
 
 /**

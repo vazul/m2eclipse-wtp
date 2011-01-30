@@ -29,6 +29,9 @@ import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.model.IEARModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.application.Application;
+import org.eclipse.m2e.core.core.MavenLogger;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
@@ -39,9 +42,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.core.MavenLogger;
-import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 
 

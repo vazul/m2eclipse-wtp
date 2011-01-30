@@ -10,14 +10,10 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomUtils;
-import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;

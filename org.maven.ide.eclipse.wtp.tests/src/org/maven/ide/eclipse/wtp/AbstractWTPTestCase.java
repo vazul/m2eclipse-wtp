@@ -26,6 +26,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IProjectConfigurationManager;
+import org.eclipse.m2e.core.project.ResolverConfiguration;
+import org.eclipse.m2e.jdt.BuildPathManager;
+import org.eclipse.m2e.tests.common.AbstractMavenProjectTestCase;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
@@ -33,11 +38,6 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.MavenPlugin;
-import org.maven.ide.eclipse.jdt.BuildPathManager;
-import org.maven.ide.eclipse.project.IProjectConfigurationManager;
-import org.maven.ide.eclipse.project.ResolverConfiguration;
-import org.maven.ide.eclipse.tests.common.AbstractMavenProjectTestCase;
 
 
 public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
@@ -48,6 +48,10 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
   protected static final IProjectFacetVersion UTILITY_10 = UTILITY_FACET.getVersion("1.0");
   protected static final IProjectFacet EAR_FACET = ProjectFacetsManager.getProjectFacet(IJ2EEFacetConstants.ENTERPRISE_APPLICATION);
   protected static final IProjectFacetVersion DEFAULT_EAR_FACET = IJ2EEFacetConstants.ENTERPRISE_APPLICATION_13;
+
+  protected static final String MAVEN_CLASSPATH_CONTAINER = "org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER";
+  protected static final String JRE_CONTAINER_J2SE_1_5 = "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5";
+
 
   protected static IClasspathContainer getWebLibClasspathContainer(IJavaProject project) throws JavaModelException {
     IClasspathEntry[] entries = project.getRawClasspath();
@@ -147,7 +151,7 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     IProjectConfigurationManager configurationManager = MavenPlugin.getDefault().getProjectConfigurationManager();
     ResolverConfiguration configuration = new ResolverConfiguration();
     configurationManager.enableMavenNature(project, configuration, monitor);
-    configurationManager.updateProjectConfiguration(project, configuration, mavenConfiguration.getGoalOnImport(), monitor);
+    configurationManager.updateProjectConfiguration(project, configuration, monitor);
     
     waitForJobsToComplete();
     project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);

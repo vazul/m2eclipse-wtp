@@ -6,21 +6,16 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.filtering;
+package org.maven.ide.eclipse.wtp;
 
-import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.core.IMavenConstants;
 
 /**
- * AbstractResourceFilteringConfiguration
+ * M2eWtpConstants
  *
  * @author Fred Bricon
  */
-public abstract class AbstractResourceFilteringConfiguration implements ResourceFilteringConfiguration {
+public interface M2eWtpConstants {
 
-  protected IMavenProjectFacade mavenProjectFacade;
-  
-  public AbstractResourceFilteringConfiguration(IMavenProjectFacade mavenProjectFacade) {
-    this.mavenProjectFacade = mavenProjectFacade;
-  }
-  
+  static String MARKER_CONFIGURATION_ID = IMavenConstants.MARKER_CONFIGURATION_ID;//$NON-NLS-1$ 
 }

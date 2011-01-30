@@ -29,6 +29,13 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.core.IMavenConstants;
+import org.eclipse.m2e.core.project.IMavenMarkerManager;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.MavenProjectManager;
+import org.eclipse.m2e.core.project.MavenProjectUtils;
+import org.eclipse.m2e.jdt.BuildPathManager;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
@@ -40,12 +47,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.MavenPlugin;
-import org.maven.ide.eclipse.jdt.BuildPathManager;
-import org.maven.ide.eclipse.project.IMavenMarkerManager;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
-import org.maven.ide.eclipse.project.MavenProjectManager;
-import org.maven.ide.eclipse.project.MavenProjectUtils;
 
 
 /**
@@ -71,12 +72,12 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   
   public void configureProject(IProject project, MavenProject mavenProject, IProgressMonitor monitor) throws MarkedException {
     try {
-      mavenMarkerManager.deleteMarkers(project);
+      mavenMarkerManager.deleteMarkers(project,IMavenConstants.MARKER_CONFIGURATION_ID);//FIXME This is utterly wrong. Need to handle non core markers
       configure(project, mavenProject, monitor);
     } catch (CoreException cex) {
       //TODO Filter out constraint violations
       cex.printStackTrace();
-      mavenMarkerManager.addErrorMarkers(project, cex);
+      mavenMarkerManager.addErrorMarkers(project, IMavenConstants.MARKER_CONFIGURATION_ID, cex);
       throw new MarkedException("Unable to configure "+project.getName(), cex);
     }
   }

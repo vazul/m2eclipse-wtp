@@ -12,7 +12,7 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
 
 
 /**

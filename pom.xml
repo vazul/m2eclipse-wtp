@@ -18,15 +18,15 @@
 
   <groupId>org.maven.ide.eclipse.wtp</groupId>
   <artifactId>org.maven.ide.eclipse.wtp.parent</artifactId>
-  <version>0.12.0-SNAPSHOT</version>
+  <version>0.13.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Maven Integration for Eclipse WTP (Parent)</name>
 
   <properties>
     <tycho-version>0.10.0</tycho-version>
-    <m2eclipse-core.version>0.12.0.20101102-1505</m2eclipse-core.version>
-    <m2eclipse-core.site>0.12.0/S/${m2eclipse-core.version}</m2eclipse-core.site>
+    <m2eclipse-core.version>0.13.0.201101281731</m2eclipse-core.version>
+    <m2eclipse-core.site>0.13.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e35</target.platform>        
     <!-- <target.platform>m2e-wtp-e36</target.platform> -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
@@ -99,10 +99,15 @@
               <include>**/*Test.java</include>
             </includes>
             <argLine>${tycho.test.jvmArgs}</argLine>
-            <!-- kill test JVM it tests take more than 20 minutes (1200 seconds) 
+            <!-- kill test JVM it tests take more than 15 minutes (900 seconds) 
               to finish -->
-            <forkedProcessTimeoutInSeconds>1200</forkedProcessTimeoutInSeconds>
+            <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           </configuration>
+        </plugin>
+        <plugin>
+        	<groupId>org.apache.maven.plugins</groupId>
+        	<artifactId>maven-resources-plugin</artifactId>
+        	<version>2.4.3</version>
         </plugin>
       </plugins>
     </pluginManagement>

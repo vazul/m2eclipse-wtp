@@ -10,8 +10,8 @@ package org.maven.ide.eclipse.wtp.internal;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.maven.ide.eclipse.core.MavenLogger;
 
 
 /**

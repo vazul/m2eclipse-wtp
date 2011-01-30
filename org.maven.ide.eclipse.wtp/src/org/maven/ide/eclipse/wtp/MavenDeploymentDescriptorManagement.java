@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -33,14 +34,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.core.IMavenConstants;
+import org.eclipse.m2e.core.embedder.IMaven;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.MavenProjectManager;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
-import org.maven.ide.eclipse.MavenPlugin;
-import org.maven.ide.eclipse.core.IMavenConstants;
-import org.maven.ide.eclipse.embedder.IMaven;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
-import org.maven.ide.eclipse.project.MavenProjectManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
 
@@ -51,6 +52,7 @@ import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
  * @author Fred Bricon
  * @author Snjezana Peco
  */
+@SuppressWarnings("restriction")
 public class MavenDeploymentDescriptorManagement implements DeploymentDescriptorManagement {
 
   private final VersionRange VALID_EAR_PLUGIN_RANGE = VersionRange.createFromVersion("2.4.3");
@@ -71,11 +73,15 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
   public void updateConfiguration(IProject project, MavenProject mavenProject, EarPluginConfiguration plugin,
       IProgressMonitor monitor) throws CoreException {
-
     MavenProjectManager projectManager = MavenPlugin.getDefault().getMavenProjectManager();
-
     IMavenProjectFacade mavenFacade = projectManager.getProject(project);
-    MavenExecutionPlan executionPlan = mavenFacade.getExecutionPlan(monitor);
+    IMaven maven = MavenPlugin.getDefault().getMaven();
+    //Create a maven request + session
+    IFile pomResource = project.getFile(IMavenConstants.POM_FILE_NAME);
+    MavenExecutionRequest request = projectManager.createExecutionRequest(pomResource, mavenFacade.getResolverConfiguration(), monitor);
+    MavenSession session = maven.createSession(request, mavenProject);
+
+    MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, mavenProject, Collections.singletonList("ear:generate-application-xml"), true, monitor);
     MojoExecution genConfigMojo = getExecution(executionPlan, "maven-ear-plugin", "generate-application-xml");
     if(genConfigMojo == null) {
       //TODO Better error management
@@ -107,15 +113,6 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       overrideModules(configuration, plugin.getEarModules());
     }
 
-    //Create a maven request + session
-    IMaven maven = MavenPlugin.getDefault().getMaven();
-    IFile pomResource = project.getFile(IMavenConstants.POM_FILE_NAME);
-
-    //TODO check offline behavior, profiles
-    MavenExecutionRequest request = projectManager.createExecutionRequest(pomResource,
-        mavenFacade.getResolverConfiguration(), monitor);
-    MavenSession session = maven.createSession(request, mavenProject);
-
     //Execute our hacked mojo 
     maven.execute(session, genConfigMojo, monitor);
 
@@ -141,6 +138,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
     }
     deleteDirectory(generatedDescriptorLocation);
   }
+
 
   private void overrideModules(Xpp3Dom configuration, Set<EarModule> earModules) {
     Xpp3Dom modules = configuration.getChild("modules");
@@ -191,29 +189,11 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
   }
 
   private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId, String goal) throws CoreException {
-    for(MojoExecution execution : getMojoExecutions(executionPlan)) {
+    for(MojoExecution execution : executionPlan.getMojoExecutions()) {
       if(artifactId.equals(execution.getArtifactId()) && goal.equals(execution.getGoal())) {
         return execution;
       }
     }
     return null;
   }
-
-  private Collection<MojoExecution> getMojoExecutions(MavenExecutionPlan executionPlan) throws CoreException {
-    Collection<MojoExecution> mojoExecutions;
-    try {
-      mojoExecutions = executionPlan.getMojoExecutions();
-    } catch (NoSuchMethodError nsme) {
-      //Support older versions of m2eclipse-core (pre Maven 3 era)
-      try {
-        Method getExecutionsMethod = MavenExecutionPlan.class.getMethod("getExecutions");
-        mojoExecutions = (Collection<MojoExecution>) getExecutionsMethod.invoke(executionPlan);
-      } catch(Exception e) {
-        IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, IStatus.ERROR, e.getMessage(), e);
-        throw new CoreException(status);
-      }
-    }
-    return mojoExecutions;
-  }
-
 }

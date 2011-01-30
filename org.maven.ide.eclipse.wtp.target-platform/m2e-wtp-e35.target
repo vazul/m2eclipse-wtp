@@ -25,14 +25,10 @@
 <unit id="org.eclipse.swtbot.feature.group" version="2.0.0.595-dev-e35"/>
 <repository location="http://download.eclipse.org/technology/swtbot/galileo/dev-build/update-site/"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
-<!--
-<unit id="org.maven.ide.eclipse.feature.feature.group" version="0.11.0.201008030706"/>
-<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.11.0/N/0.11.0.201008030706/"/>
--->
-
-<unit id="org.maven.ide.eclipse.feature.feature.group" version="0.12.0.201009252211"/>
-<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.12.0/N/0.12.0.201009252211/"/>
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.13.0.201101281731"/>
+<unit id="org.eclipse.m2e.feature.feature.group" version="0.13.0.201101281731"/>
+<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.13.0/N/0.13.0.201101281731/"/>
 </location>
 </locations>
 </target>

@@ -16,10 +16,10 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.maven.ide.eclipse.core.MavenConsole;
-import org.maven.ide.eclipse.embedder.MavenRuntimeManager;
-import org.maven.ide.eclipse.project.IMavenMarkerManager;
-import org.maven.ide.eclipse.project.MavenProjectManager;
+import org.eclipse.m2e.core.core.MavenConsole;
+import org.eclipse.m2e.core.embedder.MavenRuntimeManager;
+import org.eclipse.m2e.core.project.IMavenMarkerManager;
+import org.eclipse.m2e.core.project.MavenProjectManager;
 
 public abstract class AbstractDependencyConfigurator {
 

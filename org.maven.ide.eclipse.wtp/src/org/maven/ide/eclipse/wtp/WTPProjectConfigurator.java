@@ -13,15 +13,15 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.m2e.core.core.MavenLogger;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
+import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
+import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
+import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
+import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
-import org.maven.ide.eclipse.core.MavenLogger;
-import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
-import org.maven.ide.eclipse.jdt.IJavaProjectConfigurator;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
-import org.maven.ide.eclipse.project.MavenProjectChangedEvent;
-import org.maven.ide.eclipse.project.configurator.AbstractBuildParticipant;
-import org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator;
-import org.maven.ide.eclipse.project.configurator.ProjectConfigurationRequest;
 import org.maven.ide.eclipse.wtp.filtering.ResourceFilteringBuildParticipant;
 
 

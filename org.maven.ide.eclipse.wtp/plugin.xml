@@ -1,14 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-
+   <extension
+         point="org.eclipse.m2e.core.lifecycleMappingMetadataSource">
+   </extension>
+  <extension
+    point="org.eclipse.m2e.core.lifecycleMappings">
+    <lifecycleMapping
+      class="org.maven.ide.eclipse.wtp.internal.lifecycle.WarLifecycleMapping"
+      id="org.maven.ide.eclipse.wtp.WarLifecycleMapping"
+      name="War Build Lifecycle Mapping">
+    </lifecycleMapping>
+    <lifecycleMapping
+      class="org.maven.ide.eclipse.wtp.internal.lifecycle.EjbLifecycleMapping"
+      id="org.maven.ide.eclipse.wtp.EjbLifecycleMapping"
+      name="Ejb Build Lifecycle Mapping">
+    </lifecycleMapping>
+    <lifecycleMapping
+      class="org.maven.ide.eclipse.wtp.internal.lifecycle.EarLifecycleMapping"
+      id="org.maven.ide.eclipse.wtp.EarLifecycleMapping"
+      name="Ear Build Lifecycle Mapping">
+    </lifecycleMapping>
+    <lifecycleMapping
+      class="org.maven.ide.eclipse.wtp.internal.lifecycle.RarLifecycleMapping"
+      id="org.maven.ide.eclipse.wtp.RarLifecycleMapping"
+      name="Rar Build Lifecycle Mapping">
+    </lifecycleMapping>
+  </extension>
+  
    <extension-point id="dependencyConfigurators" name="Dependency Configurators" schema="schema/dependencyConfigurators.exsd"/>
 
-   <extension point="org.maven.ide.eclipse.projectConfigurators">
+   <extension point="org.eclipse.m2e.core.projectConfigurators">
       <configurator 
           id="org.maven.ide.eclipse.configuration.wtp.configurator"
           class="org.maven.ide.eclipse.wtp.WTPProjectConfigurator"
-          name="WTP" priority="100"/>
+          name="WTP" />
    </extension>
    
    <!-- A workaround to allow to uninstall WTP facets -->
@@ -30,8 +56,7 @@
       </action>
    </extension>
    
-   <!-- Project Explorer extensions -->
-   
+   <!-- Project Explorer extensions --> 
    <extension point="org.eclipse.ui.navigator.navigatorContent">
       <navigatorContent id="org.maven.ide.eclipse.wtp.navigatorContent"
             contentProvider="org.maven.ide.eclipse.wtp.internal.WebResourcesContentProvider"
@@ -84,6 +109,5 @@
             <contentExtension pattern="org.maven.ide.eclipse.wtp.navigatorContent"/>
          </includes>
       </viewerContentBinding>
-   </extension> 
-  
+   </extension>  
 </plugin>

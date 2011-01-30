@@ -21,15 +21,16 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.m2e.core.project.ResolverConfiguration;
+import org.eclipse.m2e.jdt.BuildPathManager;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.jdt.BuildPathManager;
-import org.maven.ide.eclipse.project.ResolverConfiguration;
-import org.maven.ide.eclipse.tests.common.AbstractMavenProjectTestCase;
+import org.junit.Test;
 
 
-public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
+public class WTPProjectImportTest extends AbstractWTPTestCase {
 
+  @Test
   public void testProjectImportDefault() throws Exception {
     deleteProject("MNGECLIPSE-20");
     deleteProject("MNGECLIPSE-20-app");
@@ -53,8 +54,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
       assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-type/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[1].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
 
       IMarker[] markers = projects[1].findMarkers(null, true, IResource.DEPTH_INFINITE);
       assertEquals(toString(markers), 0, markers.length);
@@ -72,8 +73,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
       assertEquals(4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-app/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[1].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
 
       IMarker[] markers = projects[2].findMarkers(null, true, IResource.DEPTH_INFINITE);
       assertEquals(toString(markers), 0, markers.length);
@@ -89,8 +90,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
       assertEquals(Arrays.asList(rawClasspath).toString(), 5, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-web/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[1].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
 
       IMarker[] markers = projects[3].findMarkers(null, true, IResource.DEPTH_INFINITE);
       assertEquals(toString(markers), 0, markers.length);
@@ -109,8 +110,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       assertEquals(Arrays.asList(rawClasspath).toString(), 5, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals("/MNGECLIPSE-20-ejb/src/main/resources", rawClasspath[1].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[2].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[3].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
       assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());//Added w/ MNGECLIPSE-688
       
       IMarker[] markers = projects[4].findMarkers(null, true, IResource.DEPTH_INFINITE);
@@ -118,25 +119,12 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
     }
 
     {
-      IJavaProject javaProject = JavaCore.create(projects[5]);
-      IClasspathEntry[] classpathEntries = BuildPathManager.getMaven2ClasspathContainer(javaProject)
-          .getClasspathEntries();
-      assertEquals(4, classpathEntries.length);
-      assertEquals("MNGECLIPSE-20-ejb", classpathEntries[0].getPath().lastSegment());
-      assertEquals("MNGECLIPSE-20-app", classpathEntries[1].getPath().lastSegment());
-      assertEquals("log4j-1.2.13.jar", classpathEntries[2].getPath().lastSegment());
-      assertEquals("MNGECLIPSE-20-type", classpathEntries[3].getPath().lastSegment());
-
-      IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.asList(rawClasspath).toString(), 2, rawClasspath.length);
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.4", rawClasspath[0].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[1].getPath().toString());
-
       IMarker[] markers = projects[5].findMarkers(null, true, IResource.DEPTH_INFINITE);
       assertEquals(toString(markers), 0, markers.length);
     }
   }
 
+  @Test
   public void testProjectImportNoWorkspaceResolution() throws Exception {
     deleteProject("MNGECLIPSE-20");
     deleteProject("MNGECLIPSE-20-app");
@@ -181,8 +169,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
       assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-type/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[1].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
 
       // IMarker[] markers = projects[1].findMarkers(null, true, IResource.DEPTH_INFINITE);
       List<IMarker> markers = findErrorMarkers(projects[1]);
@@ -202,8 +190,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
       assertEquals(3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-app/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[1].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
 
       // IMarker[] markers = projects[2].findMarkers(null, true, IResource.DEPTH_INFINITE);
       List<IMarker> markers = findErrorMarkers(projects[2]);
@@ -223,8 +211,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
       assertEquals(Arrays.toString(rawClasspath), 5, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-web/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[1].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
       assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[3].getPath().toString());
       assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
 
@@ -247,8 +235,8 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
       assertEquals("/MNGECLIPSE-20-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals("/MNGECLIPSE-20-ejb/src/main/resources", rawClasspath[1].getPath().toString());
       assertEquals("/MNGECLIPSE-20-ejb/target/classes", rawClasspath[1].getOutputLocation().toString());
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5", rawClasspath[2].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[3].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
       assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
 
       // IMarker[] markers = projects[4].findMarkers(null, true, IResource.DEPTH_INFINITE);
@@ -258,23 +246,12 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
 
     {
       // ear
-      IJavaProject javaProject = JavaCore.create(projects[5]);
-      IClasspathEntry[] classpathEntries = BuildPathManager.getMaven2ClasspathContainer(javaProject)
-          .getClasspathEntries();
-      assertEquals(1, classpathEntries.length);
-      assertEquals("MNGECLIPSE-20-ejb-0.0.1-SNAPSHOT.jar", classpathEntries[0].getPath().lastSegment());
-
-      IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.asList(rawClasspath).toString(), 2, rawClasspath.length);
-      assertEquals("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.4", rawClasspath[0].getPath().toString());
-      assertEquals("org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER", rawClasspath[1].getPath().toString());
-
-      // IMarker[] markers = projects[5].findMarkers(null, true, IResource.DEPTH_INFINITE);
-      List<IMarker> markers = findErrorMarkers(projects[4]);
+      List<IMarker> markers = findErrorMarkers(projects[5]);
       assertEquals(toString(markers), 4, markers.size());
     }
   }
 
+  @Test
   public void testMNGECLIPSE1028() throws Exception {
     deleteProject("import-order-matters");
     deleteProject("project1");
@@ -291,10 +268,11 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
     assertEquals(projects.length, 6);
     for (IProject project : projects)
     {
-      assertMarkers(project, 0);    
+      assertNoErrors(project);    
     }
   }
 
+  @Test
   public void testMNGECLIPSE1028_JavaVersion() throws Exception {
     deleteProject("import-order-matters2");
     deleteProject("project1-ear");
@@ -309,7 +287,7 @@ public class WTPProjectImportTest extends AbstractMavenProjectTestCase {
     assertEquals(projects.length, 4);
     for (IProject project : projects)
     {
-      assertMarkers(project, 0);    
+      assertNoErrors(project);    
     }
     
     IFacetedProject jarUtilityProject = ProjectFacetsManager.create(projects[3]);

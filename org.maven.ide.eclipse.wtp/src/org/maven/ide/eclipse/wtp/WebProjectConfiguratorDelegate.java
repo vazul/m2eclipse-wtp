@@ -41,6 +41,11 @@ import org.eclipse.jst.j2ee.project.facet.IJ2EEModuleFacetInstallDataModelProper
 import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.core.MavenLogger;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
+import org.eclipse.m2e.jdt.IClasspathEntryDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
@@ -51,11 +56,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.MavenPlugin;
-import org.maven.ide.eclipse.core.MavenLogger;
-import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
-import org.maven.ide.eclipse.jdt.IClasspathEntryDescriptor;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
@@ -99,7 +99,15 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     installJavaFacet(actions, project, facetedProject);
     
     IVirtualComponent component = ComponentCore.createComponent(project);
-    if(component != null && warSourceDirectory != null) {
+    if(component != null) {
+            
+      IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
+      //ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
+      if (config.getWebResources() != null && config.getWebResources().length > 0) {
+        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);      
+      }      
+
       IPath warPath = new Path(warSourceDirectory);
       //remove the old links (if there is one) before adding the new one.
       component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
@@ -152,17 +160,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       libDir.delete(true, monitor);
     }
     linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
-
-    
-    IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
-    if (component != null) {
-      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
-      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
-      if (config.getWebResources() != null && config.getWebResources().length > 0) {
-        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);      
-      }      
-    }
-
   }
 
 

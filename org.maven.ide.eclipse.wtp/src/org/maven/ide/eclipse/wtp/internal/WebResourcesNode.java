@@ -12,11 +12,11 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
-import org.maven.ide.eclipse.core.MavenLogger;
 
 
 /**

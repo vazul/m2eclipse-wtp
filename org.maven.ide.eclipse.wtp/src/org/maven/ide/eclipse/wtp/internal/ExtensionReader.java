@@ -17,12 +17,12 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
-import org.maven.ide.eclipse.core.MavenConsole;
-import org.maven.ide.eclipse.core.MavenLogger;
-import org.maven.ide.eclipse.embedder.MavenRuntimeManager;
-import org.maven.ide.eclipse.project.IMavenMarkerManager;
-import org.maven.ide.eclipse.project.MavenProjectManager;
-import org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator;
+import org.eclipse.m2e.core.core.MavenConsole;
+import org.eclipse.m2e.core.core.MavenLogger;
+import org.eclipse.m2e.core.embedder.MavenRuntimeManager;
+import org.eclipse.m2e.core.project.IMavenMarkerManager;
+import org.eclipse.m2e.core.project.MavenProjectManager;
+import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.maven.ide.eclipse.wtp.AbstractDependencyConfigurator;
 
 

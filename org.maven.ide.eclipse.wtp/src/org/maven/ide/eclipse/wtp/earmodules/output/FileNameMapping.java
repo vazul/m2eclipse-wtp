@@ -29,7 +29,7 @@ package org.maven.ide.eclipse.wtp.earmodules.output;
 
 import org.apache.maven.artifact.Artifact;
 import org.codehaus.plexus.util.StringUtils;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.ArtifactHelper;
 
 

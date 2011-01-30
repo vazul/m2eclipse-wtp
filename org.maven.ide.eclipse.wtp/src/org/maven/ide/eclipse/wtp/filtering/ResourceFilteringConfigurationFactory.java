@@ -8,7 +8,7 @@
 
 package org.maven.ide.eclipse.wtp.filtering;
 
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.JEEPackaging;
 
 /**

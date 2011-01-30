@@ -11,7 +11,7 @@ package org.maven.ide.eclipse.wtp.earmodules;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.maven.ide.eclipse.core.IMavenConstants;
+import org.eclipse.m2e.core.core.IMavenConstants;
 
 
 /*

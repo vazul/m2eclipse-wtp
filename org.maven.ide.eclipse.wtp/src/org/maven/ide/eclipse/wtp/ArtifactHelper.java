@@ -12,10 +12,11 @@ import org.apache.maven.artifact.Artifact;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.jdt.BuildPathManager;
 import org.eclipse.wst.common.componentcore.internal.resources.VirtualArchiveComponent;
-import org.maven.ide.eclipse.MavenPlugin;
-import org.maven.ide.eclipse.jdt.BuildPathManager;
-import org.maven.ide.eclipse.project.IMavenProjectFacade;
+
 
 /**
  * 
