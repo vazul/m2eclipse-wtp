@@ -17,13 +17,13 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.m2e.core.core.MavenConsole;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.embedder.MavenRuntimeManager;
-import org.eclipse.m2e.core.project.IMavenMarkerManager;
+import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.MavenProjectManager;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.maven.ide.eclipse.wtp.AbstractDependencyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -35,12 +35,14 @@ public class ExtensionReader {
 
   public static final String EXTENSION_DEPENDENCY_CONFIGURATORS = "org.maven.ide.eclipse.wtp.dependencyConfigurators";
   
+  private static final Logger log = LoggerFactory.getLogger(ExtensionReader.class);
+      
   private static final String ELEMENT_CONFIGURATOR = "configurator";
   
   private static ArrayList<AbstractDependencyConfigurator> dependencyConfigurators;
 
   public static List<AbstractDependencyConfigurator> readDependencyConfiguratorExtensions(MavenProjectManager projectManager,
-      MavenRuntimeManager runtimeManager, IMavenMarkerManager markerManager, MavenConsole console) {
+      MavenRuntimeManager runtimeManager, IMavenMarkerManager markerManager) {
     if (dependencyConfigurators == null) {
       dependencyConfigurators = new ArrayList<AbstractDependencyConfigurator>();
       
@@ -59,11 +61,10 @@ public class ExtensionReader {
                 projectConfigurator.setProjectManager(projectManager);
                 projectConfigurator.setRuntimeManager(runtimeManager);
                 projectConfigurator.setMarkerManager(markerManager);
-                projectConfigurator.setConsole(console);
                 
                 dependencyConfigurators.add(projectConfigurator);
               } catch(CoreException ex) {
-                MavenLogger.log(ex);
+                log.error("Error configuring dependency configurator", ex);
               }
             }
           }

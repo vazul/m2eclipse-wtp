@@ -30,6 +30,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.wst.common.emfworkbench.integration,
  org.eclipse.jst.jee,
  org.eclipse.jst.j2ee.jca,
+ org.slf4j.api;bundle-version="1.5.11", 
  org.eclipse.ui.ide
 Bundle-Vendor: Sonatype, Inc.
 Export-Package: org.maven.ide.eclipse.wtp

@@ -22,7 +22,6 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.earmodules.ArtifactTypeMappingService;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
@@ -31,6 +30,8 @@ import org.maven.ide.eclipse.wtp.earmodules.EarPluginException;
 import org.maven.ide.eclipse.wtp.earmodules.SecurityRoleKey;
 import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMapping;
 import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -42,6 +43,8 @@ import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
  * @author Fred Bricon
  */
 class EarPluginConfiguration {
+
+  private static final Logger log = LoggerFactory.getLogger(EarPluginConfiguration.class);
 
   //Careful : This has a different meaning from the default library directory (/lib)
   private static final String EAR_DEFAULT_BUNDLE_DIR = "/"; 
@@ -108,13 +111,13 @@ class EarPluginConfiguration {
           return WTPProjectsUtil.EAR_FACET.getVersion(sVersion);
         } catch (Throwable t) {
           //If Ear Version > 5.0 and WTP < 3.2, downgrade to Ear facet 5.0
-          MavenLogger.log(t.getMessage());
+          log.warn(t.getMessage());
           if (version > 5.0){
             return WTPProjectsUtil.EAR_FACET.getVersion("5.0");
           }
         }
         } catch(NumberFormatException nfe) {
-        MavenLogger.log("unable to read ear version : " + sVersion, nfe);
+        log.error("unable to read ear version : " + sVersion, nfe);
         return DEFAULT_EAR_FACET;
       }
     }

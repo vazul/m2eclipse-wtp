@@ -14,9 +14,10 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * See http://maven.apache.org/plugins/maven-ejb-plugin/ejb-mojo.html
@@ -25,6 +26,8 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
  */
 class EjbPluginConfiguration {
   
+  private static final Logger log = LoggerFactory.getLogger(EjbPluginConfiguration.class); 
+
   /**
    * Maven defaults ejb version to 2.1
    */
@@ -62,7 +65,7 @@ class EjbPluginConfiguration {
       try {
         return WTPProjectsUtil.EJB_FACET.getVersion(ejbVersion);
       } catch (Throwable t) {
-        MavenLogger.log(t.getMessage());
+        log.warn(t.getMessage());
         //If ejbVersion > 3.0 and WTP < 3.2, then downgrade to ejb facet 3.0
         if (ejbVersion.startsWith("3.")){
           return IJ2EEFacetConstants.EJB_30;

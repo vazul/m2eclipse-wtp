@@ -8,9 +8,6 @@
 
 package org.maven.ide.eclipse.wtp.filtering;
 
-import java.io.StringReader;
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,9 +20,6 @@ import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.Xpp3DomUtils;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -33,18 +27,16 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectManager;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
-import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ResourceFilteringBuildParticipant
@@ -53,6 +45,8 @@ import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
  */
 public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant {
 
+  private static final Logger log = LoggerFactory.getLogger(ResourceFilteringBuildParticipant.class );
+      
   public Set<IProject> build(int kind, IProgressMonitor monitor) throws Exception {
     IMavenProjectFacade facade = getMavenProjectFacade();
     ResourceFilteringConfiguration configuration = ResourceFilteringConfigurationFactory.getConfiguration(facade);
@@ -67,7 +61,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     IPath targetFolder = configuration.getTargetFolder();
     
     if (hasResourcesChanged(facade, getDelta(project), resources)) {
-      MavenLogger.log("Executing resource filtering for "+project.getName());
+      log.info("Executing resource filtering for "+project.getName());
       executeCopyResources(facade, targetFolder, resources, monitor);  
       //FIXME deal with absolute paths
       IFolder destFolder = project.getFolder(targetFolder);
@@ -94,7 +88,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     IPath targetFolderPath = configuration.getTargetFolder();
     IFolder targetFolder = project.getFolder(targetFolderPath);
     if (targetFolder.exists()) {
-      MavenLogger.log("Cleaning filtered folder for "+project.getName());
+      log.info("Cleaning filtered folder for "+project.getName());
       //Can't delete the folder directly as it would also delete the related entry in .component 
       // and user would then need to manually update the maven configuration
       for (IResource resource : targetFolder.members()) {
@@ -237,8 +231,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       String msg = "Build errors for " + projectNname;
       List<Throwable> exceptions = result.getExceptions();
       for(Throwable ex : exceptions) {
-        MavenPlugin.getDefault().getConsole().logError(msg + "; " + ex.toString());
-        MavenLogger.log(msg, ex);
+        log.error(msg, ex);
       }
       // XXX add error markers
     }

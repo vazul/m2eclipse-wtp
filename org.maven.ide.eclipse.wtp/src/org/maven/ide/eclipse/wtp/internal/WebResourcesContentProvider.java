@@ -15,7 +15,6 @@ import java.util.Set;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
@@ -25,6 +24,8 @@ import org.eclipse.ui.navigator.PipelinedShapeModification;
 import org.eclipse.ui.navigator.PipelinedViewerUpdate;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Web resources content provider
@@ -33,7 +34,7 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
  */
 public class WebResourcesContentProvider extends BaseWorkbenchContentProvider implements ICommonContentProvider, IPipelinedTreeContentProvider {
 
-  // ICommonContentProvider
+  private static final Logger log = LoggerFactory.getLogger(WebResourcesContentProvider.class); 
   
   public void init(ICommonContentExtensionSite config) {
   }
@@ -72,7 +73,7 @@ public class WebResourcesContentProvider extends BaseWorkbenchContentProvider im
             currentChildren.addAll(newChildren);
           }
         } catch(CoreException ex) {
-          MavenLogger.log(ex);
+          log.error("Error getting pipelined children", ex);
         }
       }
     }

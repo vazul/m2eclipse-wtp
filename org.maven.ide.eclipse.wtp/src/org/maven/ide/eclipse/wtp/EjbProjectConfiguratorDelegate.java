@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jst.j2ee.ejb.project.operations.IEjbFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.ejb.project.operations.EjbFacetInstallDataModelProvider;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
@@ -26,6 +25,8 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -36,6 +37,8 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 @SuppressWarnings("restriction")
 class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
+  private static final Logger log = LoggerFactory.getLogger(EjbProjectConfiguratorDelegate.class); 
+
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
@@ -45,7 +48,7 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
             facetedProject.getInstalledVersion(WTPProjectsUtil.EJB_FACET), null)), monitor);
       } catch(Exception ex) {
-        MavenLogger.log("Error removing EJB facet", ex);
+        log.error("Error removing EJB facet", ex);
       }
     }
 

@@ -43,7 +43,7 @@ import org.eclipse.jst.javaee.core.SecurityRole;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IProjectConfigurationManager;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
-import org.eclipse.m2e.jdt.BuildPathManager;
+import org.eclipse.m2e.jdt.internal.BuildPathManager;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.util.ComponentUtilities;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -1067,7 +1067,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     }
     IProjectConfigurationManager configurationManager = MavenPlugin.getDefault().getProjectConfigurationManager();
     // update configuration
-    configurationManager.updateProjectConfiguration(web, configuration, monitor);
+    configurationManager.updateProjectConfiguration(web, monitor);
     waitForJobsToComplete();
 
     {
@@ -1085,7 +1085,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertEquals("MNGECLIPSE-1878-core", entries[0].getPath().lastSegment());
     }
 
-    configurationManager.updateProjectConfiguration(ejb, configuration, monitor);
+    configurationManager.updateProjectConfiguration(ejb, monitor);
     waitForJobsToComplete();
 
     {

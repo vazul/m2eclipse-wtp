@@ -31,11 +31,12 @@ import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.core.IMavenConstants;
-import org.eclipse.m2e.core.project.IMavenMarkerManager;
+import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectManager;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
-import org.eclipse.m2e.jdt.BuildPathManager;
+import org.eclipse.m2e.jdt.internal.BuildPathManager;
+import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
@@ -76,7 +77,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       configure(project, mavenProject, monitor);
     } catch (CoreException cex) {
       //TODO Filter out constraint violations
-      cex.printStackTrace();
       mavenMarkerManager.addErrorMarkers(project, IMavenConstants.MARKER_CONFIGURATION_ID, cex);
       throw new MarkedException("Unable to configure "+project.getName(), cex);
     }
@@ -170,7 +170,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     IClasspathEntry[] cp = javaProject.getRawClasspath();
     for(int i = 0; i < cp.length; i++ ) {
       if(IClasspathEntry.CPE_CONTAINER == cp[i].getEntryKind()
-          && BuildPathManager.isMaven2ClasspathContainer(cp[i].getPath())) {
+          && MavenClasspathHelpers.isMaven2ClasspathContainer(cp[i].getPath())) {
         LinkedHashMap<String, IClasspathAttribute> attrs = new LinkedHashMap<String, IClasspathAttribute>();
         for(IClasspathAttribute attr : cp[i].getExtraAttributes()) {
           if (!attr.getName().equals(attributeToDelete)) {

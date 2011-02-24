@@ -42,7 +42,6 @@ import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelPropertie
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IClasspathEntryDescriptor;
@@ -59,6 +58,8 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -70,6 +71,8 @@ import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
 @SuppressWarnings("restriction")
 class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
+  private static final Logger log = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
+  
   /**
    * See http://wiki.eclipse.org/ClasspathEntriesPublishExportSupport
    */
@@ -129,7 +132,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
                                        null);
           facetedProject.modify(Collections.singleton(uninstallAction), monitor);
         } catch(Exception ex) {
-          MavenLogger.log("Error removing WEB facet", ex);
+          log.error("Error removing WEB facet", ex);
         }
         installWebFacet(mavenProject, warSourceDirectory, contextRoot, actions, webFv);
       }
@@ -192,8 +195,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
     List<AbstractDependencyConfigurator> depConfigurators = ExtensionReader.readDependencyConfiguratorExtensions(projectManager, 
-        MavenPlugin.getDefault().getMavenRuntimeManager(), mavenMarkerManager, 
-        MavenPlugin.getDefault().getConsole());
+        MavenPlugin.getDefault().getMavenRuntimeManager(), mavenMarkerManager);
     
     Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>();
     List<IMavenProjectFacade> exportedDependencies = getWorkspaceDependencies(project, mavenProject);
@@ -382,7 +384,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
                 entry.isExported()));
           }
         } catch(IOException ex) {
-          MavenLogger.log("File copy failed", ex);
+          log.error("File copy failed", ex);
         }
       }
       
@@ -408,7 +410,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       try {
         J2EEProjectUtilities.writeManifest(project, mf);
       } catch(Exception ex) {
-        MavenLogger.log("Could not write web module manifest file", ex);
+        log.error("Could not write web module manifest file", ex);
       }
     }
   }

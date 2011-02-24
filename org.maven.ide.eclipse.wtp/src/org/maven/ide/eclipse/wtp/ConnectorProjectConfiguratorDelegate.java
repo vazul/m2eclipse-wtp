@@ -22,10 +22,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jst.j2ee.jca.project.facet.ConnectorFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelProperties;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
+import org.eclipse.m2e.jdt.internal.BuildPathManager;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
@@ -37,6 +37,8 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ConnectorProjectConfiguratorDelegate
@@ -44,6 +46,8 @@ import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
  * @author Fred Bricon
  */
 public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate{
+
+  private static final Logger log = LoggerFactory.getLogger(ConnectorProjectConfiguratorDelegate.class);
 
   public static final ArtifactFilter SCOPE_FILTER_RUNTIME = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
 
@@ -58,7 +62,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
         facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
             facetedProject.getInstalledVersion(WTPProjectsUtil.JCA_FACET), null)), monitor);
       } catch(Exception ex) {
-        MavenLogger.log("Error removing JCA facet", ex);
+        log.error("Error removing JCA facet", ex);
       }
     }
     

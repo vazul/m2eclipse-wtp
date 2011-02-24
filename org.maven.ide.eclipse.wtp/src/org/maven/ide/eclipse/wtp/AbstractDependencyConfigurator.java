@@ -16,9 +16,8 @@ import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.m2e.core.core.MavenConsole;
 import org.eclipse.m2e.core.embedder.MavenRuntimeManager;
-import org.eclipse.m2e.core.project.IMavenMarkerManager;
+import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.MavenProjectManager;
 
 public abstract class AbstractDependencyConfigurator {
@@ -38,7 +37,6 @@ public abstract class AbstractDependencyConfigurator {
   protected MavenProjectManager projectManager;
   protected MavenRuntimeManager runtimeManager;
   protected IMavenMarkerManager markerManager; 
-  protected MavenConsole console;
   
   public void setProjectManager(MavenProjectManager projectManager) {
     this.projectManager = projectManager;
@@ -50,10 +48,6 @@ public abstract class AbstractDependencyConfigurator {
 
   public void setMarkerManager(IMavenMarkerManager markerManager) {
     this.markerManager = markerManager;
-  }
-  
-  public void setConsole(MavenConsole console) {
-    this.console = console;
   }
   
   public abstract void configureDependency(MavenProject mavenProject, IProject mavenIProject, MavenProject dependencyProject, 

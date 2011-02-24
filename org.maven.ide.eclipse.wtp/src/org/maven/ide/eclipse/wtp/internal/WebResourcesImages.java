@@ -10,8 +10,9 @@ package org.maven.ide.eclipse.wtp.internal;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -19,8 +20,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
  */
 public class WebResourcesImages {
 
-  // object images
-
+  private static final Logger log = LoggerFactory.getLogger(WebResourcesImages.class);
+  
   // public static final Image IMG_WEB_RESOURCES = createImage("web-resources.gif");
   
   // descriptors
@@ -40,7 +41,7 @@ public class WebResourcesImages {
         return imageDescriptor;
       }
     } catch(Exception ex) {
-      MavenLogger.log(key, ex);
+      log.error("Error creating ImageDescriptor {}",key, ex);
     }
     return null;
   }

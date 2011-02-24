@@ -29,7 +29,6 @@ import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.model.IEARModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.application.Application;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
@@ -43,6 +42,8 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -54,6 +55,8 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 @SuppressWarnings("restriction")
 class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
+  private static final Logger log = LoggerFactory.getLogger(EarProjectConfiguratorDelegate.class); 
+      
   private static final IStatus OK_STATUS = IDataModelProvider.OK_STATUS;
 
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
@@ -65,7 +68,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
             facetedProject.getInstalledVersion(WTPProjectsUtil.EAR_FACET), null)), monitor);
       } catch(Exception ex) {
-        MavenLogger.log("Error removing EAR facet", ex);
+        log.error("Error removing EAR facet", ex);
       }
     }
 

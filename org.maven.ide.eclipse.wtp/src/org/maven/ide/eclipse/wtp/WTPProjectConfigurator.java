@@ -13,7 +13,6 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
@@ -23,6 +22,8 @@ import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.maven.ide.eclipse.wtp.filtering.ResourceFilteringBuildParticipant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,6 +34,8 @@ import org.maven.ide.eclipse.wtp.filtering.ResourceFilteringBuildParticipant;
  */
 public class WTPProjectConfigurator extends AbstractProjectConfigurator implements IJavaProjectConfigurator {
 
+  private static final Logger log = LoggerFactory.getLogger(WTPProjectConfigurator.class); 
+      
   @Override
   public void configure(ProjectConfigurationRequest request, IProgressMonitor monitor)
       throws CoreException {
@@ -50,7 +53,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
         configuratorDelegate.configureProject(project, mavenProject, monitor);
         configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
       } catch(MarkedException ex) {
-        MavenLogger.log(ex.getMessage(), ex);
+        log.error(ex.getMessage(), ex);
       }
     }
   }
@@ -90,7 +93,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
       try {
         configuratorDelegate.configureClasspath(project, mavenProject, classpath, monitor);
       } catch(CoreException ex) {
-        MavenLogger.log(ex.getMessage(), ex);
+        log.error(ex.getMessage(), ex);
       }
     }
   }

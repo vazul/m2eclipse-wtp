@@ -12,11 +12,12 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.m2e.core.core.MavenLogger;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -25,7 +26,9 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
  * @author Eugene Kuleshov
  */
 public class WebResourcesNode implements IWorkbenchAdapter {
-
+  
+  private static final Logger log = LoggerFactory.getLogger(WebResourcesNode.class);
+  
   private final IProject project;
 
   public WebResourcesNode(IProject project) {
@@ -38,7 +41,7 @@ public class WebResourcesNode implements IWorkbenchAdapter {
       try {
         return folders[0].members();
       } catch(CoreException ex) {
-        MavenLogger.log(ex);
+        log.error("Error getting web resources",ex);
       }
     }
 
