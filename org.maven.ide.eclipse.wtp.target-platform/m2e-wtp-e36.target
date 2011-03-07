@@ -32,9 +32,9 @@
 <repository location="http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.13.0.201102050005"/>
-<unit id="org.eclipse.m2e.feature.feature.group" version="0.13.0.201102050005"/>
-<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.13.0/N/0.13.0.201102050005/"/>
+<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.13.0.201103041605"/>
+<unit id="org.eclipse.m2e.feature.feature.group" version="0.13.0.201103041605"/>
+<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.13.0/N/0.13.0.201103041605/"/>
 </location>
 </locations>
 </target>
