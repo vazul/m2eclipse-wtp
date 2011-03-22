@@ -8,6 +8,7 @@
 
 package org.maven.ide.eclipse.wtp.filtering;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,4 +51,11 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
     return Arrays.asList(domResources);
   }
 
+  public List<String> getFilters() {
+    List<String> filters = new ArrayList<String>(mavenProjectFacade.getMavenProject().getFilters());
+    filters.addAll(pluginConfiguration.getWebResourcesFilters());
+    return filters;
+  }
+
+  
 }
