@@ -311,10 +311,6 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       }
     }
     
-    System.err.println(facade.getMavenProject().getName());
-//    for (Entry e : facade.getMavenProject().getProperties().entrySet()){
-//      System.err.println(e.getKey() + "="+e.getValue());
-//    }
     //Execute our hacked mojo 
     maven.execute(session, copyFilteredResourcesMojo, monitor);
     
