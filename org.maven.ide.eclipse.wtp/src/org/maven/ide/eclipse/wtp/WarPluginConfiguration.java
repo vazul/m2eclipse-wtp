@@ -10,10 +10,14 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -245,6 +249,27 @@ public class WarPluginConfiguration {
       }
     }
     return null;
+  }
+
+  /**
+   * @return
+   */
+  public List<String> getWebResourcesFilters() {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom filtersNode = config.getChild("filters");
+      if (filtersNode != null && filtersNode.getChildCount() > 0) {
+        List<String> filters = new ArrayList<String>(filtersNode.getChildCount());
+        for (Xpp3Dom filterNode : filtersNode.getChildren("filter")) {
+          String  filter = filterNode.getValue();
+          if (!StringUtils.nullOrEmpty(filter)) {
+            filters.add(filter);
+          }
+        }
+        return filters;
+      }
+    }
+    return Collections.emptyList();
   }
 
 

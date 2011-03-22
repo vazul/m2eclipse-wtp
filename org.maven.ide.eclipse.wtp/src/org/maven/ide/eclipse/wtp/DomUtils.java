@@ -32,4 +32,13 @@ public class DomUtils {
   public static final boolean getBooleanChildValue(Xpp3Dom parent, String childName) {
     return Boolean.valueOf(getChildValue(parent, childName));
   }
+  /**
+   * @param node
+   */
+  public static final void removeChildren(Xpp3Dom node) {
+    if (node == null) return;
+    for (int i= node.getChildCount() -1; i>0 ; i--){
+      node.removeChild(i);
+    }
+  }
 }

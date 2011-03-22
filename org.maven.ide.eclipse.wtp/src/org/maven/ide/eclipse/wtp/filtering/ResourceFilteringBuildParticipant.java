@@ -9,12 +9,14 @@
 package org.maven.ide.eclipse.wtp.filtering;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.maven.execution.MavenExecutionRequest;
-import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
@@ -30,13 +32,19 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.builder.AbstractEclipseBuildContext;
+import org.eclipse.m2e.core.builder.EclipseBuildContext;
 import org.eclipse.m2e.core.embedder.IMaven;
+import org.eclipse.m2e.core.internal.builder.MavenBuilder;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectManager;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
+import org.maven.ide.eclipse.wtp.DomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonatype.plexus.build.incremental.BuildContext;
+import org.sonatype.plexus.build.incremental.ThreadBuildContext;
 
 /**
  * ResourceFilteringBuildParticipant
@@ -46,33 +54,85 @@ import org.slf4j.LoggerFactory;
 public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant {
 
   private static final Logger log = LoggerFactory.getLogger(ResourceFilteringBuildParticipant.class );
-      
+
+  private EclipseBuildContext forceCopyBuildContext; 
+  
   public Set<IProject> build(int kind, IProgressMonitor monitor) throws Exception {
-    IMavenProjectFacade facade = getMavenProjectFacade();
-    ResourceFilteringConfiguration configuration = ResourceFilteringConfigurationFactory.getConfiguration(facade);
-    if (configuration == null || configuration.getResources() == null) {
-      //Nothing to filter
-      return null;
+    
+      IMavenProjectFacade facade = getMavenProjectFacade();
+      ResourceFilteringConfiguration configuration = ResourceFilteringConfigurationFactory.getConfiguration(facade);
+      List<Xpp3Dom> resources = null; 
+      if (configuration == null || (resources = configuration.getResources()) == null) {
+        //Nothing to filter
+        return null;
+      }
+
+      IProject project = facade.getProject();
+      //FIXME assuming path relative to current project
+      IPath targetFolder = configuration.getTargetFolder();      
+      IResourceDelta delta =  getDelta(project);
+
+      BuildContext oldBuildContext  = ThreadBuildContext.getContext();
+      
+      try {
+        forceCopyBuildContext = null;
+        List<String> filters = configuration.getFilters();
+        if (changeRequiresForcedCopy(facade, filters, delta)) {
+          log.info("Changed resources require a complete clean of filtered resources of {}",project.getName());
+          Map<String, Object> contextState = new HashMap<String, Object>();
+          project.setSessionProperty(MavenBuilder.BUILD_CONTEXT_KEY, contextState);
+          //String id = ((AbstractEclipseBuildContext)super.getBuildContext()).getCurrentBuildParticipantId();
+          forceCopyBuildContext = new EclipseBuildContext(project, contextState);      
+          //forceCopyBuildContext.setCurrentBuildParticipantId(id);
+          ThreadBuildContext.setThreadBuildContext(forceCopyBuildContext);
+        }   
+        if (forceCopyBuildContext != null || hasResourcesChanged(facade, delta, resources)) {
+          log.info("Executing resource filtering for {}",project.getName());
+          executeCopyResources(facade, filters, targetFolder, resources, monitor);  
+          //FIXME deal with absolute paths
+          IFolder destFolder = project.getFolder(targetFolder);
+          if (destFolder.exists()){
+            destFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+          }
+        }
+      } finally {
+        ThreadBuildContext.setThreadBuildContext(oldBuildContext);
+      }    
+    return null;
+  }
+
+  protected BuildContext getBuildContext() {
+     return (forceCopyBuildContext == null)?super.getBuildContext() : forceCopyBuildContext;
+  }
+
+  /**
+   * If the pom.xml or any of the project's filters were changed, a forced copy is required 
+   * @param facade 
+   * @param delta
+   * @return
+   */
+  private boolean changeRequiresForcedCopy(IMavenProjectFacade facade, List<String> filters, IResourceDelta delta) {
+    if (delta == null) {
+      return false;
     }
 
-    IProject project = facade.getProject();
-    List<Xpp3Dom> resources = configuration.getResources();
-    //FIXME assuming path relative to current project
-    IPath targetFolder = configuration.getTargetFolder();
-    
-    if (hasResourcesChanged(facade, getDelta(project), resources)) {
-      log.info("Executing resource filtering for "+project.getName());
-      executeCopyResources(facade, targetFolder, resources, monitor);  
-      //FIXME deal with absolute paths
-      IFolder destFolder = project.getFolder(targetFolder);
-      if (destFolder.exists()){
-        destFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+    if (delta.findMember(facade.getPom().getProjectRelativePath()) != null ) {
+      return true;
+    }
+    for (String filter : filters) {
+      
+      IPath filterPath = facade.getProjectRelativePath(filter);
+      if (filterPath == null) {
+        filterPath =Path.fromOSString(filter); 
       }
-    }    
-    return null;
-  
+      if (delta.findMember(filterPath) != null){
+        return true;
+      }
+    }
+    return false;
+    
   }
-  
+
   /* (non-Javadoc)
    * @see org.maven.ide.eclipse.project.configurator.AbstractBuildParticipant#clean(org.eclipse.core.runtime.IProgressMonitor)
    */
@@ -86,18 +146,24 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
 
     IProject project = facade.getProject();
     IPath targetFolderPath = configuration.getTargetFolder();
+    deleteFilteredResources(project, targetFolderPath);
+    super.clean(monitor);
+  }
+  
+  private void deleteFilteredResources(IProject project, IPath targetFolderPath) throws CoreException {
     IFolder targetFolder = project.getFolder(targetFolderPath);
     if (targetFolder.exists()) {
       log.info("Cleaning filtered folder for "+project.getName());
       //Can't delete the folder directly as it would also delete the related entry in .component 
       // and user would then need to manually update the maven configuration
+      IProgressMonitor nullMonitor = new NullProgressMonitor();
       for (IResource resource : targetFolder.members()) {
-        resource.delete(true, new NullProgressMonitor());         
+        resource.delete(true, nullMonitor);         
       }
-      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor); 
-    }
-    super.clean(monitor);
+      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, nullMonitor); 
+    }    
   }
+
   
   /**
    * @param mavenProject
@@ -146,22 +212,23 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
         resourcePaths.add(folder);
       }
     }
-    if (!resourcePaths.isEmpty()) {
-      //Filtering is triggered in case a change in pom.xml has modified the resource list 
-      resourcePaths.add(facade.getPom().getProjectRelativePath());
-    }
+//    if (!resourcePaths.isEmpty()) {
+//      //Filtering is triggered in case a change in pom.xml has modified the resource list 
+//      resourcePaths.add(facade.getPom().getProjectRelativePath());
+//    }
     return resourcePaths;
   }
   
   /**
    * @param facade
+   * @param filters 
    * @param project 
    * @param targetFolder
    * @param resources
    * @param monitor 
    * @throws CoreException 
    */
-  private void executeCopyResources(IMavenProjectFacade facade, IPath targetFolder, List<Xpp3Dom> resources, IProgressMonitor monitor) throws CoreException {
+  private void executeCopyResources(IMavenProjectFacade facade, List<String> filters, IPath targetFolder, List<Xpp3Dom> resources, IProgressMonitor monitor) throws CoreException {
 
 
     IMaven maven = MavenPlugin.getDefault().getMaven();
@@ -174,20 +241,29 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     request.setOffline(true);
     MavenSession session = maven.createSession(request, facade.getMavenProject());
     MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, facade.getMavenProject(), Collections.singletonList("resources:copy-resources"), true, monitor);
-
+    
     MojoExecution copyFilteredResourcesMojo = getExecution(executionPlan, "maven-resources-plugin");
 
     if (copyFilteredResourcesMojo == null) return;
 
     Xpp3Dom  configuration = copyFilteredResourcesMojo.getConfiguration();
-    
-    Xpp3Dom  resourcesNode = new Xpp3Dom("resources");
+
+    //Set resources directories to read
+
+    Xpp3Dom  resourcesNode = configuration.getChild("resources");
+    if (resourcesNode==null){
+      resourcesNode = new Xpp3Dom("resources");
+      configuration.addChild(resourcesNode);
+    } else {
+      DomUtils.removeChildren(resourcesNode);
+    }
     for (Xpp3Dom resource : resources)
     {
       resourcesNode.addChild(resource);
     }
     configuration.addChild(resourcesNode);
 
+    //Force overwrite
     Xpp3Dom  overwriteNode = configuration.getChild("overwrite");
     if (overwriteNode==null){
       overwriteNode = new Xpp3Dom("overwrite");
@@ -195,6 +271,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     }
     overwriteNode.setValue(Boolean.TRUE.toString());
     
+    //Limit placeholder delimiters
     Xpp3Dom  useDefaultDelimitersNode = configuration.getChild("useDefaultDelimiters");
     if (useDefaultDelimitersNode==null){
       useDefaultDelimitersNode = new Xpp3Dom("useDefaultDelimiters");
@@ -207,37 +284,51 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       delimitersNode = new Xpp3Dom("delimiters");
       configuration.addChild(delimitersNode);
     } else {
-      for (int i= delimitersNode.getChildCount() -1; i>0 ; i--){
-        delimitersNode.removeChild(i);
-      }
+      DomUtils.removeChildren(delimitersNode);
     }
     Xpp3Dom delimiter = new Xpp3Dom("delimiter");
     delimiter.setValue("${*}");
     delimitersNode.addChild(delimiter);
-        
+    
+    //Set output directory
     Xpp3Dom  outPutDirNode = new Xpp3Dom("outputDirectory");
     outPutDirNode.setValue(targetFolder.toPortableString());
     configuration.addChild(outPutDirNode);
     
+    //Setup filters
+    if (!filters.isEmpty()) {
+      Xpp3Dom  filtersNode = configuration.getChild("filters");
+      if (filtersNode==null){
+        filtersNode = new Xpp3Dom("filters");
+        configuration.addChild(filtersNode);
+      } else {
+        DomUtils.removeChildren(filtersNode);
+      }
+      for (String filter : filters) {
+        Xpp3Dom filterNode = new Xpp3Dom("filter");
+        filterNode.setValue(filter);
+        filtersNode.addChild(filterNode );
+      }
+    }
+    
+    System.err.println(facade.getMavenProject().getName());
+//    for (Entry e : facade.getMavenProject().getProperties().entrySet()){
+//      System.err.println(e.getKey() + "="+e.getValue());
+//    }
     //Execute our hacked mojo 
     maven.execute(session, copyFilteredResourcesMojo, monitor);
     
-    logErrors(session.getResult(), facade.getProject().getName());  
-  }
-
-  //TODO change visibility of GenericBuildPArticipant.logErrors to protected
-  void logErrors(MavenExecutionResult result, String projectNname) {
-    if(result.hasExceptions()) {
-      String msg = "Build errors for " + projectNname;
-      List<Throwable> exceptions = result.getExceptions();
-      for(Throwable ex : exceptions) {
-        log.error(msg, ex);
+    if (session.getResult().hasExceptions()){
+      //move exceptions up to the original session, so they can be handled by the maven builder
+      //XXX current exceptions refer to maven-resource-plugin (since that's what we used), we should probably 
+      // throw a new exception instead to indicate the problem(s) come(s) from web resource filtering
+      for(Throwable t : session.getResult().getExceptions())
+      {
+        getSession().getResult().addException(t);    
       }
-      // XXX add error markers
     }
-
+    
   }
-
 
   
   private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId) throws CoreException {
