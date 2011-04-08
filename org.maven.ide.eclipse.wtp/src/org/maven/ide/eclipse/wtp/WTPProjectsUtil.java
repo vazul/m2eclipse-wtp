@@ -5,6 +5,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -127,5 +128,23 @@ public class WTPProjectsUtil {
        moduleCore.dispose();
      }
     }
+  }
+
+
+  /**
+   * @param project
+   * @param dir
+   * @return
+   */
+  public static IPath tryProjectRelativePath(IProject project, String resourceLocation) {
+    if(resourceLocation == null) {
+      return null;
+    }
+    IPath projectLocation = project.getLocation();
+    IPath directory = Path.fromOSString(resourceLocation); // this is an absolute path!
+    if(projectLocation == null || !projectLocation.isPrefixOf(directory)) {
+      return directory;
+    }
+    return directory.removeFirstSegments(projectLocation.segmentCount()).makeRelative().setDevice(null);
   }
 }

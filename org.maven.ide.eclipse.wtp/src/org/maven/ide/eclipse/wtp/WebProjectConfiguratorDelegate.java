@@ -99,7 +99,15 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     installJavaFacet(actions, project, facetedProject);
     
     IVirtualComponent component = ComponentCore.createComponent(project);
-    if(component != null && warSourceDirectory != null) {
+    if(component != null && warSourceDirectory != null) {      
+      //MECLIPSEWTP-22 support web filtered resources. Filtered resources directory must be declared BEFORE
+      //the regular web source directory. First resources discovered take precedence on deployment
+      IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
+      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
+      if (config.getWebResources() != null && config.getWebResources().length > 0) {
+        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);
+      }  
+
       IPath warPath = new Path(warSourceDirectory);
       //remove the old links (if there is one) before adding the new one.
       component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
@@ -152,16 +160,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       libDir.delete(true, monitor);
     }
     linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
-
-    
-    IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
-    if (component != null) {
-      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
-      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
-      if (config.getWebResources() != null && config.getWebResources().length > 0) {
-        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);      
-      }      
-    }
 
   }
 

@@ -26,6 +26,7 @@ import org.eclipse.jst.j2ee.internal.J2EEVersionConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.maven.ide.eclipse.project.MavenProjectUtils;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
 
 
@@ -112,13 +113,7 @@ public class WarPluginConfiguration {
       String dir = warSourceDirectory[0].getValue();
       //MNGECLIPSE-1600 fixed absolute warSourceDirectory thanks to Snjezana Peco's patch
       if(project != null) {
-        IPath projectLocationPath = project.getLocation();
-        if(projectLocationPath != null && dir != null) {
-          String projectLocation = projectLocationPath.toOSString();
-          if(dir.startsWith(projectLocation)) {
-            return dir.substring(projectLocation.length());
-          }
-        }
+        return WTPProjectsUtil.tryProjectRelativePath(project, dir).toOSString();
       }
       return dir;
     }
