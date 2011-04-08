@@ -8,9 +8,11 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -128,6 +130,12 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     IVirtualFolder root = component.getRootFolder();
     IResource[] underlyingResources = root.getUnderlyingResources();
     return underlyingResources;
+  }
+
+  protected static String getAsString(IFile file) throws IOException, CoreException {
+    assert file != null;
+    assert file.isAccessible();
+    return IOUtil.toString(file.getContents(), 1024);
   }
 
   public AbstractWTPTestCase() {
