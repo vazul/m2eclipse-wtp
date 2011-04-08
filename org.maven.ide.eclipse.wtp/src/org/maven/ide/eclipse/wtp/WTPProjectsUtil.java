@@ -1,7 +1,10 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -130,6 +133,69 @@ public class WTPProjectsUtil {
     }
   }
 
+  public static void insertLinkBefore(IProject project, IPath newSource, IPath referenceSource, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    //Looks like WTP'APIS doesn't have such feature, hence this implementation.
+    StructureEdit moduleCore = null;
+    try {
+      moduleCore = StructureEdit.getStructureEditForWrite(project);
+      if (moduleCore == null) {
+        return;
+      }
+      WorkbenchComponent component = moduleCore.getComponent();
+      if (component == null)  {
+        return;
+      }
+      
+      int i = 0;
+      
+      List<ComponentResource> resources = component.getResources();
+      
+      for (ComponentResource resource : resources) {
+        IPath sourcePath = resource.getSourcePath();
+        if (referenceSource.equals(sourcePath)) {
+          break;
+        }
+        i++;
+      }
+      IResource folder = project.getFolder(newSource);
+      ComponentResource componentResource = moduleCore.createWorkbenchModuleResource(folder);
+      componentResource.setRuntimePath(runtimePath);
+      component.getResources().add(i,componentResource);
+   }
+   finally {
+     if (moduleCore != null) {
+       moduleCore.saveIfNecessary(monitor);
+       moduleCore.dispose();
+     }
+    }
+  }
+
+  public static void insertLinkFirst(IProject project, IPath newSource, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    //Looks like WTP'APIS doesn't have such feature, hence this implementation.
+    StructureEdit moduleCore = null;
+    try {
+      moduleCore = StructureEdit.getStructureEditForWrite(project);
+      if (moduleCore == null) {
+        return;
+      }
+      WorkbenchComponent component = moduleCore.getComponent();
+      if (component == null)  {
+        return;
+      }
+      
+      IResource folder = project.getFolder(newSource);
+      ComponentResource componentResource = moduleCore.createWorkbenchModuleResource(folder);
+      componentResource.setRuntimePath(runtimePath);
+      component.getResources().add(0,componentResource);
+   }
+   finally {
+     if (moduleCore != null) {
+       moduleCore.saveIfNecessary(monitor);
+       moduleCore.dispose();
+     }
+    }
+  }
+  
 
   /**
    * @param project

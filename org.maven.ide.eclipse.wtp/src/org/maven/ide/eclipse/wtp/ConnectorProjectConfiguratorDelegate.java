@@ -92,7 +92,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     removeTestFolderLinks(project, mavenProject, monitor, "/"); 
     
     String customRaXml = config.getCustomRaXml(project);
-    linkFile(project, customRaXml, "META-INF/ra.xml", monitor);
+    linkFileFirst(project, customRaXml, "META-INF/ra.xml", monitor);
     
     //Remove "library unavailable at runtime" warning. TODO is it relevant for connector projects?
     setNonDependencyAttributeToContainer(project, monitor);

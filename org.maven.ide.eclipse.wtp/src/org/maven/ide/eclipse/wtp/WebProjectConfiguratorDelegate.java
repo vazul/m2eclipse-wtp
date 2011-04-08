@@ -98,18 +98,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     installJavaFacet(actions, project, facetedProject);
     
-    IVirtualComponent component = ComponentCore.createComponent(project);
-    if(component != null && warSourceDirectory != null) {      
-      //MECLIPSEWTP-22 support web filtered resources. Filtered resources directory must be declared BEFORE
-      //the regular web source directory. First resources discovered take precedence on deployment
-      IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
-      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
-      if (config.getWebResources() != null && config.getWebResources().length > 0) {
-        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);
-      }  
-
-      IPath warPath = new Path(warSourceDirectory);
-      //remove the old links (if there is one) before adding the new one.
+    IVirtualComponent component = ComponentCore.createComponent(project, true);
+    
+    IPath warPath = new Path(warSourceDirectory);
+    if(component != null) {      
+       //remove the old links (if there is one) before adding the new one.
       component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
       component.getRootFolder().createLink(warPath, IVirtualResource.NONE, monitor);
     }
@@ -159,7 +152,18 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if (!alreadyHasLibDir && libDir.exists()) {
       libDir.delete(true, monitor);
     }
-    linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
+    linkFileFirst(project, customWebXml, "/WEB-INF/web.xml", monitor);
+    
+    component = ComponentCore.createComponent(project, true);
+    if(component != null) {      
+      //MECLIPSEWTP-22 support web filtered resources. Filtered resources directory must be declared BEFORE
+      //the regular web source directory. First resources discovered take precedence on deployment
+      IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
+      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
+      if (config.getWebResources() != null && config.getWebResources().length > 0) {
+        WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path("/"+warPath.toPortableString()), new Path("/"), monitor);
+      }   
+    }
 
   }
 
@@ -255,16 +259,16 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 	//MECLIPSEWTP-43 : Override with maven property
    String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
    if (StringUtils.isEmpty(property)) {
-		String finalName = mavenProject.getBuild().getFinalName();
-		if (StringUtils.isBlank(finalName) 
-		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
-		  contextRoot = mavenProject.getArtifactId();
-		}  else {
-		  contextRoot = finalName;
-		}
-	} else {
-		contextRoot = property;
-	}
+  		String finalName = mavenProject.getBuild().getFinalName();
+  		if (StringUtils.isBlank(finalName) 
+  		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
+  		  contextRoot = mavenProject.getArtifactId();
+  		}  else {
+  		  contextRoot = finalName;
+  		}
+  	} else {
+  		contextRoot = property;
+  	}
     return contextRoot.trim().replace(" ", "_");
   }
 
@@ -307,7 +311,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
         
         IVirtualComponent component = ComponentCore.createComponent(p);
-
+        //component will be null if the underlying project hasn't been configured properly
+        if(component == null){
+          continue;
+        }
+        
         boolean usedInEar = opts.isReferenceFromEar(component, extension);
         if(opts.isSkinnyWar() && usedInEar) {
           if(manifestCp.length() > 0) {

@@ -244,23 +244,18 @@ javaProject.setRawClasspath(cp, monitor);
   /**
    * Link a project's file to a specific deployment destination. Existing links will be deleted beforehand. 
    * @param project 
-   * @param customFile the existing file to deploy
+   * @param sourceFile the existing file to deploy
    * @param targetRuntimePath the target runtime/deployment location of the file
    * @param monitor
    * @throws CoreException
    */
-  protected void linkFile(IProject project, String customFile, String targetRuntimePath, IProgressMonitor monitor) throws CoreException {
+  protected void linkFileFirst(IProject project, String sourceFile, String targetRuntimePath, IProgressMonitor monitor) throws CoreException {
       IPath runtimePath = new Path(targetRuntimePath);
       //We first delete any existing links
       WTPProjectsUtil.deleteLinks(project, runtimePath, monitor);
-      if (customFile != null) {
+      if (sourceFile != null) {
         //Create the new link
-        IVirtualComponent component = ComponentCore.createComponent(project);
-        if (component != null){
-          IVirtualFile virtualCustomFile = component.getRootFolder().getFile(runtimePath);
-          IPath virtualCustomFilePath = new Path(customFile);
-          virtualCustomFile.createLink(virtualCustomFilePath, 0, monitor);
-        }
+        WTPProjectsUtil.insertLinkFirst(project, new Path(sourceFile), new Path(targetRuntimePath), monitor);
       }
   }
 
