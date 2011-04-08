@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde version="3.6"?>
 
-<target name="m2e-wtp-e36" sequenceNumber="1">
+<target name="m2e-wtp-e36" sequenceNumber="3">
 <locations>
-<location includeAllPlatforms="false" includeMode="planner" includeSource="false" type="InstallableUnit">
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.sdk.ide" version="3.6.2.M20110210-1200"/>
 <unit id="org.eclipse.emf.common.feature.group" version="2.6.0.v20100914-1218"/>
 <unit id="org.eclipse.wst.common.emf" version="1.2.3.v201012100400"/>
@@ -32,7 +32,7 @@
 <unit id="org.eclipse.wst.server_adapters.feature.feature.group" version="3.2.0.v201005241510-51EoAkF77g8HBSc"/>
 <repository location="http://download.eclipse.org/releases/helios"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" includeSource="false" type="InstallableUnit">
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
 <unit id="org.eclipse.swtbot.eclipse.gef.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
 <unit id="org.eclipse.swtbot.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
@@ -41,14 +41,30 @@
 <unit id="org.eclipse.swtbot.eclipse.test.junit4.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
 <repository location="http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site/"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" includeSource="false" type="InstallableUnit">
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.equinox.p2.sdk.feature.group" version="3.6.2.R36x_v20110120-9I7VGEAG438GhnfSLuLz0FXP9NYJ"/>
 <repository location="http://download.eclipse.org/releases/helios"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" includeSource="false" type="InstallableUnit">
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.maven.ide.eclipse.sdk.feature.feature.group" version="0.12.2.20110330-1446"/>
 <unit id="org.maven.ide.eclipse.feature.feature.group" version="0.12.2.20110330-1446"/>
 <repository location="https://repository.sonatype.org/content/sites/forge-sites/m2e/0.12.2/S/0.12.2.20110330-1446/"/>
+</location>
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group" version="3.2.2.v201008170019-777DBo9tKEKIGLHXGCHk6K86AG"/>
+<unit id="org.eclipse.wst.common.fproj.sdk.feature.group" version="3.2.3.v201101121727-787HDRApOGNMIOLdFKGq7I5B6I"/>
+<unit id="org.eclipse.wst.xml_sdk.feature.feature.group" version="3.2.3.v201102160550-7A5788DXHQZiYiLFP5QqwKhexZqF"/>
+<unit id="org.eclipse.jsf_sdk.feature.feature.group" version="3.2.3.v201101112207-773584JAMBEJDNlQZZP7HfHNSZTK"/>
+<unit id="org.eclipse.jst.enterprise_sdk.feature.feature.group" version="3.2.3.v201011031800-773584gAKKjMIYODZETckOL5KHY-"/>
+<unit id="org.eclipse.jst.server_adapters.ext.sdk.feature.feature.group" version="3.2.3.v20110111-773584CALJJWGgPLNtVv_z-Jq_ME"/>
+<unit id="org.eclipse.jst.server_adapters.sdk.feature.feature.group" version="3.2.2.v20100908-773-8-5BcAz-B6959A4B319_8x42"/>
+<unit id="org.eclipse.jst.server_sdk.feature.feature.group" version="3.2.2.v20100909-773384F8JHlLz0QeHdKadD-8a1Tf"/>
+<unit id="org.eclipse.jst.web_sdk.feature.feature.group" version="3.2.3.v201102090654-7B777899ZHQb_ipXUyXLSEW4URSo"/>
+<unit id="org.eclipse.jst.webpageeditor_sdk.feature.feature.group" version="2.3.2.v201101112207-55381B4DsE9CAAIBS4AC5ApC6976"/>
+<unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group" version="3.2.0.v201005241510-773-826HsDnNCEkGLEUk2FpBlG88"/>
+<unit id="org.eclipse.wst.web_sdk.feature.feature.group" version="3.2.3.v201102160541-7E797E8SxYiH8uYBmdHB0hOFSy2c"/>
+<unit id="org.eclipse.wst.xsl_sdk.feature.feature.group" version="1.1.3.v201101212242-528k98jYhYxz-WdHiZXZlQj3R98g"/>
+<repository location="http://download.eclipse.org/webtools/repository/helios/"/>
 </location>
 </locations>
 </target>
