@@ -9,6 +9,7 @@
 package org.maven.ide.eclipse.wtp;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -135,7 +136,15 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
   protected static String getAsString(IFile file) throws IOException, CoreException {
     assert file != null;
     assert file.isAccessible();
-    return IOUtil.toString(file.getContents(), 1024);
+    InputStream ins = null;
+    String content = null;
+    try {
+      ins = file.getContents();
+      content = IOUtil.toString(ins, 1024);
+    } finally {
+      IOUtil.close(ins);   
+    }
+    return content;
   }
 
   public AbstractWTPTestCase() {
