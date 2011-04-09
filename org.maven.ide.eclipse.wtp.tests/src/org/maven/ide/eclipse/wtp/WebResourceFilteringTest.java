@@ -1,5 +1,6 @@
 package org.maven.ide.eclipse.wtp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -10,6 +11,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -34,15 +36,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("${phrase} property from pom was not interpolated", index.contains("<title>m2e rocks!</title>"));
     assertTrue("${project.artifactId} from pom was not interpolated", index.contains("<body>Welcome @ webfiltering</body>"));
 
-    IFile indexProp = filteredFolder.getFile("index.properties");
-    assertTrue("index.properties is missing",indexProp.exists());
-    Properties props = new Properties();
-    InputStream ins = indexProp.getContents();
-    try {
-      props.load(ins);  
-    } finally {
-      IOUtil.close(ins);
-    }
+    Properties props = getFileAsProperties(filteredFolder, "index.properties");
     assertEquals("${custom.version} from webfilter.properties was not interpolated","0.0.1-SNAPSHOT",props.get("app.version"));
 
     IFile webXml = filteredFolder.getFile("WEB-INF/web.xml");
@@ -68,16 +62,30 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     web.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
     
-    indexProp = filteredFolder.getFile("index.properties");
-    assertTrue("index.properties is missing",indexProp.exists());
+    props = getFileAsProperties(filteredFolder, "index.properties");
+    assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
+
+  }
+
+  /**
+   * @param folder
+   * @return
+   * @throws CoreException
+   * @throws IOException
+   */
+  private Properties getFileAsProperties(IFolder folder, String fileName) throws CoreException, IOException {
+    IFile file;
+    Properties props;
+    InputStream ins;
+    file = folder.getFile(fileName);
+    assertTrue(fileName +" is missing",file.exists());
     props = new Properties();
-    ins = indexProp.getContents();
+    ins = file.getContents();
     try {
       props.load(ins);  
     } finally {
       IOUtil.close(ins);
     }
-    assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
-
+    return props;
   }
 }
