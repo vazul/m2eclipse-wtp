@@ -250,15 +250,15 @@ class EarPluginConfiguration {
 
     Xpp3Dom config = getConfiguration();
     if(config == null) {
-      return FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping();
+      return FileNameMappingFactory.getDefaultFileNameMapping();
     }
 
     Xpp3Dom fileNameMappingDom = config.getChild("fileNameMapping");
     if(fileNameMappingDom != null) {
       String fileNameMappingName = fileNameMappingDom.getValue().trim();
-      return FileNameMappingFactory.INSTANCE.getFileNameMapping(fileNameMappingName);
+      return FileNameMappingFactory.getFileNameMapping(fileNameMappingName);
     }
-    return FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping();
+    return FileNameMappingFactory.getDefaultFileNameMapping();
   }
 
   /**

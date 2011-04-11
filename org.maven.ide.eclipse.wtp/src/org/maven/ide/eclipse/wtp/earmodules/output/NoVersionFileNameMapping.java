@@ -30,21 +30,18 @@ package org.maven.ide.eclipse.wtp.earmodules.output;
 import org.apache.maven.artifact.Artifact;
 
 /**
- * Maps file name {@link Artifact}.
- * <p/>
- * TODO: it might be easier to use a token-based approach instead.
+ * A simplified version of the standard file name mapping which does not
+ * retain the version in the generated file name.
  *
  * @author <a href="snicoll@apache.org">Stephane Nicoll</a>
- * @version $Id: FileNameMapping.java 992370 2010-09-03 16:48:59Z snicoll $
  */
-public interface FileNameMapping
+public class NoVersionFileNameMapping
+    extends AbstractFileNameMapping
 {
 
-    /**
-     * Returns the file name of the specified artifact.
-     *
-     * @param a the artifact
-     * @return the name of the file for the specified artifact
-     */
-    String mapFileName( final Artifact a );
+    public String mapFileName( Artifact a )
+    {
+        return generateFileName( a, false );
+    }
+
 }

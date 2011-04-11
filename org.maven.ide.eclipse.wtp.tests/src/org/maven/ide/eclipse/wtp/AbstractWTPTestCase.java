@@ -158,7 +158,17 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
    * @throws Exception
    */
   protected void updateProject(IProject project, String newPomName) throws Exception {
-    
+    updateProject(project, newPomName, -1);
+  }
+
+  /**
+   * Replace the project pom.xml with a new one, triggers new build, wait for waitTime milliseconds.
+   * @param project
+   * @param newPomName
+   * @param waitTime
+   * @throws Exception
+   */
+  protected void updateProject(IProject project, String newPomName, int waitTime) throws Exception {    
     copyContent(project, newPomName, "pom.xml");
     
     IProjectConfigurationManager configurationManager = MavenPlugin.getDefault().getProjectConfigurationManager();
@@ -168,6 +178,10 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     
     waitForJobsToComplete();
     project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    if (waitTime > 0 ) {
+      System.out.println("Waiting for "+ waitTime + " ms to build "+project.getName());
+      Thread.sleep(waitTime);
+    }
     waitForJobsToComplete();
   }
 

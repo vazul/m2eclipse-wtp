@@ -29,21 +29,20 @@ package org.maven.ide.eclipse.wtp.earmodules.output;
 
 import org.apache.maven.artifact.Artifact;
 
-
 /**
- * A full file name mapping, useful if artifacts might have the same name accross groups.
- * 
+ * A full file name mapping, useful if artifacts might have the same
+ * name across groups.
+ *
  * @author <a href="snicoll@apache.org">Stephane Nicoll</a>
+ * @version $Id: FullFileNameMapping.java 992847 2010-09-05 18:16:55Z snicoll $
  */
-public class FullFileNameMapping extends FileNameMapping {
+public class FullFileNameMapping
+    extends AbstractFileNameMapping
+{
 
-  public String mapFileName(final Artifact a) {
-    String name = getProjectName(a);
-    if(name == null) {
-      name= a.getFile().getName();
+    public String mapFileName( final Artifact a )
+    {
+        final String dashedGroupId = a.getGroupId().replace( '.', '-' );
+        return dashedGroupId + "-" + generateFileName( a, true );
     }
-    final String dashedGroupId = a.getGroupId().replace('.', '-');
-    return dashedGroupId + "-" + name;
-  }
-
 }

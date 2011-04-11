@@ -29,20 +29,20 @@ package org.maven.ide.eclipse.wtp.earmodules.output;
 
 import org.apache.maven.artifact.Artifact;
 
-
 /**
- * The standard fine name mapping. It returns the name of the file in the local repository.
- * 
+ * The standard file name mapping. It returns the name
+ * of the file in the local repository.
+ *
  * @author <a href="snicoll@apache.org">Stephane Nicoll</a>
+ * @version $Id: StandardFileNameMapping.java 992847 2010-09-05 18:16:55Z snicoll $
  */
-public class StandardFileNameMapping extends FileNameMapping {
+public class StandardFileNameMapping
+    extends AbstractFileNameMapping
+{
 
-  public String mapFileName(final Artifact a) {
-    String name = getProjectName(a);
-    if(name == null) {
-      name = a.getFile().getName();
+    public String mapFileName( final Artifact a )
+    {
+        return generateFileName( a, true );
     }
-    return name;
-  }
 
 }

@@ -65,6 +65,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     props = getFileAsProperties(filteredFolder, "index.properties");
     assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
 
+    
   }
 
   /**

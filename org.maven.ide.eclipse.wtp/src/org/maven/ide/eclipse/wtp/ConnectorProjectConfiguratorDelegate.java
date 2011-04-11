@@ -166,7 +166,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
   private IVirtualReference createReference(IVirtualComponent rarComponent, IProject project, Artifact artifact) {
     IVirtualComponent depComponent = ComponentCore.createComponent(project);
     IVirtualReference depRef = ComponentCore.createReference(rarComponent, depComponent);
-    String deployedFileName = FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping().mapFileName(artifact);
+    String deployedFileName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
     depRef.setArchiveName(deployedFileName);
     return depRef;
   }

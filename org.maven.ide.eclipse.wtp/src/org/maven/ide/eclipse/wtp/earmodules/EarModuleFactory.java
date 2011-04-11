@@ -67,7 +67,7 @@ public final class EarModuleFactory {
       artifactTypeMappingService = new ArtifactTypeMappingService(null);
     }
     if(fileNameMapping == null) {
-      fileNameMapping = FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping();
+      fileNameMapping = FileNameMappingFactory.getDefaultFileNameMapping();
     }
     ArtifactRepository artifactRepository = new ArtifactRepository(artifacts, mainArtifactId,
         artifactTypeMappingService);
