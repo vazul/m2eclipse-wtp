@@ -145,9 +145,11 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     if (component != null){
       IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
       for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
+        if (location == null) continue;
         jsrc.removeLink(location, 0, monitor);
       }
       for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
+        if (location == null) continue;
         jsrc.removeLink(location, 0, monitor);
       }
     }
