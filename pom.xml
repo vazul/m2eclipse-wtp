@@ -24,7 +24,7 @@
   <name>Maven Integration for Eclipse WTP (Parent)</name>
 
   <properties>
-    <tycho-version>0.10.0</tycho-version>
+    <tycho-version>0.11.0</tycho-version>
     <m2eclipse-core.version>0.12.2.20110330-1446</m2eclipse-core.version>
     <m2eclipse-core.site>0.12.2/S/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e35</target.platform>        
@@ -51,13 +51,13 @@
       <layout>p2</layout>
       <url>http://download.eclipse.org/releases/helios</url>
     </repository>
-    -->
+    
     <repository>
       <id>m2e</id>
       <layout>p2</layout>
       <url>http://repository.sonatype.org/content/sites/forge-sites/m2e/${m2eclipse-core.site}</url>
     </repository>
-	
+	-->
   </repositories>
   <build>
     <plugins>
