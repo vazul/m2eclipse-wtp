@@ -19,12 +19,6 @@ import org.maven.ide.eclipse.core.MavenLogger;
  */
 public class WebResourcesImages {
 
-  // object images
-
-  // public static final Image IMG_WEB_RESOURCES = createImage("web-resources.gif");
-  
-  // descriptors
-  
   public static final ImageDescriptor WEB_RESOURCES = create("web-resources.gif");
   
   
@@ -44,12 +38,6 @@ public class WebResourcesImages {
     }
     return null;
   }
-
-//  private static Image createImage(String key) {
-//    create(key);
-//    ImageRegistry imageRegistry = getImageRegistry();
-//    return imageRegistry == null ? null : imageRegistry.get(key);
-//  }
 
   private static ImageRegistry getImageRegistry() {
     MavenWtpPlugin plugin = MavenWtpPlugin.getDefault();
