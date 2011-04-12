@@ -52,6 +52,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.MavenPlugin;
+import org.maven.ide.eclipse.core.MavenConsole;
 import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.jdt.IClasspathEntryDescriptor;
@@ -192,7 +193,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if(component == null){
       return;
     }
-
+    System.out.println("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
@@ -206,24 +207,32 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String depPackaging = dependency.getPackaging();
       if ("pom".equals(depPackaging)) continue;//MNGECLIPSE-744 pom dependencies shouldn't be deployed
       
-      preConfigureDependencyProject(dependency, monitor);
-      MavenProject depMavenProject =  dependency.getMavenProject(monitor);
+      try {
+        preConfigureDependencyProject(dependency, monitor);
+        MavenProject depMavenProject =  dependency.getMavenProject(monitor);
 
-      IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+        IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
 
-      String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
-      Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
-      //in a skinny war the dependency modules are referenced by manifest classpath
-      //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
-      if(opts.isSkinnyWar() && opts.isReferenceFromEar(depComponent, artifact.getArtifactHandler().getExtension())) {
-        continue;
-      }
+        String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
+        Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
+        //in a skinny war the dependency modules are referenced by manifest classpath
+        //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
+        if(opts.isSkinnyWar() && opts.isReferenceFromEar(depComponent, artifact.getArtifactHandler().getExtension())) {
+          continue;
+        }
 
-      //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-      if (!artifact.isOptional()) {
-        IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-        reference.setRuntimePath(new Path("/WEB-INF/lib"));
-        references.add(reference);
+        //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+        if (!artifact.isOptional()) {
+          IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+          reference.setRuntimePath(new Path("/WEB-INF/lib"));
+          references.add(reference);
+        }
+      } catch(RuntimeException ex) {
+        //Should probably be NPEs at this point
+        MavenConsole console = MavenPlugin.getDefault().getConsole();
+        String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
+        console.logError(dump); 
+        throw ex;
       }
     }
 
