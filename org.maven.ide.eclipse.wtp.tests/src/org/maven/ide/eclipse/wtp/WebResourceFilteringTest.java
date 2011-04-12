@@ -64,10 +64,36 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     
     props = getFileAsProperties(filteredFolder, "index.properties");
     assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
+  }
+
+  
+  public void testMECLIPSE22_webfilteringFolderOrder() throws Exception {
+    IProject web = importProject("projects/WebResourceFiltering/war-with-filtered-resources/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+        
+    //Check the filtered folder will be deployed first
+    IVirtualComponent webComponent = ComponentCore.createComponent(web);
+    IVirtualFolder rootwar = webComponent.getRootFolder();
+    IResource[] warResources = rootwar.getUnderlyingResources();
+    assertEquals(2, warResources.length);
+    assertEquals(web.getFolder("/target/m2eclipse-wtp/webresources"), warResources[0]);
+    assertEquals(web.getFolder("/src/main/webapp"), warResources[1]);
+
+    //Check properties from settings.xml have been used
+    IFile contextXml = filteredFolder.getFile("META-INF/context.xml");
+    assertTrue(contextXml.getName() +" is missing",contextXml.exists());
+    String xml = getAsString(contextXml);
+    assertTrue("${db.username} from META-INF/context.xml was not interpolated : "+xml, xml.contains("username=\"fred\""));
 
     
   }
 
+  
+  
   /**
    * @param folder
    * @return

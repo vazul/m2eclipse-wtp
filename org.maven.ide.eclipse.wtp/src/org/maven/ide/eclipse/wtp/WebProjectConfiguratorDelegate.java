@@ -162,7 +162,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
       component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
       if (config.getWebResources() != null && config.getWebResources().length > 0) {
-        WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path("/"+warPath.toPortableString()), new Path("/"), monitor);
+        String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
+        WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
       }   
     }
 

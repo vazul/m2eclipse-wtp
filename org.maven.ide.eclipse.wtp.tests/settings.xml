@@ -20,6 +20,9 @@
             <releases><enabled>true</enabled></releases>
           </pluginRepository>
         </pluginRepositories>
+        <properties>
+        	<db.username>fred</db.username>
+        </properties>
     </profile>
   </profiles>
 
