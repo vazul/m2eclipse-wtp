@@ -13,6 +13,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jst.javaee.web.internal.util.WebXMLHelperImpl;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
@@ -92,7 +93,35 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     
   }
 
-  
+  public void testMECLIPSEWTP5_webXmlfiltering() throws Exception {
+    IProject web = importProject("projects/WebResourceFiltering/example-web/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    //Check all the files are correctly filtered
+    IFile webXml = filteredFolder.getFile("WEB-INF/web.xml");
+    assertTrue(webXml.getName() +" is missing",webXml.exists());
+    String xml = getAsString(webXml);
+    assertTrue("${web.xml.facelets.development} from localhost.properties was not interpolated", xml.contains("<param-name>facelets.DEVELOPMENT</param-name><param-value>true</param-value>"));
+    assertTrue("${web.xml.myfaces.pretty_html} from localhost.properties was not interpolated", xml.contains("<param-name>org.apache.myfaces.PRETTY_HTML</param-name><param-value>true</param-value>"));
+    assertTrue("${web.xml.myfaces.validate} from localhost.properties was not interpolated", xml.contains("<param-name>org.apache.myfaces.VALIDATE</param-name><param-value>false</param-value>"));
+    assertTrue("${props.target.env} from localhost profile was not interpolated", xml.contains("<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>localhost</param-value>"));
+
+    IFile ignored = filteredFolder.getFile("ignoreme.txt");
+    assertFalse("ignoreme.txt should be excluded",ignored.exists());
+    
+    //Let's change the active profile to see if the values are updated
+    updateProject(web, "pom.dev.xml");    
+    
+    xml = getAsString(webXml);
+    assertTrue("${web.xml.facelets.development} from dev.properties was not interpolated", xml.contains("<param-name>facelets.DEVELOPMENT</param-name><param-value>false</param-value>"));
+    assertTrue("${web.xml.myfaces.pretty_html} from dev.properties was not interpolated", xml.contains("<param-name>org.apache.myfaces.PRETTY_HTML</param-name><param-value>false</param-value>"));
+    assertTrue("${web.xml.myfaces.validate} from dev.properties was not interpolated", xml.contains("<param-name>org.apache.myfaces.VALIDATE</param-name><param-value>true</param-value>"));
+    assertTrue("${props.target.env} from dev profile was not interpolated", xml.contains("<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>DEV</param-value>"));
+  }
   
   /**
    * @param folder

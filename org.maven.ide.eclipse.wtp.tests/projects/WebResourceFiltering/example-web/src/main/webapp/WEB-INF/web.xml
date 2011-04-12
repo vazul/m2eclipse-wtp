@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="starter"
+	version="2.3"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_3.xsd">
+	
+	<name>${project.name}</name>
+	<display-name>${project.name} - v${project.version}</display-name>
+
+	<!-- Special Debug Output for Development -->
+	<context-param>
+		<param-name>facelets.DEVELOPMENT</param-name><param-value>${web.xml.facelets.development}</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.PRETTY_HTML</param-name><param-value>${web.xml.myfaces.pretty_html}</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>org.apache.myfaces.VALIDATE</param-name><param-value>${web.xml.myfaces.validate}</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>${props.target.env}</param-value>
+	</context-param>
+	
+	<servlet>
+		<servlet-name>DefaultServlet</servlet-name>
+		<servlet-class>
+			org.eclipse.m2eclipse.example.DefaultServlet
+		</servlet-class>
+		<load-on-startup>10</load-on-startup>
+	</servlet>
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+</web-app>
