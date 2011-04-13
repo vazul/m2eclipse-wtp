@@ -25,6 +25,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -260,6 +261,8 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
       maven.execute(session, copyFilteredResourcesMojo, monitor);
       
       if (session.getResult().hasExceptions()){
+        
+          MavenPlugin.getDefault().getMavenMarkerManager().addMarker(facade.getProject(), "An error occured while filtering resources", -1,  IMarker.SEVERITY_ERROR);
           //move exceptions up to the original session, so they can be handled by the maven builder
           //XXX current exceptions refer to maven-resource-plugin (since that's what we used), we should probably 
           // throw a new exception instead to indicate the problem(s) come(s) from web resource filtering

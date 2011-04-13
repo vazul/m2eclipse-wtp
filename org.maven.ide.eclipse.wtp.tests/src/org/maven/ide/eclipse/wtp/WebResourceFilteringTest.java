@@ -2,12 +2,14 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -17,6 +19,7 @@ import org.eclipse.jst.javaee.web.internal.util.WebXMLHelperImpl;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
+import org.maven.ide.eclipse.core.IMavenConstants;
 
 public class WebResourceFilteringTest extends AbstractWTPTestCase {
   
@@ -121,6 +124,26 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("${web.xml.myfaces.pretty_html} from dev.properties was not interpolated", xml.contains("<param-name>org.apache.myfaces.PRETTY_HTML</param-name><param-value>false</param-value>"));
     assertTrue("${web.xml.myfaces.validate} from dev.properties was not interpolated", xml.contains("<param-name>org.apache.myfaces.VALIDATE</param-name><param-value>true</param-value>"));
     assertTrue("${props.target.env} from dev profile was not interpolated", xml.contains("<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>DEV</param-value>"));
+  }
+
+  public void testMECLIPSEWTP95_filteringErrors() throws Exception {
+    IProject web = importProject("projects/WebResourceFiltering/typo-filtering/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    List<IMarker> markers = findErrorMarkers(web);
+    assertFalse("Should have some markers",markers.isEmpty());
+    assertHasMarker("An error occured while filtering resources", markers);
+    //TODO see why the marker disappears on import 
+    //assertHasMarker("org.maven.ide.eclipse.maven2Problem:Cannot find setter, adder nor field in org.apache.maven.plugin.resources.Resource for 'filter'", markers);
+    
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertFalse("Filtered folder shouldn't exist", filteredFolder.exists());
+       
+    //Let's change the active profile to see if the values are updated
+    updateProject(web, "good.pom.xml");    
+    
+    assertNoErrors(web);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    assertTrue("Files should have been filtered",filteredFolder.members().length > 0);
   }
   
   /**
