@@ -262,7 +262,7 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
       
       if (session.getResult().hasExceptions()){
         
-          MavenPlugin.getDefault().getMavenMarkerManager().addMarker(facade.getProject(), "An error occured while filtering resources", -1,  IMarker.SEVERITY_ERROR);
+          MavenPlugin.getDefault().getMavenMarkerManager().addMarker(facade.getProject(), "An error occurred while filtering resources", -1,  IMarker.SEVERITY_ERROR);
           //move exceptions up to the original session, so they can be handled by the maven builder
           //XXX current exceptions refer to maven-resource-plugin (since that's what we used), we should probably 
           // throw a new exception instead to indicate the problem(s) come(s) from web resource filtering
