@@ -131,7 +131,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     List<IMarker> markers = findErrorMarkers(web);
     assertFalse("Should have some markers",markers.isEmpty());
-    assertHasMarker("An error occured while filtering resources", markers);
+    assertHasMarker("An error occurred while filtering resources", markers);
     //TODO see why the marker disappears on import 
     //assertHasMarker("org.maven.ide.eclipse.maven2Problem:Cannot find setter, adder nor field in org.apache.maven.plugin.resources.Resource for 'filter'", markers);
     
