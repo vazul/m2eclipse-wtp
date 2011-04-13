@@ -36,7 +36,7 @@ import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectUtils;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 /**
  * ConnectorProjectConfiguratorDelegate

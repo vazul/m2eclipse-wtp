@@ -37,8 +37,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMapping;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
 /**

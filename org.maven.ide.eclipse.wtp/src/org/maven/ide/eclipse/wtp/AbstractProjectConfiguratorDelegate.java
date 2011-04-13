@@ -278,6 +278,7 @@ javaProject.setRawClasspath(cp, monitor);
       IVirtualReference existingRef = existingRefs[i];
       IVirtualReference newRef = refArray[i];
       if ((existingRef.getArchiveName() != null && !existingRef.getArchiveName().equals(newRef.getArchiveName())) ||
+          (existingRef.getArchiveName() == null && newRef.getArchiveName() != null) ||
           !existingRef.getReferencedComponent().equals(newRef.getReferencedComponent()) ||
           !existingRef.getRuntimePath().equals(newRef.getRuntimePath())) 
       {

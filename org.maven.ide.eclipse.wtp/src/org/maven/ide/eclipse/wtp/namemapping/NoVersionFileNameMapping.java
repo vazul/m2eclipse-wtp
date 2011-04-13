@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.earmodules.output;
+package org.maven.ide.eclipse.wtp.namemapping;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -30,19 +30,18 @@ package org.maven.ide.eclipse.wtp.earmodules.output;
 import org.apache.maven.artifact.Artifact;
 
 /**
- * The standard file name mapping. It returns the name
- * of the file in the local repository.
+ * A simplified version of the standard file name mapping which does not
+ * retain the version in the generated file name.
  *
  * @author <a href="snicoll@apache.org">Stephane Nicoll</a>
- * @version $Id: StandardFileNameMapping.java 992847 2010-09-05 18:16:55Z snicoll $
  */
-public class StandardFileNameMapping
+public class NoVersionFileNameMapping
     extends AbstractFileNameMapping
 {
 
-    public String mapFileName( final Artifact a )
+    public String mapFileName( Artifact a )
     {
-        return generateFileName( a, true );
+        return generateFileName( a, false );
     }
 
 }

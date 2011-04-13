@@ -1485,7 +1485,17 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit.jar",junitRef.getArchiveName());
     
   }  
-  
+
+  public void testMECLIPSEWTP108_DependencyArchiveName() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-108", //
+        new String[] {"pom.xml", "webapp/pom.xml", "utility/pom.xml"}, new ResolverConfiguration());
+
+    IVirtualComponent webComponent = ComponentCore.createComponent(projects[1]);
+    IVirtualReference[] references = webComponent.getReferences();
+    assertEquals(1, references.length);
+    assertEquals(projects[2], references[0].getReferencedComponent().getProject());
+    assertEquals("Invalid archive name", "utility-1.0.jar", references[0].getArchiveName());
+  }
 
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";

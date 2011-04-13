@@ -91,6 +91,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     // FIXME Sometimes, test folders are still added to org.eclipse.wst.common.component
     removeTestFolderLinks(project, mavenProject, monitor, "/");
+    
+    //configureDeployedName(project, mavenProject.getBuild().getFinalName());
 
   }
 
@@ -125,7 +127,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         IProject depProject = preConfigureDependencyProject(workspaceDependency, monitor);
         
         depComponent = createDependencyComponent(earComponent, depProject);
-        configureDeployedName(depProject, earModule.getBundleFileName());
+        //configureDeployedName(depProject, earModule.getBundleFileName());
       } else {
         //artifact dependency should be added as a JEE module, referenced with M2_REPO variable 
         depComponent = createDependencyComponent(earComponent, earModule.getArtifact());

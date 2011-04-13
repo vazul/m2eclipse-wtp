@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.earmodules.output;
+package org.maven.ide.eclipse.wtp.namemapping;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -30,21 +30,19 @@ package org.maven.ide.eclipse.wtp.earmodules.output;
 import org.apache.maven.artifact.Artifact;
 
 /**
- * Maps file name {@link Artifact}.
- * <p/>
- * TODO: it might be easier to use a token-based approach instead.
+ * The standard file name mapping. It returns the name
+ * of the file in the local repository.
  *
  * @author <a href="snicoll@apache.org">Stephane Nicoll</a>
- * @version $Id: FileNameMapping.java 992370 2010-09-03 16:48:59Z snicoll $
+ * @version $Id: StandardFileNameMapping.java 992847 2010-09-05 18:16:55Z snicoll $
  */
-public interface FileNameMapping
+public class StandardFileNameMapping
+    extends AbstractFileNameMapping
 {
 
-    /**
-     * Returns the file name of the specified artifact.
-     *
-     * @param a the artifact
-     * @return the name of the file for the specified artifact
-     */
-    String mapFileName( final Artifact a );
+    public String mapFileName( final Artifact a )
+    {
+        return generateFileName( a, true );
+    }
+
 }

@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.earmodules.output;
+package org.maven.ide.eclipse.wtp.namemapping;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

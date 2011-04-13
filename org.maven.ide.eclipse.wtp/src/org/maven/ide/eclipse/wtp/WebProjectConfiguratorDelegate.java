@@ -60,6 +60,7 @@ import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
 /**
@@ -209,32 +210,35 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       if ("pom".equals(depPackaging)) continue;//MNGECLIPSE-744 pom dependencies shouldn't be deployed
       
       try {
-        preConfigureDependencyProject(dependency, monitor);
-        MavenProject depMavenProject =  dependency.getMavenProject(monitor);
-
-        IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
-
-        String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
-        Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
-        //in a skinny war the dependency modules are referenced by manifest classpath
-        //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
-        if(opts.isSkinnyWar() && opts.isReferenceFromEar(depComponent, artifact.getArtifactHandler().getExtension())) {
-          continue;
+          preConfigureDependencyProject(dependency, monitor);
+          MavenProject depMavenProject =  dependency.getMavenProject(monitor);
+  
+          IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+  
+          String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
+          Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
+          String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+          
+          //in a skinny war the dependency modules are referenced by manifest classpath
+          //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
+          if(opts.isSkinnyWar() && opts.isReferenceFromEar(deployedName)) {
+            continue;
+          }
+  
+      		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+      		if (!artifact.isOptional()) {
+      		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+      		  reference.setRuntimePath(new Path("/WEB-INF/lib"));
+      		  reference.setArchiveName(deployedName);
+      		  references.add(reference);
+      		}
+        } catch(RuntimeException ex) {
+          //Should probably be NPEs at this point
+          MavenConsole console = MavenPlugin.getDefault().getConsole();
+          String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
+          console.logError(dump); 
+          throw ex;
         }
-
-        //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-        if (!artifact.isOptional()) {
-          IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-          reference.setRuntimePath(new Path("/WEB-INF/lib"));
-          references.add(reference);
-        }
-      } catch(RuntimeException ex) {
-        //Should probably be NPEs at this point
-        MavenConsole console = MavenPlugin.getDefault().getConsole();
-        String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
-        console.logError(dump); 
-        throw ex;
-      }
     }
 
     
@@ -325,8 +329,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         if(component == null){
           continue;
         }
+        String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
         
-        boolean usedInEar = opts.isReferenceFromEar(component, extension);
+        boolean usedInEar = opts.isReferenceFromEar(deployedName);
         if(opts.isSkinnyWar() && usedInEar) {
           if(manifestCp.length() > 0) {
             manifestCp.append(" ");
@@ -335,8 +340,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
           if (config.getManifestClasspathPrefix() != null && !JEEPackaging.isJEEPackaging(artifact.getType())) {
               manifestCp.append(config.getManifestClasspathPrefix());
           }
-          
-          manifestCp.append(component.getDeployedName()).append(".").append(extension);
+          manifestCp.append(deployedName);
         }
 
         if (!descriptor.isOptionalDependency() || usedInEar) {
@@ -486,16 +490,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
      * @param depComponent
      * @return
      */
-    public boolean isReferenceFromEar(IVirtualComponent depComponent, String extension) {
+    public boolean isReferenceFromEar(String jarFileName) {
       
-      if (depComponent==null) {
-        return false;
-      }
-
       //calculate in regard to includes/excludes wether this jar is
       //to be packaged into  WEB-INF/lib
-      String jarFileName = "WEB-INF/lib/" + depComponent.getDeployedName() + "." + extension;
-      return isExcludedFromWebInfLib(jarFileName);
+      return isExcludedFromWebInfLib("WEB-INF/lib/"+jarFileName);
     }
 
     private boolean isExcludedFromWebInfLib(String virtualLibPath) {

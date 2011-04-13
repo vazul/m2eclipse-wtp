@@ -29,8 +29,8 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 import org.maven.ide.eclipse.wtp.earmodules.EarModuleFactory;
 import org.maven.ide.eclipse.wtp.earmodules.EarPluginException;
 import org.maven.ide.eclipse.wtp.earmodules.SecurityRoleKey;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMapping;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
 /**
