@@ -76,7 +76,19 @@ public class WarPluginConfiguration {
       Xpp3Dom webResources = config.getChild("webResources");
       if (webResources != null && webResources.getChildCount() > 0)
       {
-        return webResources.getChildren();
+        int count = webResources.getChildCount();  
+        Xpp3Dom[] resources = new Xpp3Dom[count];
+        for (int i= 0; i< count ; i++) {
+          //MECLIPSEWTP-97 support old maven-war-plugin configurations which used <webResource> 
+          // instead of <resource>
+          Xpp3Dom webResource = webResources.getChild(i);
+          if ("resource".equals(webResource.getName())) {
+            resources[i] = webResource;
+          } else {
+            resources[i] = new Xpp3Dom(webResource,"resource");
+          }
+        }
+        return resources;
       }
     }
     return null;

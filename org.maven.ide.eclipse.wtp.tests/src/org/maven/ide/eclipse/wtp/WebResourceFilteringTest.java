@@ -25,7 +25,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
   
   private static String FILTERED_FOLDER_NAME = "target/m2eclipse-wtp/webresources"; 
   
-  public void testMECLIPSE22_webfiltering() throws Exception {
+  public void _testMECLIPSE22_webfiltering() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/webfiltering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -70,8 +70,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
   }
 
-  
-  public void testMECLIPSE22_webfilteringFolderOrder() throws Exception {
+  public void _testMECLIPSE22_webfilteringFolderOrder() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/war-with-filtered-resources/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -96,7 +95,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     
   }
 
-  public void testMECLIPSEWTP5_webXmlfiltering() throws Exception {
+  public void _testMECLIPSEWTP5_webXmlfiltering() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/example-web/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -126,7 +125,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("${props.target.env} from dev profile was not interpolated", xml.contains("<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>DEV</param-value>"));
   }
 
-  public void testMECLIPSEWTP95_filteringErrors() throws Exception {
+  public void _testMECLIPSEWTP95_filteringErrors() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/typo-filtering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -145,6 +144,33 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertNoErrors(web);
     assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
     assertTrue("Files should have been filtered",filteredFolder.members().length > 0);
+  }
+
+  public void testMECLIPSE97_OldWebResourceSupport() throws Exception {
+    IProject web = importProject("projects/WebResourceFiltering/old-webresource-support/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    //Check all the files are correctly filtered
+    IFile indexHtml = filteredFolder.getFile("index.html");
+    assertTrue("index.html is missing",indexHtml.exists());
+    String index = getAsString(indexHtml);
+    assertTrue("${phrase} property from pom was not interpolated", index.contains("<title>m2e rocks!</title>"));
+    assertTrue("${project.artifactId} from pom was not interpolated", index.contains("<body>Welcome @ old-webresource-support</body>"));
+
+    Properties props = getFileAsProperties(filteredFolder, "index.properties");
+    assertEquals("${custom.version} from webfilter.properties was not interpolated","0.0.1-SNAPSHOT",props.get("app.version"));
+
+    IFile webXml = filteredFolder.getFile("WEB-INF/web.xml");
+    assertTrue(webXml.getName() +" is missing",webXml.exists());
+    String xml = getAsString(webXml);
+    assertTrue("${welcome.page} from webfilter.properties was not interpolated", xml.contains("<welcome-file>index.html</welcome-file>"));
+
+    IFile ignored = filteredFolder.getFile("ignoreme.txt");
+    assertFalse("ignoreme.txt should be excluded",ignored.exists());
   }
   
   /**
