@@ -96,7 +96,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE631() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-631", //
         new String[] {"common/pom.xml", "core/pom.xml", "project1/pom.xml"}, new ResolverConfiguration());
-
+    waitForJobsToComplete();
     IVirtualComponent component = ComponentCore.createComponent(projects[2]);
     IVirtualReference[] references = component.getReferences();
     assertEquals(2, references.length);
@@ -122,7 +122,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE1578_testRuntimeScopeDependency() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-1578", //
         new String[] {"war/pom.xml", "runtime-jar/pom.xml"}, new ResolverConfiguration());
-
+    waitForJobsToComplete();
     IProject war = projects[0];
     IProject runtimeJar = projects[1];
     assertMarkers(war, 0);
@@ -206,7 +206,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE793() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-793", //
         new String[] {"common/pom.xml", "core/pom.xml", "project1/pom.xml"}, new ResolverConfiguration());
-
+    waitForJobsToComplete();
     IVirtualComponent core = ComponentCore.createComponent(projects[1]); //core
     IVirtualReference[] references = core.getReferences();
     assertTrue(references == null || references.length == 0);
@@ -520,7 +520,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   public void testMNGECLIPSE1045_TimestampedSnapshots() throws Exception {
     IProject ear = importProject("projects/MNGECLIPSE-1045/pom.xml", new ResolverConfiguration());
-
+    waitForJobsToComplete();
     assertMarkers(ear, 0);
     
     IVirtualComponent comp = ComponentCore.createComponent(ear);
@@ -1489,7 +1489,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMECLIPSEWTP108_DependencyArchiveName() throws Exception {
     IProject[] projects = importProjects("projects/MECLIPSEWTP-108", //
         new String[] {"pom.xml", "webapp/pom.xml", "utility/pom.xml"}, new ResolverConfiguration());
-
+    waitForJobsToComplete();
     IVirtualComponent webComponent = ComponentCore.createComponent(projects[1]);
     IVirtualReference[] references = webComponent.getReferences();
     assertEquals(1, references.length);

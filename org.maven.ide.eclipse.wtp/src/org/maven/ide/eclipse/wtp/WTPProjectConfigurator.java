@@ -48,7 +48,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
 
       try {
         configuratorDelegate.configureProject(project, mavenProject, monitor);
-        configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
+        //configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
       } catch(MarkedException ex) {
         MavenLogger.log(ex.getMessage(), ex);
       }

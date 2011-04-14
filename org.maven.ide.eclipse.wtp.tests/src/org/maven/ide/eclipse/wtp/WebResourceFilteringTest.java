@@ -129,6 +129,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
   public void testMECLIPSEWTP95_filteringErrors() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/typo-filtering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
     List<IMarker> markers = findErrorMarkers(web);
     assertFalse("Should have some markers",markers.isEmpty());
     assertHasMarker("An error occurred while filtering resources", markers);
