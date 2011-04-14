@@ -70,6 +70,9 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       facetedProject.modify(actions, monitor);
     }
 
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     removeTestFolderLinks(project, mavenProject, monitor, "/"); //XXX Doesn't work in certain -unidentified yet- circumstances!!!
 
     //Remove "library unavailable at runtime" warning.

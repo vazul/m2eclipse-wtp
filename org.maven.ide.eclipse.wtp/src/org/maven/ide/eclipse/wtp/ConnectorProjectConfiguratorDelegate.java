@@ -85,6 +85,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       facetedProject.modify(actions, monitor);
     }
 
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     if (!config.isJarIncluded()) {
       //project classes won't be jar'ed in the resulting rar.
       removeSourceLinks(project, mavenProject, monitor, "/");
@@ -170,6 +173,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     depRef.setArchiveName(deployedFileName);
     return depRef;
   }
+  
   private IVirtualReference createReference(IVirtualComponent rarComponent, Artifact artifact) {
       //Create dependency component, referenced from the local Repo.
       String artifactPath = ArtifactHelper.getM2REPOVarPath(artifact);

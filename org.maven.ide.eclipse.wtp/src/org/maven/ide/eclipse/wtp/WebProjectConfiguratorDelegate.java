@@ -42,6 +42,7 @@ import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelPropertie
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
@@ -103,7 +104,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IVirtualComponent component = ComponentCore.createComponent(project, true);
     
     IPath warPath = new Path(warSourceDirectory);
-    if(component != null) {      
+    
+    //Despite a non null component, if the ModuleCoreNature is missing, removeLink will crash
+    if(component != null && ModuleCoreNature.isFlexibleProject(project)) {      
        //remove the old links (if there is one) before adding the new one.
       component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
       component.getRootFolder().createLink(warPath, IVirtualResource.NONE, monitor);
@@ -133,6 +136,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if(!actions.isEmpty()) {
       facetedProject.modify(actions, monitor);
     }
+    
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
     
     // MNGECLIPSE-632 remove test sources/resources from WEB-INF/classes
     removeTestFolderLinks(project, mavenProject, monitor, "/WEB-INF/classes");

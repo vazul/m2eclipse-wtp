@@ -10,7 +10,6 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.InputStream;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

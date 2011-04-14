@@ -21,7 +21,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -30,10 +32,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -41,6 +43,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.MavenPlugin;
+import org.maven.ide.eclipse.core.IMavenConstants;
 import org.maven.ide.eclipse.jdt.BuildPathManager;
 import org.maven.ide.eclipse.project.IMavenMarkerManager;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
@@ -123,6 +126,8 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       facetedProject.modify(actions, monitor);      
     }
     
+    fixMissingModuleCoreNature(project, monitor);
+    
     System.out.println(DebugUtilities.dumpProjectState("after configuration ",project));
     //MNGECLIPSE-904 remove tests folder links for utility jars
     //TODO handle modules in a parent pom (the following doesn't work)
@@ -133,6 +138,21 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
 
     setNonDependencyAttributeToContainer(project, monitor);
     System.out.println("__________________________________________________________________________");
+  }
+
+  /**
+   * Add the ModuleCoreNature to a project, if necessary.
+   * 
+   * @param project An accessible project.
+   * @param monitor A progress monitor to track the time to completion
+   * @throws CoreException if the ModuleCoreNature cannot be added
+   */
+  protected void fixMissingModuleCoreNature(IProject project, IProgressMonitor monitor) throws CoreException {
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    if (null == ModuleCoreNature.addModuleCoreNatureIfNecessary(project, monitor)) {
+      //If we can't add the missing nature, then the project is useless, so let's tell the user
+      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
+    }
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {

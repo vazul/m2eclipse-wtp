@@ -89,6 +89,9 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       facetedProject.modify(actions, monitor);
     }
 
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     // FIXME Sometimes, test folders are still added to org.eclipse.wst.common.component
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
