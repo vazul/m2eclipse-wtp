@@ -33,6 +33,8 @@ import org.maven.ide.eclipse.wtp.filtering.ResourceFilteringBuildParticipant;
  */
 public class WTPProjectConfigurator extends AbstractProjectConfigurator implements IJavaProjectConfigurator {
 
+  
+  
   @Override
   public void configure(ProjectConfigurationRequest request, IProgressMonitor monitor)
       throws CoreException {
@@ -48,7 +50,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
 
       try {
         configuratorDelegate.configureProject(project, mavenProject, monitor);
-        configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
+        //configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
       } catch(MarkedException ex) {
         MavenLogger.log(ex.getMessage(), ex);
       }

@@ -42,6 +42,7 @@ import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelPropertie
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
@@ -52,6 +53,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.MavenPlugin;
+import org.maven.ide.eclipse.core.MavenConsole;
 import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.jdt.IClasspathEntryDescriptor;
@@ -59,6 +61,7 @@ import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
 /**
@@ -98,10 +101,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     installJavaFacet(actions, project, facetedProject);
     
-    IVirtualComponent component = ComponentCore.createComponent(project);
-    if(component != null && warSourceDirectory != null) {
-      IPath warPath = new Path(warSourceDirectory);
-      //remove the old links (if there is one) before adding the new one.
+    IVirtualComponent component = ComponentCore.createComponent(project, true);
+    
+    IPath warPath = new Path(warSourceDirectory);
+    
+    //Despite a non null component, if the ModuleCoreNature is missing, removeLink will crash
+    if(component != null && ModuleCoreNature.isFlexibleProject(project)) {      
+       //remove the old links (if there is one) before adding the new one.
       component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
       component.getRootFolder().createLink(warPath, IVirtualResource.NONE, monitor);
     }
@@ -131,6 +137,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       facetedProject.modify(actions, monitor);
     }
     
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     // MNGECLIPSE-632 remove test sources/resources from WEB-INF/classes
     removeTestFolderLinks(project, mavenProject, monitor, "/WEB-INF/classes");
 
@@ -151,16 +160,18 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if (!alreadyHasLibDir && libDir.exists()) {
       libDir.delete(true, monitor);
     }
-    linkFile(project, customWebXml, "WEB-INF/web.xml", monitor);
-
+    linkFileFirst(project, customWebXml, "/WEB-INF/web.xml", monitor);
     
-    IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
-    if (component != null) {
-      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+    component = ComponentCore.createComponent(project, true);
+    if(component != null) {      
+      //MECLIPSEWTP-22 support web filtered resources. Filtered resources directory must be declared BEFORE
+      //the regular web source directory. First resources discovered take precedence on deployment
+      IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
       component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
       if (config.getWebResources() != null && config.getWebResources().length > 0) {
-        component.getRootFolder().createLink(filteredFolder, IVirtualResource.NONE, monitor);      
-      }      
+        String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
+        WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
+      }   
     }
 
   }
@@ -190,7 +201,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if(component == null){
       return;
     }
-
+    System.out.println("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
@@ -204,25 +215,36 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String depPackaging = dependency.getPackaging();
       if ("pom".equals(depPackaging)) continue;//MNGECLIPSE-744 pom dependencies shouldn't be deployed
       
-      preConfigureDependencyProject(dependency, monitor);
-      MavenProject depMavenProject =  dependency.getMavenProject(monitor);
-
-      IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
-
-      String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
-      Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
-      //in a skinny war the dependency modules are referenced by manifest classpath
-      //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
-      if(opts.isSkinnyWar() && opts.isReferenceFromEar(depComponent, artifact.getArtifactHandler().getExtension())) {
-        continue;
-      }
-
-      //an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-      if (!artifact.isOptional()) {
-        IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-        reference.setRuntimePath(new Path("/WEB-INF/lib"));
-        references.add(reference);
-      }
+      try {
+          preConfigureDependencyProject(dependency, monitor);
+          MavenProject depMavenProject =  dependency.getMavenProject(monitor);
+  
+          IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+  
+          String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
+          Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
+          String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+          
+          //in a skinny war the dependency modules are referenced by manifest classpath
+          //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
+          if(opts.isSkinnyWar() && opts.isReferenceFromEar(deployedName)) {
+            continue;
+          }
+  
+      		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+      		if (!artifact.isOptional()) {
+      		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+      		  reference.setRuntimePath(new Path("/WEB-INF/lib"));
+      		  reference.setArchiveName(deployedName);
+      		  references.add(reference);
+      		}
+        } catch(RuntimeException ex) {
+          //Should probably be NPEs at this point
+          MavenConsole console = MavenPlugin.getDefault().getConsole();
+          String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
+          console.logError(dump); 
+          throw ex;
+        }
     }
 
     
@@ -257,16 +279,16 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 	//MECLIPSEWTP-43 : Override with maven property
    String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
    if (StringUtils.isEmpty(property)) {
-		String finalName = mavenProject.getBuild().getFinalName();
-		if (StringUtils.isBlank(finalName) 
-		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
-		  contextRoot = mavenProject.getArtifactId();
-		}  else {
-		  contextRoot = finalName;
-		}
-	} else {
-		contextRoot = property;
-	}
+  		String finalName = mavenProject.getBuild().getFinalName();
+  		if (StringUtils.isBlank(finalName) 
+  		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
+  		  contextRoot = mavenProject.getArtifactId();
+  		}  else {
+  		  contextRoot = finalName;
+  		}
+  	} else {
+  		contextRoot = property;
+  	}
     return contextRoot.trim().replace(" ", "_");
   }
 
@@ -309,8 +331,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
         
         IVirtualComponent component = ComponentCore.createComponent(p);
-
-        boolean usedInEar = opts.isReferenceFromEar(component, extension);
+        //component will be null if the underlying project hasn't been configured properly
+        if(component == null){
+          continue;
+        }
+        String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+        
+        boolean usedInEar = opts.isReferenceFromEar(deployedName);
         if(opts.isSkinnyWar() && usedInEar) {
           if(manifestCp.length() > 0) {
             manifestCp.append(" ");
@@ -319,8 +346,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
           if (config.getManifestClasspathPrefix() != null && !JEEPackaging.isJEEPackaging(artifact.getType())) {
               manifestCp.append(config.getManifestClasspathPrefix());
           }
-          
-          manifestCp.append(component.getDeployedName()).append(".").append(extension);
+          manifestCp.append(deployedName);
         }
 
         if (!descriptor.isOptionalDependency() || usedInEar) {
@@ -470,16 +496,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
      * @param depComponent
      * @return
      */
-    public boolean isReferenceFromEar(IVirtualComponent depComponent, String extension) {
+    public boolean isReferenceFromEar(String jarFileName) {
       
-      if (depComponent==null) {
-        return false;
-      }
-
       //calculate in regard to includes/excludes wether this jar is
       //to be packaged into  WEB-INF/lib
-      String jarFileName = "WEB-INF/lib/" + depComponent.getDeployedName() + "." + extension;
-      return isExcludedFromWebInfLib(jarFileName);
+      return isExcludedFromWebInfLib("WEB-INF/lib/"+jarFileName);
     }
 
     private boolean isExcludedFromWebInfLib(String virtualLibPath) {

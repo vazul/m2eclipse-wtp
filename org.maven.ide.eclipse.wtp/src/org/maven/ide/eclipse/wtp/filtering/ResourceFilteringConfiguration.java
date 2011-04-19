@@ -22,6 +22,8 @@ public interface ResourceFilteringConfiguration {
 
   IPath getTargetFolder();
   
-  //FIXME return List<org.apache.maven.model.Resource> instead
+  //FIXME maybe return List<org.apache.maven.model.Resource> instead
   List<Xpp3Dom> getResources();
+  
+  List<String> getFilters();
 }

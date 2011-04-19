@@ -11,8 +11,10 @@ package org.maven.ide.eclipse.wtp;
 import java.io.File;
 
 import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -62,7 +64,7 @@ public class ProjectUtils {
   public static IPath getM2eclipseWtpFolder(MavenProject mavenProject, IProject project) {
     String buildOutputDir = mavenProject.getBuild().getDirectory();
     String relativeBuildOutputDir = getRelativePath(project, buildOutputDir);
-    return new Path(relativeBuildOutputDir).append("m2eclipse-wtp");
+    return new Path(relativeBuildOutputDir).append(MavenWtpConstants.M2E_WTP_FOLDER);
   }
 
   /**
@@ -75,12 +77,38 @@ public class ProjectUtils {
     if (folder.exists()) {
       IProgressMonitor monitor = new NullProgressMonitor();
       if (!folder.isDerived()) {
-        folder.setDerived(true);
+        folder.setDerived(true);//TODO Eclipse < 3.6 doesn't support setDerived(bool, monitor)
       }
       if (!folder.isHidden()) {
         folder.setHidden(true);
       }
       folder.getParent().refreshLocal(IResource.DEPTH_ZERO,monitor);
+    }
+  }
+  
+  public static void createFolder(IFolder folder, IProgressMonitor monitor) throws CoreException {
+    if (folder == null || folder.exists()) {
+      return;
+    }
+    IContainer parent = folder.getParent();
+    if (parent instanceof IFolder) {
+      createFolder((IFolder)parent, monitor);
+    }
+    folder.create(true, true, monitor);
+  }
+  
+  public static void removeNature(IProject project, String natureId, IProgressMonitor monitor) throws CoreException {
+    if (project.hasNature(natureId)) {
+      IProjectDescription description = project.getDescription();
+      String[] prevNatures = description.getNatureIds();
+      String[] newNatures = new String[prevNatures.length - 1];
+      for (int i=0, j = 0 ; i < prevNatures.length; i++) {
+        if (!prevNatures[i].equals(natureId)) {
+          newNatures[j++] = prevNatures[i];
+        }
+      }
+      description.setNatureIds(newNatures);
+      project.setDescription(description, monitor);
     }
   }
 }

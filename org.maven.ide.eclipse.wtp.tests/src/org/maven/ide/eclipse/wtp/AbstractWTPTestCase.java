@@ -8,9 +8,12 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -104,7 +107,7 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
         return ;
       }
     }
-    fail(expectedMessage + " is not a marker");
+    fail(expectedMessage + " is not a marker. Existing markers are :"+toString(markers));
   }
 
   protected void assertNotDeployable(IClasspathEntry entry) {
@@ -130,6 +133,20 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     return underlyingResources;
   }
 
+  protected static String getAsString(IFile file) throws IOException, CoreException {
+    assert file != null;
+    assert file.isAccessible();
+    InputStream ins = null;
+    String content = null;
+    try {
+      ins = file.getContents();
+      content = IOUtil.toString(ins, 1024);
+    } finally {
+      IOUtil.close(ins);   
+    }
+    return content;
+  }
+
   public AbstractWTPTestCase() {
     super();
   }
@@ -141,7 +158,17 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
    * @throws Exception
    */
   protected void updateProject(IProject project, String newPomName) throws Exception {
-    
+    updateProject(project, newPomName, -1);
+  }
+
+  /**
+   * Replace the project pom.xml with a new one, triggers new build, wait for waitTime milliseconds.
+   * @param project
+   * @param newPomName
+   * @param waitTime
+   * @throws Exception
+   */
+  protected void updateProject(IProject project, String newPomName, int waitTime) throws Exception {    
     copyContent(project, newPomName, "pom.xml");
     
     IProjectConfigurationManager configurationManager = MavenPlugin.getDefault().getProjectConfigurationManager();
@@ -151,6 +178,10 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     
     waitForJobsToComplete();
     project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    if (waitTime > 0 ) {
+      System.out.println("Waiting for "+ waitTime + " ms to build "+project.getName());
+      Thread.sleep(waitTime);
+    }
     waitForJobsToComplete();
   }
 

@@ -23,5 +23,5 @@ public interface DeploymentDescriptorManagement {
   static final DeploymentDescriptorManagement INSTANCE = new MavenDeploymentDescriptorManagement();
   //static final DeploymentDescriptorManagement INSTANCE = new WTPDeploymentDescriptorManagement();
   
-  void updateConfiguration(IProject project, MavenProject mavenProject, EarPluginConfiguration plugin, IProgressMonitor monitor) throws CoreException;
+  void updateConfiguration(IProject project, MavenProject mavenProject, EarPluginConfiguration plugin, boolean useSourceFolder, IProgressMonitor monitor) throws CoreException;
 }

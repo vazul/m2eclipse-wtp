@@ -1,10 +1,21 @@
+/*******************************************************************************
+ * Copyright (c) 2008 Sonatype, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 
 package org.maven.ide.eclipse.wtp;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -14,6 +25,7 @@ import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.wst.common.componentcore.internal.ComponentResource;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
+import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeNode;
 import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeRoot;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -127,5 +139,114 @@ public class WTPProjectsUtil {
        moduleCore.dispose();
      }
     }
+  }
+
+  public static void insertLinkBefore(IProject project, IPath newSource, IPath referenceSource, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    //Looks like WTP'APIS doesn't have such feature, hence this implementation.
+    StructureEdit moduleCore = null;
+    try {
+      moduleCore = StructureEdit.getStructureEditForWrite(project);
+      if (moduleCore == null) {
+        return;
+      }
+      WorkbenchComponent component = moduleCore.getComponent();
+      if (component == null)  {
+        return;
+      }
+      
+      int i = 0;
+      
+      List<ComponentResource> resources = component.getResources();
+      
+      for (ComponentResource resource : resources) {
+        IPath sourcePath = resource.getSourcePath();
+        if (referenceSource.equals(sourcePath)) {
+          break;
+        }
+        i++;
+      }
+      IResource folder = project.getFolder(newSource);
+      ComponentResource componentResource = moduleCore.createWorkbenchModuleResource(folder);
+      componentResource.setRuntimePath(runtimePath);
+      component.getResources().add(i,componentResource);
+   }
+   finally {
+     if (moduleCore != null) {
+       moduleCore.saveIfNecessary(monitor);
+       moduleCore.dispose();
+     }
+    }
+  }
+
+  public static void insertLinkFirst(IProject project, IPath newSource, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    //Looks like WTP'APIS doesn't have such feature, hence this implementation.
+    StructureEdit moduleCore = null;
+    try {
+      moduleCore = StructureEdit.getStructureEditForWrite(project);
+      if (moduleCore == null) {
+        return;
+      }
+      WorkbenchComponent component = moduleCore.getComponent();
+      if (component == null)  {
+        return;
+      }
+      
+      IResource folder = project.getFolder(newSource);
+      ComponentResource componentResource = moduleCore.createWorkbenchModuleResource(folder);
+      componentResource.setRuntimePath(runtimePath);
+      component.getResources().add(0,componentResource);
+   }
+   finally {
+     if (moduleCore != null) {
+       moduleCore.saveIfNecessary(monitor);
+       moduleCore.dispose();
+     }
+    }
+  }
+  
+  public static boolean hasLink(IProject project, IPath runtimePath, IPath aProjectRelativeLocation, IProgressMonitor monitor) throws CoreException {
+    StructureEdit moduleCore = null;
+    try {
+      moduleCore = StructureEdit.getStructureEditForRead(project);
+      if( moduleCore != null ) {
+        WorkbenchComponent component = moduleCore.getComponent();
+        if (component != null) {
+          ResourceTreeRoot root = ResourceTreeRoot.getDeployResourceTreeRoot(component);
+          ComponentResource[] resources = root.findModuleResources(runtimePath, ResourceTreeNode.CREATE_NONE);
+          if (resources.length > 0) {
+            for (int resourceIndx = 0; resourceIndx < resources.length; resourceIndx++) {
+              if (aProjectRelativeLocation.makeAbsolute().equals(resources[resourceIndx].getSourcePath())) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    finally {
+      if (moduleCore != null) {
+        moduleCore.dispose();
+      }
+    }
+    return false;
+  }
+
+  
+
+  /**
+   * @param project
+   * @param dir
+   * @return
+   */
+  public static IPath tryProjectRelativePath(IProject project, String resourceLocation) {
+    if(resourceLocation == null) {
+      return null;
+    }
+    IPath projectLocation = project.getLocation();
+    IPath directory = Path.fromOSString(resourceLocation); // this is an absolute path!
+    if(projectLocation == null || !projectLocation.isPrefixOf(directory)) {
+      return directory;
+    }
+    return directory.removeFirstSegments(projectLocation.segmentCount()).makeRelative().setDevice(null);
   }
 }

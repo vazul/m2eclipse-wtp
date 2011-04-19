@@ -9,6 +9,8 @@
 package org.maven.ide.eclipse.wtp.internal;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.maven.ide.eclipse.wtp.preferences.IMavenWtpConfiguration;
+import org.maven.ide.eclipse.wtp.preferences.MavenWtpConfigurationImpl;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -22,6 +24,15 @@ public class MavenWtpPlugin extends AbstractUIPlugin {
   
   private static MavenWtpPlugin instance;
 
+  private IMavenWtpConfiguration configuration; 
+  
+  /**
+   * @return Returns the configuration.
+   */
+  public IMavenWtpConfiguration getConfiguration() {
+    return configuration;
+  }
+
   public MavenWtpPlugin() {
     instance = this;
   }
@@ -29,6 +40,8 @@ public class MavenWtpPlugin extends AbstractUIPlugin {
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+    
+    this.configuration = new MavenWtpConfigurationImpl(getPreferenceStore());
   }
 
   @Override

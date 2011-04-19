@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * Copyright (c) 2008 Sonatype, Inc.
  * All rights reserved. This program and the accompanying materials
@@ -17,15 +18,11 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.earcreation.IEarFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.J2EEConstants;
@@ -37,10 +34,8 @@ import org.eclipse.jst.javaee.application.Application;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
-import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
-import org.eclipse.wst.common.frameworks.datamodel.IDataModelProvider;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -49,6 +44,7 @@ import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
+import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
 
 
 /**
@@ -60,10 +56,11 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 @SuppressWarnings("restriction")
 class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
-  private static final IStatus OK_STATUS = IDataModelProvider.OK_STATUS;
-
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
+    
+    monitor.setTaskName("Configuring EAR project " + project.getName());
+    
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
 
     if(facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
@@ -74,24 +71,24 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         MavenLogger.log("Error removing EAR facet", ex);
       }
     }
-    
+
     EarPluginConfiguration config = new EarPluginConfiguration(mavenProject);
-
-    String contentDirPath = config.getEarContentDirectory(project);
-
-    IFolder firstEmptyFolder = null;
-    if (!project.getFolder(contentDirPath).exists()) {
-      firstEmptyFolder = findFirstEmptyFolder(project, contentDirPath);
-    }
-    
     Set<Action> actions = new LinkedHashSet<Action>();
     // WTP doesn't allow facet versions changes for JEE facets
-    
+    String contentDir = config.getEarContentDirectory(project);
+  
+    IFolder firstInexistentfolder = null;
+    IFolder metaInfFolder = project.getFolder(contentDir).getFolder("META-INF");
+    if (!metaInfFolder.exists()) {
+      firstInexistentfolder = findFirstInexistentFolder(project, metaInfFolder.getProjectRelativePath());
+    }   
+
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
       IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
 
       // Configuring content directory
-      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDirPath);
+      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDir);
+      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.GENERATE_DD, false);
 
       IProjectFacetVersion earFv = config.getEarFacetVersion();
       
@@ -102,35 +99,39 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       facetedProject.modify(actions, monitor);
     }
 
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
     
-    // FIXME Sometimes, test folders are still added to org.eclipse.wst.common.component
+
+    //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
+    boolean useBuildDirectory = MavenWtpPlugin.getDefault().getConfiguration().isApplicationXmGeneratedInBuildDirectoryl();
+
+    IVirtualComponent earComponent = ComponentCore.createComponent(project);
+    if (useBuildDirectory && earComponent != null) {
+      IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
+      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+      IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER); 
+      if (!WTPProjectsUtil.hasLink(project, new Path("/"), generatedResourcesPath, monitor)) {
+        IPath contentDirPath = new Path((contentDir.startsWith("/"))?contentDir:"/"+contentDir);
+        WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, new Path("/"), monitor);      
+      }
+
+      if (firstInexistentfolder != null && firstInexistentfolder.exists())
+      {
+        firstInexistentfolder.delete(true, monitor);
+      }
+    }
+
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
-    //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
-    IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
-    IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+"application");//TODO refactor this value
-    IVirtualComponent earComponent = ComponentCore.createComponent(project);
-    if (earComponent != null) {
-      //ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
-      earComponent.getRootFolder().removeLink(generatedResourcesPath,IVirtualResource.NONE, monitor);
-      earComponent.getRootFolder().createLink(generatedResourcesPath, IVirtualResource.NONE, monitor);      
-    }
+    ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);
 
-    if (firstEmptyFolder != null && firstEmptyFolder.exists())
-    {
-      firstEmptyFolder.delete(true, monitor);
-    }
+    //configureDeployedName(project, mavenProject.getBuild().getFinalName());
+
   }
 
-  /**
-   * @param project
-   * @param contentDirPath
-   * @return
-   * @throws CoreException 
-   */
-  private IFolder findFirstEmptyFolder(IProject project, String contentDirPath) {
+  private IFolder findFirstInexistentFolder(IProject project, IPath targetPath) {
     StringBuilder path = new StringBuilder();
-    IPath targetPath = new Path(contentDirPath);
     for (String segment : targetPath.segments()) {
       path.append(IPath.SEPARATOR);
       path.append(segment);
@@ -141,7 +142,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
     return null;
   }
-
+  
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
@@ -194,7 +195,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       earComponent.setReferences(newRefsArray);
     }
 
-    DeploymentDescriptorManagement.INSTANCE.updateConfiguration(project, mavenProject, config, monitor);
+    boolean useSourceFolder = MavenWtpPlugin.getDefault().getConfiguration().isApplicationXmGeneratedInBuildDirectoryl();
+    DeploymentDescriptorManagement.INSTANCE.updateConfiguration(project, mavenProject, config, useSourceFolder, monitor);
   }
 
 

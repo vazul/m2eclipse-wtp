@@ -21,7 +21,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -30,10 +32,10 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -41,6 +43,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.MavenPlugin;
+import org.maven.ide.eclipse.core.IMavenConstants;
 import org.maven.ide.eclipse.jdt.BuildPathManager;
 import org.maven.ide.eclipse.project.IMavenMarkerManager;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
@@ -107,6 +110,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       return;
     }
 
+    System.out.println(DebugUtilities.dumpProjectState("Before configuration ",project));
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
     Set<Action> actions = new LinkedHashSet<Action>();
     installJavaFacet(actions, project, facetedProject);
@@ -122,12 +126,33 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       facetedProject.modify(actions, monitor);      
     }
     
+    fixMissingModuleCoreNature(project, monitor);
+    
+    System.out.println(DebugUtilities.dumpProjectState("after configuration ",project));
     //MNGECLIPSE-904 remove tests folder links for utility jars
     //TODO handle modules in a parent pom (the following doesn't work)
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     //Remove "library unavailable at runtime" warning.
+    System.out.println(DebugUtilities.dumpProjectState("after removing test folders ",project));
+
     setNonDependencyAttributeToContainer(project, monitor);
+    System.out.println("__________________________________________________________________________");
+  }
+
+  /**
+   * Add the ModuleCoreNature to a project, if necessary.
+   * 
+   * @param project An accessible project.
+   * @param monitor A progress monitor to track the time to completion
+   * @throws CoreException if the ModuleCoreNature cannot be added
+   */
+  protected void fixMissingModuleCoreNature(IProject project, IProgressMonitor monitor) throws CoreException {
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    if (null == ModuleCoreNature.addModuleCoreNatureIfNecessary(project, monitor)) {
+      //If we can't add the missing nature, then the project is useless, so let's tell the user
+      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
+    }
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
@@ -145,9 +170,11 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     if (component != null){
       IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
       for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
+        if (location == null) continue;
         jsrc.removeLink(location, 0, monitor);
       }
       for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
+        if (location == null) continue;
         jsrc.removeLink(location, 0, monitor);
       }
     }
@@ -244,23 +271,18 @@ javaProject.setRawClasspath(cp, monitor);
   /**
    * Link a project's file to a specific deployment destination. Existing links will be deleted beforehand. 
    * @param project 
-   * @param customFile the existing file to deploy
+   * @param sourceFile the existing file to deploy
    * @param targetRuntimePath the target runtime/deployment location of the file
    * @param monitor
    * @throws CoreException
    */
-  protected void linkFile(IProject project, String customFile, String targetRuntimePath, IProgressMonitor monitor) throws CoreException {
+  protected void linkFileFirst(IProject project, String sourceFile, String targetRuntimePath, IProgressMonitor monitor) throws CoreException {
       IPath runtimePath = new Path(targetRuntimePath);
       //We first delete any existing links
       WTPProjectsUtil.deleteLinks(project, runtimePath, monitor);
-      if (customFile != null) {
+      if (sourceFile != null) {
         //Create the new link
-        IVirtualComponent component = ComponentCore.createComponent(project);
-        if (component != null){
-          IVirtualFile virtualCustomFile = component.getRootFolder().getFile(runtimePath);
-          IPath virtualCustomFilePath = new Path(customFile);
-          virtualCustomFile.createLink(virtualCustomFilePath, 0, monitor);
-        }
+        WTPProjectsUtil.insertLinkFirst(project, new Path(sourceFile), new Path(targetRuntimePath), monitor);
       }
   }
 
@@ -276,6 +298,7 @@ javaProject.setRawClasspath(cp, monitor);
       IVirtualReference existingRef = existingRefs[i];
       IVirtualReference newRef = refArray[i];
       if ((existingRef.getArchiveName() != null && !existingRef.getArchiveName().equals(newRef.getArchiveName())) ||
+          (existingRef.getArchiveName() == null && newRef.getArchiveName() != null) ||
           !existingRef.getReferencedComponent().equals(newRef.getReferencedComponent()) ||
           !existingRef.getRuntimePath().equals(newRef.getRuntimePath())) 
       {

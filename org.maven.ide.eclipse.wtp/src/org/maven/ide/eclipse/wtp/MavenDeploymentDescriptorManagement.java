@@ -12,9 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -28,6 +27,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -40,6 +40,7 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.maven.ide.eclipse.MavenPlugin;
 import org.maven.ide.eclipse.core.IMavenConstants;
 import org.maven.ide.eclipse.embedder.IMaven;
+import org.maven.ide.eclipse.project.IMavenMarkerManager;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
@@ -71,7 +72,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
    */
 
   public void updateConfiguration(IProject project, MavenProject mavenProject, EarPluginConfiguration plugin,
-      IProgressMonitor monitor) throws CoreException {
+     boolean useBuildDirectory, IProgressMonitor monitor) throws CoreException {
 
     MavenProjectManager projectManager = MavenPlugin.getDefault().getMavenProjectManager();
 
@@ -122,40 +123,64 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
     //Execute our hacked mojo 
     maven.execute(session, genConfigMojo, monitor);
     
+    if (session.getResult().hasExceptions()){
+      IMavenMarkerManager markerManager  = MavenPlugin.getDefault().getMavenMarkerManager();
+      markerManager.addMarkers(mavenFacade.getPom(), session.getResult());
+    }
+    
     //Copy generated files to their final location
     File[] files = generatedDescriptorLocation.listFiles();
 
-    String outputDir = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).toPortableString()+Path.SEPARATOR+"application";
-    //String outputDir = plugin.getEarContentDirectory(project);
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
-    //TODO refactor this value with EarProjectConfiguratorDelegate
-    IFolder metaInfFolder = project.getFolder(outputDir + "/META-INF/");
+    
+    IFolder targetFolder;
+    IFolder earResourcesFolder = getEarResourcesDir(project, mavenProject, monitor); 
+    if (useBuildDirectory) {
+      targetFolder = earResourcesFolder;
+    } else {
+      targetFolder = project.getFolder(plugin.getEarContentDirectory(project));
+
+      if (earResourcesFolder.exists() && earResourcesFolder.isAccessible()) {
+        earResourcesFolder.delete(true, monitor);
+      }
+    }
+    
+    IFolder metaInfFolder = targetFolder.getFolder("/META-INF/");
 
     if(files.length > 0) {
-      
-      List<File> filesToImport = new ArrayList<File>();
-      for(int i = 0; i < files.length; i++ ) {
-        filesToImport.add(files[i]);
-      }
+      //We generated something
       try {
         ImportOperation op = new ImportOperation(metaInfFolder.getFullPath(), generatedDescriptorLocation,
-            new FileSystemStructureProvider(), OVERWRITE_ALL_QUERY, filesToImport);
+            new FileSystemStructureProvider(), OVERWRITE_ALL_QUERY, Arrays.asList(files));
         op.setCreateContainerStructure(false);
+        op.setOverwriteResources(true);
+        
         op.run(monitor);
+        
       } catch(InvocationTargetException ex) {
         IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, IStatus.ERROR, ex.getMessage(), ex);
         throw new CoreException(status);
       } catch(InterruptedException ex) {
         throw new OperationCanceledException(ex.getMessage());
       }
-    } else {
-      //We shouldn't deploy application.xml created by previous builds
-      IFile applicationXml = metaInfFolder.getFile("application.xml"); 
-      if (!plugin.isGenerateApplicationXml() && applicationXml.exists()) {
-        applicationXml.delete(true, monitor);
-      }
-    }
+    } 
+    targetFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+    
     deleteDirectory(generatedDescriptorLocation);    
+  }
+
+  private IFolder getEarResourcesDir(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
+      throws CoreException {
+    String appResourcesDir = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).toPortableString()+Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER;
+    IFolder appResourcesFolder = project.getFolder(appResourcesDir);
+ 
+    if (!appResourcesFolder.exists()) {
+      ProjectUtils.createFolder(appResourcesFolder, monitor);
+    }
+    if (!appResourcesFolder.isDerived()) {
+      appResourcesFolder.setDerived(true);//TODO Eclipse < 3.6 doesn't support setDerived(bool, monitor)
+    }
+    return appResourcesFolder;
   }
 
   private void overrideModules(Xpp3Dom configuration, Set<EarModule> earModules) {
