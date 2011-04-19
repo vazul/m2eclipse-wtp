@@ -302,9 +302,21 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
         Xpp3Dom filterNode = new Xpp3Dom("filter");
         //HACK When run via the BuildParticipant, the maven-resource-plugin won't 
         //find a filter defined with a relative path, so we turn it into an absolute one
-        String filterAbsolutePath = (filter.startsWith("${basedir}") ||filter.startsWith("/"))
-                                    ?filter
-                                    :"${basedir}/"+filter;
+        IPath filterPath = new Path(filter);
+        boolean isAbsolute = false;
+        if (filter.startsWith("${basedir}") ||filter.startsWith("/") || filterPath.getDevice() != null) {
+          isAbsolute = true;
+        }
+        String filterAbsolutePath;
+        if (isAbsolute) {
+          filterAbsolutePath = filter;
+        } else {
+          filterAbsolutePath = "${basedir}/"+filter;
+        }
+//        String filterAbsolutePath = (filter.startsWith("${basedir}") ||filter.startsWith("/"))
+//                                    ?filter
+//                                    :"${basedir}/"+filter;
+
         filterNode.setValue(filterAbsolutePath);
         filtersNode.addChild(filterNode );
       }
