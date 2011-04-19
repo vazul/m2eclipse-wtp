@@ -40,7 +40,6 @@ import org.eclipse.core.runtime.Status;
 import org.maven.ide.eclipse.MavenPlugin;
 import org.maven.ide.eclipse.builder.EclipseBuildContext;
 import org.maven.ide.eclipse.core.IMavenConstants;
-import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.embedder.IMaven;
 import org.maven.ide.eclipse.internal.project.GenericBuildParticipant;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
@@ -85,7 +84,7 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
       forceCopyBuildContext = null;
       List<String> filters = configuration.getFilters();
       if (changeRequiresForcedCopy(facade, filters, delta)) {
-        MavenLogger.log("Changed resources require a complete clean of filtered resources of "+project.getName());
+        //MavenLogger.log("Changed resources require a complete clean of filtered resources of "+project.getName());
         Map<String, Object> contextState = new HashMap<String, Object>();
         project.setSessionProperty(BUILD_CONTEXT_KEY, contextState);
         //String id = ((AbstractEclipseBuildContext)super.getBuildContext()).getCurrentBuildParticipantId();
@@ -94,7 +93,7 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
         ThreadBuildContext.setThreadBuildContext(forceCopyBuildContext);
       }
       if (forceCopyBuildContext != null || hasResourcesChanged(facade, delta, resources)) {
-        MavenLogger.log("Executing resource filtering for "+project.getName());
+        //MavenLogger.log("Executing resource filtering for "+project.getName());
         executeCopyResources(facade, filters, targetFolder, resources, monitor);
         //FIXME deal with absolute paths
         IFolder destFolder = project.getFolder(targetFolder);
@@ -157,7 +156,7 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
     IFolder targetFolder = project.getFolder(targetFolderPath);
     if (targetFolder.exists()) {
       IContainer parent = targetFolder.getParent(); 
-      MavenLogger.log("Cleaning filtered folder for "+project.getName());
+      //MavenLogger.log("Cleaning filtered folder for "+project.getName());
       targetFolder.delete(true, new NullProgressMonitor());
       if (parent != null) {
         parent.refreshLocal(IResource.DEPTH_INFINITE, monitor); 
@@ -302,9 +301,18 @@ public class ResourceFilteringBuildParticipant extends GenericBuildParticipant {
         Xpp3Dom filterNode = new Xpp3Dom("filter");
         //HACK When run via the BuildParticipant, the maven-resource-plugin won't 
         //find a filter defined with a relative path, so we turn it into an absolute one
-        String filterAbsolutePath = (filter.startsWith("${basedir}") ||filter.startsWith("/"))
-                                    ?filter
-                                    :"${basedir}/"+filter;
+        IPath filterPath = new Path(filter);
+        boolean isAbsolute = false;
+        if (filter.startsWith("${basedir}") ||filter.startsWith("/") || filterPath.getDevice() != null) {
+          isAbsolute = true;
+        }
+        String filterAbsolutePath;
+        if (isAbsolute) {
+          filterAbsolutePath = filter;
+        } else {
+          filterAbsolutePath = "${basedir}/"+filter;
+        }
+
         filterNode.setValue(filterAbsolutePath);
         filtersNode.addChild(filterNode );
       }

@@ -70,7 +70,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
   }
 
-  public void _testMECLIPSE22_webfilteringFolderOrder() throws Exception {
+  public void testMECLIPSE22_webfilteringFolderOrder() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/war-with-filtered-resources/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -95,7 +95,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     
   }
 
-  public void _testMECLIPSEWTP5_webXmlfiltering() throws Exception {
+  public void testMECLIPSEWTP5_webXmlfiltering() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/example-web/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -125,7 +125,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("${props.target.env} from dev profile was not interpolated", xml.contains("<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>DEV</param-value>"));
   }
 
-  public void _testMECLIPSEWTP95_filteringErrors() throws Exception {
+  public void testMECLIPSEWTP95_filteringErrors() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/typo-filtering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
