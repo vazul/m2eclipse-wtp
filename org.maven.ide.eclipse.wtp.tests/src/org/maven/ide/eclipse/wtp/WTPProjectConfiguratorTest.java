@@ -877,7 +877,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   //Lars K�dderitzsch test case from https://issues.sonatype.org/browse/MNGECLIPSE-1644
   public void testMNGECLIPSE1644_contextRoot() throws Exception {
-     
+     try {
+     useBuildDirforApplicationXml(false);
      IProject[] projects = importProjects(
          "projects/MNGECLIPSE-1644/", //
          new String[] {"ear/pom.xml", "war1/pom.xml", "war2/pom.xml", },
@@ -903,6 +904,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
      
      assertEquals("/custom-context-root", war1ContextRoot);
      assertEquals("/MNGECLIPSE-1644-war2", war2ContextRoot);
+     } finally {
+       useBuildDirforApplicationXml(true);
+     }
   }
 
   public void testMNGECLIPSE2145_finalNames() throws Exception {
@@ -1386,7 +1390,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
   public void testMECLIPSEWTP73_EjbClientInLib_JavaEE5() throws Exception {
-        
     IProject[] projects = importProjects(
         "projects/MECLIPSEWTP-73/", //
         new String[] {"ear5-with-ejb-client/pom.xml", "ear5-with-ejb-client/ear/pom.xml", "ear5-with-ejb-client/ejb/pom.xml", "ear5-with-ejb-client/war/pom.xml"},
@@ -1421,38 +1424,43 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
   public void testMECLIPSEWTP73_EjbClientInLib_J2ee14() throws Exception {
-    
-    IProject[] projects = importProjects(
-        "projects/MECLIPSEWTP-73/", //
-        new String[] {"ear14-with-ejb-client/pom.xml", "ear14-with-ejb-client/ear/pom.xml", "ear14-with-ejb-client/ejb/pom.xml", "ear14-with-ejb-client/war/pom.xml"},
-        new ResolverConfiguration());
-
-    waitForJobsToComplete();
-    
-    assertEquals(4, projects.length);
-    IProject ear = projects[1];
-    IProject ejb = projects[2];
-    IProject war = projects[3];
-    
-    assertMarkers(ejb, 0);
-    assertMarkers(war, 0);
-    assertMarkers(ear, 0);
-   
-    IVirtualComponent comp = ComponentCore.createComponent(ear);
-    IVirtualReference warRef = comp.getReference("war");
-    assertNotNull(warRef);
-    assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
-   
-    IVirtualReference ejbRef = comp.getReference("ejb");
-    assertNotNull(ejbRef);
-    assertEquals("ejb-1.0-SNAPSHOT-client.jar",ejbRef.getArchiveName());
-    assertEquals("/",ejbRef.getRuntimePath().toPortableString());
-    
-    org.eclipse.jst.j2ee.application.Application app = (org.eclipse.jst.j2ee.application.Application)ModelProviderManager.getModelProvider(ear).getModelObject();
-    assertEquals(1,app.getModules().size());
-    org.eclipse.jst.j2ee.application.WebModule webModule = (WebModule)app.getFirstModule(warRef.getArchiveName());
-    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
-    assertEquals("war",webModule.getContextRoot());
+    try {
+      useBuildDirforApplicationXml(false);    
+      
+      IProject[] projects = importProjects(
+          "projects/MECLIPSEWTP-73/", //
+          new String[] {"ear14-with-ejb-client/pom.xml", "ear14-with-ejb-client/ear/pom.xml", "ear14-with-ejb-client/ejb/pom.xml", "ear14-with-ejb-client/war/pom.xml"},
+          new ResolverConfiguration());
+  
+      waitForJobsToComplete();
+      
+      assertEquals(4, projects.length);
+      IProject ear = projects[1];
+      IProject ejb = projects[2];
+      IProject war = projects[3];
+      
+      assertMarkers(ejb, 0);
+      assertMarkers(war, 0);
+      assertMarkers(ear, 0);
+     
+      IVirtualComponent comp = ComponentCore.createComponent(ear);
+      IVirtualReference warRef = comp.getReference("war");
+      assertNotNull(warRef);
+      assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
+     
+      IVirtualReference ejbRef = comp.getReference("ejb");
+      assertNotNull(ejbRef);
+      assertEquals("ejb-1.0-SNAPSHOT-client.jar",ejbRef.getArchiveName());
+      assertEquals("/",ejbRef.getRuntimePath().toPortableString());
+      
+      org.eclipse.jst.j2ee.application.Application app = (org.eclipse.jst.j2ee.application.Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+      assertEquals(1,app.getModules().size());
+      org.eclipse.jst.j2ee.application.WebModule webModule = (WebModule)app.getFirstModule(warRef.getArchiveName());
+      assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
+      assertEquals("war",webModule.getContextRoot());
+    } finally {
+        useBuildDirforApplicationXml(true);    
+    }
   }
 
   public void testMECLIPSEWTP72_SkinnyWar_Redux() throws Exception {
