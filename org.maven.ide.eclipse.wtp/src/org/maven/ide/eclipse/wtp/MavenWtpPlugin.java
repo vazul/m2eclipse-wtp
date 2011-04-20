@@ -6,11 +6,11 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.internal;
+package org.maven.ide.eclipse.wtp;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.maven.ide.eclipse.wtp.preferences.IMavenWtpConfiguration;
-import org.maven.ide.eclipse.wtp.preferences.MavenWtpConfigurationImpl;
+import org.maven.ide.eclipse.wtp.internal.preferences.MavenWtpPreferencesManagerImpl;
+import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferencesManager;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -24,13 +24,10 @@ public class MavenWtpPlugin extends AbstractUIPlugin {
   
   private static MavenWtpPlugin instance;
 
-  private IMavenWtpConfiguration configuration; 
+  private IMavenWtpPreferencesManager preferenceManager; 
   
-  /**
-   * @return Returns the configuration.
-   */
-  public IMavenWtpConfiguration getConfiguration() {
-    return configuration;
+  public IMavenWtpPreferencesManager getMavenWtpPreferencesManager() {
+    return preferenceManager;
   }
 
   public MavenWtpPlugin() {
@@ -41,7 +38,7 @@ public class MavenWtpPlugin extends AbstractUIPlugin {
   public void start(BundleContext context) throws Exception {
     super.start(context);
     
-    this.configuration = new MavenWtpConfigurationImpl(getPreferenceStore());
+    this.preferenceManager = new MavenWtpPreferencesManagerImpl();
   }
 
   @Override

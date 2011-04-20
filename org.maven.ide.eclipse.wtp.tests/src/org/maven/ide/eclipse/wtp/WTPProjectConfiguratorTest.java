@@ -53,6 +53,7 @@ import org.maven.ide.eclipse.MavenPlugin;
 import org.maven.ide.eclipse.jdt.BuildPathManager;
 import org.maven.ide.eclipse.project.IProjectConfigurationManager;
 import org.maven.ide.eclipse.project.ResolverConfiguration;
+import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
 
 /**
  * WTPProjectConfiguratorTest
@@ -275,50 +276,72 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
   public void testMNGECLIPSE688_CustomEarContent () throws Exception {
-    IProject ear = importProject("projects/MNGECLIPSE-688/ear21-1/pom.xml", new ResolverConfiguration());
+    try {
+      useBuildDirforApplicationXml(false);
 
-    IFacetedProject fpEar = ProjectFacetsManager.create(ear);
-    assertNotNull(fpEar);
-    assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
-    assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
+      IProject ear = importProject("projects/MNGECLIPSE-688/ear21-1/pom.xml", new ResolverConfiguration());
 
-    IResource[] underlyingResources = getUnderlyingResources(ear);
-    assertEquals(1, underlyingResources.length);
-    assertEquals(ear.getFolder("/CustomEarSourceDirectory"), underlyingResources[0]);
+      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
+      assertNotNull(fpEar);
+      assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+      assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
 
-    IFile applicationXml = ear.getFile("CustomEarSourceDirectory/META-INF/application.xml"); 
-    assertTrue(applicationXml.exists());
+      IResource[] underlyingResources = getUnderlyingResources(ear);
+      assertEquals(1, underlyingResources.length);
+      assertEquals(ear.getFolder("/CustomEarSourceDirectory"), underlyingResources[0]);
+
+      IFile applicationXml = ear.getFile("CustomEarSourceDirectory/META-INF/application.xml"); 
+      assertTrue(applicationXml.exists());
+
+    } finally {
+      useBuildDirforApplicationXml(true);
+    }
+  }
+
+  private void useBuildDirforApplicationXml(boolean b) {
+    
+    IMavenWtpPreferences preferences = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getWorkspacePreferences();
+    preferences.setApplicationXmGeneratedInBuildDirectory(b);
+    MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().savePreferences(preferences, null);
+    
   }
 
   public void testMNGECLIPSE688_Ear50 () throws Exception {
-    IProject ear = importProject("projects/MNGECLIPSE-688/ear50-1/pom.xml", new ResolverConfiguration());
-    waitForJobsToComplete();
-    assertMarkers(ear, 0);
-    
-    IFacetedProject fpEar = ProjectFacetsManager.create(ear);
-    assertNotNull(fpEar);
-    assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
-    assertEquals(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50, fpEar.getInstalledVersion(EAR_FACET));
+    try {
+      useBuildDirforApplicationXml(false);
+      
+      IProject ear = importProject("projects/MNGECLIPSE-688/ear50-1/pom.xml", new ResolverConfiguration());
+      waitForJobsToComplete();
+      assertMarkers(ear, 0);
+      
+      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
+      assertNotNull(fpEar);
+      assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+      assertEquals(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50, fpEar.getInstalledVersion(EAR_FACET));
 
-    IResource[] underlyingResources = getUnderlyingResources(ear);
-    assertEquals(1, underlyingResources.length);
-    assertEquals(ear.getFolder("/src/main/application"), underlyingResources[0]);
+      IResource[] underlyingResources = getUnderlyingResources(ear);
+      assertEquals(1, underlyingResources.length);
+      assertEquals(ear.getFolder("/src/main/application"), underlyingResources[0]);
 
-    IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml"); 
-    //assertFalse(applicationXml.exists()); // application.xml is not mandatory for Java EE 5.0, hence not created
-    assertTrue(applicationXml.exists()); // application.xml is created as maven-ear-plugin is configured as such by default
-    
-    IVirtualComponent comp = ComponentCore.createComponent(ear);
-    IVirtualReference[] references = comp.getReferences();
-    assertEquals(1, references.length);
-    IVirtualReference junit = references[0];
-    //FIXME Test fail on WTP Galileo, as WTP adds an extra /lib prefix on the archivename.  
-    //assertEquals("junit-3.8.1.jar", junit.getArchiveName());//Helios WTP works fine here
-    assertTrue("junit-3.8.1.jar expected", junit.getArchiveName().endsWith("junit-3.8.1.jar"));
-    
-    
-    //MNGECLIPSE-1872 : check "/lib" is used as deployment directory
-    assertEquals("/lib", junit.getRuntimePath().toPortableString());
+      IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml"); 
+      //assertFalse(applicationXml.exists()); // application.xml is not mandatory for Java EE 5.0, hence not created
+      assertTrue(applicationXml.exists()); // application.xml is created as maven-ear-plugin is configured as such by default
+      
+      IVirtualComponent comp = ComponentCore.createComponent(ear);
+      IVirtualReference[] references = comp.getReferences();
+      assertEquals(1, references.length);
+      IVirtualReference junit = references[0];
+      //FIXME Test fail on WTP Galileo, as WTP adds an extra /lib prefix on the archivename.  
+      //assertEquals("junit-3.8.1.jar", junit.getArchiveName());//Helios WTP works fine here
+      assertTrue("junit-3.8.1.jar expected", junit.getArchiveName().endsWith("junit-3.8.1.jar"));
+      
+      
+      //MNGECLIPSE-1872 : check "/lib" is used as deployment directory
+      assertEquals("/lib", junit.getRuntimePath().toPortableString());
+        
+    } finally {
+      useBuildDirforApplicationXml(true);
+    }
   
   }
 
@@ -814,38 +837,42 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   public void testMNGECLIPSE1088_generateApplicationXml() throws Exception {
 
-    IProject[] projects = importProjects(
-        "projects/MNGECLIPSE-1088/", //
-        new String[] {"A/pom.xml", "B/pom.xml", "C/pom.xml", "D/pom.xml"},
-        new ResolverConfiguration());
-
-    waitForJobsToComplete();
-    
-    assertEquals(4, projects.length);
-    IProject ejb = projects[0];
-    IProject war = projects[1];
-    IProject ear1 = projects[2];
-    IProject ear2 = projects[3];
-    
-    assertMarkers(war, 0);
-    assertMarkers(ejb, 0);
-    assertMarkers(ear1, 0);
-    assertMarkers(ear2, 0);
-   
-    String applicationXmlRelativePath = "src/main/application/META-INF/application.xml";
-    assertTrue(ear1.getFile(applicationXmlRelativePath).exists()); // application.xml is created as maven-ear-plugin is configured as such by default
-    Application app1 = (Application)ModelProviderManager.getModelProvider(ear1).getModelObject();
-    assertEquals(2,app1.getModules().size());
-    assertNotNull("missing jarmodule for C",app1.getFirstModule("A-0.0.1-SNAPSHOT.jar"));
-    assertNotNull("missing webmodule for C",app1.getFirstModule("B-0.0.1-SNAPSHOT.war"));//EAR should not use finalName 
-
-    assertFalse(ear2.getFile(applicationXmlRelativePath).exists());// application.xml is not created as per maven-ear-plugin configuration 
-//    If maven doesn't generate application.xml, the Application app2 will be empty, since WTP's API is not used     
-//    Application app2 = (Application)ModelProviderManager.getModelProvider(ear2).getModelObject();
-//    assertEquals(2,app2.getModules().size());
-//    assertNotNull("missing jarmodule for D",app2.getFirstModule("A.jar"));
-//    assertNotNull("missing webmodule for D",app2.getFirstModule("B.war"));
-    
+    try {
+      useBuildDirforApplicationXml(false);
+      IProject[] projects = importProjects(
+          "projects/MNGECLIPSE-1088/", //
+          new String[] {"A/pom.xml", "B/pom.xml", "C/pom.xml", "D/pom.xml"},
+          new ResolverConfiguration());
+  
+      waitForJobsToComplete();
+      
+      assertEquals(4, projects.length);
+      IProject ejb = projects[0];
+      IProject war = projects[1];
+      IProject ear1 = projects[2];
+      IProject ear2 = projects[3];
+      
+      assertMarkers(war, 0);
+      assertMarkers(ejb, 0);
+      assertMarkers(ear1, 0);
+      assertMarkers(ear2, 0);
+     
+      String applicationXmlRelativePath = "src/main/application/META-INF/application.xml";
+      assertTrue(ear1.getFile(applicationXmlRelativePath).exists()); // application.xml is created as maven-ear-plugin is configured as such by default
+      Application app1 = (Application)ModelProviderManager.getModelProvider(ear1).getModelObject();
+      assertEquals(2,app1.getModules().size());
+      assertNotNull("missing jarmodule for C",app1.getFirstModule("A-0.0.1-SNAPSHOT.jar"));
+      assertNotNull("missing webmodule for C",app1.getFirstModule("B-0.0.1-SNAPSHOT.war"));//EAR should not use finalName 
+  
+      assertFalse(ear2.getFile(applicationXmlRelativePath).exists());// application.xml is not created as per maven-ear-plugin configuration 
+  //    If maven doesn't generate application.xml, the Application app2 will be empty, since WTP's API is not used     
+  //    Application app2 = (Application)ModelProviderManager.getModelProvider(ear2).getModelObject();
+  //    assertEquals(2,app2.getModules().size());
+  //    assertNotNull("missing jarmodule for D",app2.getFirstModule("A.jar"));
+  //    assertNotNull("missing webmodule for D",app2.getFirstModule("B.war"));
+    } finally {
+      useBuildDirforApplicationXml(true);
+    }
 }
 
   //Lars K�dderitzsch test case from https://issues.sonatype.org/browse/MNGECLIPSE-1644
@@ -942,6 +969,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
  }
 
   public void testMNGECLIPSE1121_pluginManagementSettings() throws Exception {
+    
     //We check the pluginManagement settings are correctly interpreted from the different WTPProjectConfigurator delegates
     IProject[] projects = importProjects(
         "projects/MNGECLIPSE-1121/", //
@@ -981,10 +1009,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
     assertEquals(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50, fpEar.getInstalledVersion(EAR_FACET));
     IResource[] underlyingResources = getUnderlyingResources(ear);
-    assertEquals(1, underlyingResources.length);
-    assertEquals(ear.getFolder("/EarContent"), underlyingResources[0]);
+    assertEquals(2, underlyingResources.length);
+    assertEquals(ear.getFolder("/target/m2e-wtp/ear-resources"), underlyingResources[0]);
+    assertEquals(ear.getFolder("/EarContent"), underlyingResources[1]);
 
-    IFile applicationXml = ear.getFile("EarContent/META-INF/application.xml"); 
+    IFile applicationXml = ear.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml"); 
     assertTrue(applicationXml.exists());
   }
 

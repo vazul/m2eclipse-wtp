@@ -44,7 +44,6 @@ import org.maven.ide.eclipse.project.IMavenMarkerManager;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
-import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
 
 
 /**

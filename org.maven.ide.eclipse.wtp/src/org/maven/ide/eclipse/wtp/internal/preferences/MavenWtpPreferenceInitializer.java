@@ -6,11 +6,12 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.preferences;
+package org.maven.ide.eclipse.wtp.internal.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
+import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
+import org.maven.ide.eclipse.wtp.preferences.MavenWtpPreferencesConstants;
 
 
 /**
@@ -25,7 +26,6 @@ public class MavenWtpPreferenceInitializer extends AbstractPreferenceInitializer
    */
   public void initializeDefaultPreferences() {
     IPreferenceStore store = MavenWtpPlugin.getDefault().getPreferenceStore();
-
     store.setDefault(MavenWtpPreferencesConstants.P_APPLICATION_XML_IN_BUILD_DIR, true);
   }
 

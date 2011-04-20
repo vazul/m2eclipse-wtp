@@ -201,7 +201,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if(component == null){
       return;
     }
-    System.out.println("==============Processing "+project.getName()+" dependencies ===============");
+    //System.out.println("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
 

@@ -46,8 +46,8 @@ import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectManager;
 import org.maven.ide.eclipse.project.ResolverConfiguration;
 import org.maven.ide.eclipse.wtp.DomUtils;
+import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
 import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
-import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
 import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.ThreadBuildContext;
 

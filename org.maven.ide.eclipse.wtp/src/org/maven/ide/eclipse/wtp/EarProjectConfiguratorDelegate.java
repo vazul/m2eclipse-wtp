@@ -44,7 +44,6 @@ import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
-import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
 
 
 /**
@@ -104,7 +103,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
 
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
-    boolean useBuildDirectory = MavenWtpPlugin.getDefault().getConfiguration().isApplicationXmGeneratedInBuildDirectoryl();
+    boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
 
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
     if (useBuildDirectory && earComponent != null) {
@@ -195,8 +194,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       earComponent.setReferences(newRefsArray);
     }
 
-    boolean useSourceFolder = MavenWtpPlugin.getDefault().getConfiguration().isApplicationXmGeneratedInBuildDirectoryl();
-    DeploymentDescriptorManagement.INSTANCE.updateConfiguration(project, mavenProject, config, useSourceFolder, monitor);
+    boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
+    DeploymentDescriptorManagement.INSTANCE.updateConfiguration(project, mavenProject, config, useBuildDirectory, monitor);
   }
 
 

@@ -13,14 +13,16 @@ package org.maven.ide.eclipse.wtp;
  *
  * @author Fred Bricon
  */
-public interface MavenWtpConstants {
+public class MavenWtpConstants {
   
-  String M2E_WTP_FOLDER = "m2e-wtp";
+  private MavenWtpConstants() {} 
   
-  String WEB_RESOURCES_FOLDER = "web-resources";
+  public static final String M2E_WTP_FOLDER = "m2e-wtp";
+  
+  public static final String WEB_RESOURCES_FOLDER = "web-resources";
 
-  String EAR_RESOURCES_FOLDER = "ear-resources";
+  public static final String EAR_RESOURCES_FOLDER = "ear-resources";
   
-  String ROOT_FOLDER = "/";
+  public static final String ROOT_FOLDER = "/";
 
 }

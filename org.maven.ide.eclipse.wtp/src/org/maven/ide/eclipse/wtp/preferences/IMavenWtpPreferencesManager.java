@@ -8,12 +8,22 @@
 
 package org.maven.ide.eclipse.wtp.preferences;
 
+import org.eclipse.core.resources.IProject;
+
+
 /**
- * IMavenWtpConfiguration
+ * IMavenWtpPreferencesManager
  *
  * @author fbricon
  */
-public interface IMavenWtpConfiguration {
+public interface IMavenWtpPreferencesManager {
 
-  boolean isApplicationXmGeneratedInBuildDirectoryl();
+  public abstract IMavenWtpPreferences getPreferences(IProject project);
+
+  public abstract IMavenWtpPreferences createNewPreferences();
+
+  public abstract IMavenWtpPreferences getWorkspacePreferences();
+
+  public abstract void savePreferences(IMavenWtpPreferences preferences, IProject project);
+
 }

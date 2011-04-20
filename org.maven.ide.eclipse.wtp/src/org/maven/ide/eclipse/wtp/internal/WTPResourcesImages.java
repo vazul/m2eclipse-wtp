@@ -12,6 +12,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.maven.ide.eclipse.core.MavenLogger;
+import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
 
 
 /**

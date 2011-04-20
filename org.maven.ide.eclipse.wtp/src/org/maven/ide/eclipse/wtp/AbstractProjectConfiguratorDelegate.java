@@ -110,7 +110,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       return;
     }
 
-    System.out.println(DebugUtilities.dumpProjectState("Before configuration ",project));
+    //System.out.println(DebugUtilities.dumpProjectState("Before configuration ",project));
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
     Set<Action> actions = new LinkedHashSet<Action>();
     installJavaFacet(actions, project, facetedProject);
@@ -128,16 +128,16 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     
     fixMissingModuleCoreNature(project, monitor);
     
-    System.out.println(DebugUtilities.dumpProjectState("after configuration ",project));
+    //System.out.println(DebugUtilities.dumpProjectState("after configuration ",project));
     //MNGECLIPSE-904 remove tests folder links for utility jars
     //TODO handle modules in a parent pom (the following doesn't work)
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     //Remove "library unavailable at runtime" warning.
-    System.out.println(DebugUtilities.dumpProjectState("after removing test folders ",project));
+    //System.out.println(DebugUtilities.dumpProjectState("after removing test folders ",project));
 
     setNonDependencyAttributeToContainer(project, monitor);
-    System.out.println("__________________________________________________________________________");
+    //System.out.println("__________________________________________________________________________");
   }
 
   /**

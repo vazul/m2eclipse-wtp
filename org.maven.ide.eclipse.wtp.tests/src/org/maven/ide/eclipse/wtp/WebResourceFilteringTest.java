@@ -23,9 +23,9 @@ import org.maven.ide.eclipse.core.IMavenConstants;
 
 public class WebResourceFilteringTest extends AbstractWTPTestCase {
   
-  private static String FILTERED_FOLDER_NAME = "target/m2eclipse-wtp/webresources"; 
+  private static String FILTERED_FOLDER_NAME = "target/" + MavenWtpConstants.M2E_WTP_FOLDER+ "/" + MavenWtpConstants.WEB_RESOURCES_FOLDER; 
   
-  public void _testMECLIPSE22_webfiltering() throws Exception {
+  public void testMECLIPSE22_webfiltering() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/webfiltering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
     waitForJobsToComplete();
@@ -56,7 +56,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     IVirtualFolder rootwar = webComponent.getRootFolder();
     IResource[] warResources = rootwar.getUnderlyingResources();
     assertEquals(2, warResources.length);
-    assertEquals(web.getFolder("/target/m2eclipse-wtp/webresources"), warResources[0]);
+    assertEquals(web.getFolder(FILTERED_FOLDER_NAME), warResources[0]);
     assertEquals(web.getFolder("/src/main/webapp"), warResources[1]);
     
     String newFilter = "welcome.page=default.jsp\ncustom.version=1.0";
@@ -83,7 +83,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     IVirtualFolder rootwar = webComponent.getRootFolder();
     IResource[] warResources = rootwar.getUnderlyingResources();
     assertEquals(2, warResources.length);
-    assertEquals(web.getFolder("/target/m2eclipse-wtp/webresources"), warResources[0]);
+    assertEquals(web.getFolder(FILTERED_FOLDER_NAME), warResources[0]);
     assertEquals(web.getFolder("/src/main/webapp"), warResources[1]);
 
     //Check properties from settings.xml have been used

@@ -8,14 +8,28 @@
 
 package org.maven.ide.eclipse.wtp.preferences;
 
+import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
+
 
 /**
  * Maven WTP preferences constants 
  */
-public interface MavenWtpPreferencesConstants {
+public class MavenWtpPreferencesConstants {
   
-  static final String PREFIX = "eclipse.m2.wtp";
+  /**
+   * 
+   */
+  public static final String MAVEN_WTP_PREFERENCE_PAGE = "org.maven.ide.eclipse.wtp.preferences.MavenWtpPreferencePage";
 
-  /** boolean */
-  public static final String P_APPLICATION_XML_IN_BUILD_DIR = PREFIX + ".ear.applicationXml.in.buildir";
+  public static final String PREFIX = MavenWtpPlugin.ID;
+
+  public static final String P_APPLICATION_XML_IN_BUILD_DIR = PREFIX + ".ear.applicationXmlInBuilDir";
+
+  public static final String P_ENABLED_PROJECT_SPECIFIC__PREFS = PREFIX + ".enabledProjectSpecificPrefs";
+
+  /**
+   * Private constructor to avoid instanciation
+   */
+  private MavenWtpPreferencesConstants() {}
+
 }
