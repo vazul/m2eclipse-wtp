@@ -64,7 +64,7 @@ public class WTPProjectsUtil {
     try {
       IJ2EEFacetConstants.class.getField("ENTERPRISE_APPLICATION_60");
       javaEE6Available = true;
-    } catch(Throwable t) {
+    } catch(Exception e) {
       javaEE6Available = false;
     }
   }

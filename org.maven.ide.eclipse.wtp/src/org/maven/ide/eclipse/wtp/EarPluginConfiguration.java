@@ -106,9 +106,9 @@ class EarPluginConfiguration {
         sVersion = Double.toString(version);
         try {
           return WTPProjectsUtil.EAR_FACET.getVersion(sVersion);
-        } catch (Throwable t) {
+        } catch (Exception e) {
           //If Ear Version > 5.0 and WTP < 3.2, downgrade to Ear facet 5.0
-          MavenLogger.log(t.getMessage());
+          MavenLogger.log(e.getMessage());
           if (version > 5.0){
             return WTPProjectsUtil.EAR_FACET.getVersion("5.0");
           }
