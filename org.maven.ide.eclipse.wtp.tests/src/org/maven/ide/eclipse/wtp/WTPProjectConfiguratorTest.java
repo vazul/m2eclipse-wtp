@@ -54,7 +54,7 @@ import org.maven.ide.eclipse.jdt.BuildPathManager;
 import org.maven.ide.eclipse.project.IProjectConfigurationManager;
 import org.maven.ide.eclipse.project.ResolverConfiguration;
 import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
-
+import static org.maven.ide.eclipse.wtp.MavenWtpConstants.*;
 /**
  * WTPProjectConfiguratorTest
  *
@@ -298,14 +298,16 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     }
   }
 
-  private void useBuildDirforApplicationXml(boolean b) {
-    
-    IMavenWtpPreferences preferences = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getWorkspacePreferences();
+  private void useBuildDirforApplicationXml(IProject ear, boolean b) {
+    IMavenWtpPreferences preferences = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(ear);
     preferences.setApplicationXmGeneratedInBuildDirectory(b);
     MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().savePreferences(preferences, null);
-    
   }
 
+  private void useBuildDirforApplicationXml(boolean b) {
+    useBuildDirforApplicationXml(null, b);
+  }
+  
   public void testMNGECLIPSE688_Ear50 () throws Exception {
     try {
       useBuildDirforApplicationXml(false);
@@ -677,12 +679,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
   public void testDeploymentDescriptorsJavaEE() throws Exception {
-    
-    deleteProject("javaEE");
-    deleteProject("ear");
-    deleteProject("ejb");
-    deleteProject("war");
-    deleteProject("core");
     
     IProject[] projects = importProjects(
         "projects/deployment-descriptors/", //
@@ -1534,6 +1530,41 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("Invalid archive name", "utility-1.0.jar", references[0].getArchiveName());
   }
 
+  public void testMECLIPSEWTP58_generateApplicationXmlInBuildDir() throws Exception {
+    
+    IProject[] projects = importProjects(
+        "projects/deployment-descriptors/", //
+        new String[] {"javaEE/pom.xml", "javaEE/ear/pom.xml", "javaEE/core/pom.xml", "javaEE/ejb/pom.xml", "javaEE/war/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    assertEquals(5, projects.length);
+    IProject ear = projects[1];
+    IProject core = projects[2];
+    IProject ejb = projects[3];
+    IProject war = projects[4];
+    
+    assertMarkers(core, 0);
+    assertMarkers(ejb, 0);
+    assertMarkers(war, 0);
+    assertMarkers(ear, 0);
+
+    IFile applicationXmlInBuidDir = ear.getFile("target/"+ M2E_WTP_FOLDER+"/"+ EAR_RESOURCES_FOLDER + "/META-INF/application.xml"); 
+    assertTrue(applicationXmlInBuidDir.getFullPath()+" is missing",applicationXmlInBuidDir.exists());
+
+    IFile applicationXmlInSourceDir = ear.getFile("src/main/application/META-INF/application.xml"); 
+    assertFalse(applicationXmlInSourceDir.getFullPath()+" shouldn't exist",applicationXmlInSourceDir.exists());
+
+    useBuildDirforApplicationXml(ear, false);
+    updateProject(ear);     
+    
+    assertFalse(applicationXmlInBuidDir.getFullPath()+" should have been deleted",applicationXmlInBuidDir.exists());
+    assertTrue(applicationXmlInSourceDir.getFullPath()+" should have been created",applicationXmlInSourceDir.exists());
+
+  }
+
+  
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";
     StringBuilder sb = new StringBuilder("[");

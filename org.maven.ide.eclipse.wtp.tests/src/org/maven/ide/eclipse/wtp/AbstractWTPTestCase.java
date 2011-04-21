@@ -169,7 +169,10 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
    * @throws Exception
    */
   protected void updateProject(IProject project, String newPomName, int waitTime) throws Exception {    
-    copyContent(project, newPomName, "pom.xml");
+    
+    if (newPomName != null) {
+      copyContent(project, newPomName, "pom.xml");
+    }
     
     IProjectConfigurationManager configurationManager = MavenPlugin.getDefault().getProjectConfigurationManager();
     ResolverConfiguration configuration = new ResolverConfiguration();
@@ -185,4 +188,7 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     waitForJobsToComplete();
   }
 
+  protected void updateProject(IProject project) throws Exception {   
+    updateProject(project, null, -1);
+  }
 }
