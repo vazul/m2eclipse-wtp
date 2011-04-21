@@ -11,7 +11,7 @@
           name="WTP" priority="100"/>
    </extension>
    
-   <!-- A workaround to allow to uninstall WTP facets -->
+   <!-- A workaround to allow to uninstall WTP facets -->   
    <extension point="org.eclipse.wst.common.project.facet.core.facets">
       <action type="uninstall" facet="jst.ear" version="[1.2-6.0]">
          <delegate class="org.maven.ide.eclipse.wtp.facets.EarUninstallDelegate"/>
@@ -34,8 +34,8 @@
    
    <extension point="org.eclipse.ui.navigator.navigatorContent">
       <navigatorContent id="org.maven.ide.eclipse.wtp.navigatorContent"
-            contentProvider="org.maven.ide.eclipse.wtp.internal.WebResourcesContentProvider"
-            labelProvider="org.maven.ide.eclipse.wtp.internal.WebResourcesLabelProvider"
+            contentProvider="org.maven.ide.eclipse.wtp.internal.WTPResourcesContentProvider"
+            labelProvider="org.maven.ide.eclipse.wtp.internal.WTPResourcesLabelProvider"
             name="Web Resources"
             icon="icons/web-resources.gif"
             activeByDefault="true"
@@ -49,11 +49,11 @@
         </triggerPoints>
         
         <possibleChildren>
-          <instanceof value="org.maven.ide.eclipse.wtp.internal.WebResourcesNode"/>
+          <instanceof value="org.maven.ide.eclipse.wtp.internal.WTPResourcesNode"/>
         </possibleChildren>
       
         <commonSorter id="org.maven.ide.eclipse.wtp.sorter"
-                      class="org.maven.ide.eclipse.wtp.internal.WebResourcesSorter">
+                      class="org.maven.ide.eclipse.wtp.internal.WTPResourcesSorter">
           <parentExpression>
             <instanceof value="org.eclipse.core.resources.IProject"/>
           </parentExpression>
@@ -85,5 +85,39 @@
          </includes>
       </viewerContentBinding>
    </extension> 
+
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.maven.ide.eclipse.wtp.internal.preferences.MavenWtpPreferenceInitializer"/>
+   </extension>
+  
+   <extension point="org.eclipse.ui.preferencePages">
+      <page id="org.maven.ide.eclipse.wtp.preferences.MavenWtpPreferencePage"
+         category="org.maven.ide.eclipse.preferences.Maven2PreferencePage"
+         class="org.maven.ide.eclipse.wtp.internal.preferences.MavenWtpPreferencePage"
+         name="WTP integration">
+         <keywordReference id="org.maven.ide.eclipse.maven"/>
+      </page>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      
+      <page id="org.maven.ide.eclipse.wtp.preferences.MavenWtpPropertyPage"
+            class="org.maven.ide.eclipse.wtp.internal.preferences.MavenWtpPreferencePage"
+            name="WTP Integration"
+            category="org.maven.ide.eclipse.MavenProjectPreferencePage"
+            objectClass="org.eclipse.core.resources.IProject"
+            adaptable="true">
+         <filter name="nature" value="org.maven.ide.eclipse.maven2Nature"/>
+	    <enabledWhen>
+	      <adapt type="org.eclipse.core.resources.IProject">
+	        <test 
+	          forcePluginActivation="true"
+	          property="org.eclipse.wst.common.project.facet.core.projectFacet"
+	          value="jst.ear"/>
+	      </adapt>
+	    </enabledWhen> 
+      </page>
+   </extension>
 
 </plugin>

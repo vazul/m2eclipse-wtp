@@ -8,6 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -18,8 +19,10 @@ import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.jdt.IJavaProjectConfigurator;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectChangedEvent;
+import org.maven.ide.eclipse.project.configurator.AbstractBuildParticipant;
 import org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator;
 import org.maven.ide.eclipse.project.configurator.ProjectConfigurationRequest;
+import org.maven.ide.eclipse.wtp.filtering.ResourceFilteringBuildParticipant;
 
 
 /**
@@ -30,6 +33,8 @@ import org.maven.ide.eclipse.project.configurator.ProjectConfigurationRequest;
  */
 public class WTPProjectConfigurator extends AbstractProjectConfigurator implements IJavaProjectConfigurator {
 
+  
+  
   @Override
   public void configure(ProjectConfigurationRequest request, IProgressMonitor monitor)
       throws CoreException {
@@ -39,9 +44,13 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
         .getProjectConfiguratorDelegate(mavenProject.getPackaging());
     if(configuratorDelegate != null) {
       IProject project = request.getProject();
+      if (project.getResourceAttributes().isReadOnly()){
+        return;
+      }
+
       try {
         configuratorDelegate.configureProject(project, mavenProject, monitor);
-        configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
+        //configuratorDelegate.setModuleDependencies(project, mavenProject, monitor);
       } catch(MarkedException ex) {
         MavenLogger.log(ex.getMessage(), ex);
       }
@@ -53,6 +62,10 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
     IMavenProjectFacade facade = event.getMavenProject();
     if(facade != null) {
       IProject project = facade.getProject();
+      if (project.getResourceAttributes().isReadOnly()){
+        return;
+      }
+
       if(isWTPProject(project)) {
         MavenProject mavenProject = facade.getMavenProject(monitor);
         IProjectConfiguratorDelegate configuratorDelegate = ProjectConfiguratorDelegateFactory
@@ -89,4 +102,11 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
     // we do not change raw project classpath, do we? 
   }
 
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator#getBuildParticipant(org.apache.maven.plugin.MojoExecution)
+   */
+  public AbstractBuildParticipant getBuildParticipant(MojoExecution execution) {
+    return ResourceFilteringBuildParticipant.getParticipant(execution);
+  }
+  
 }

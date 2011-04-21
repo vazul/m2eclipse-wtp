@@ -10,6 +10,9 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -17,7 +20,6 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jst.j2ee.internal.J2EEVersionConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
@@ -31,7 +33,7 @@ import org.maven.ide.eclipse.wtp.internal.StringUtils;
  * @author Igor Fedorenko
  */
 @SuppressWarnings("restriction")
-class WarPluginConfiguration {
+public class WarPluginConfiguration {
   private static final String WAR_SOURCE_FOLDER = "/src/main/webapp";
 
   private static final String WAR_PACKAGING = "war";
@@ -64,11 +66,27 @@ class WarPluginConfiguration {
     return (Xpp3Dom) plugin.getConfiguration();
   }
 
+ 
   public Xpp3Dom[] getWebResources() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
-      Xpp3Dom[] children = config.getChildren("webResources");
-      return children;
+      Xpp3Dom webResources = config.getChild("webResources");
+      if (webResources != null && webResources.getChildCount() > 0)
+      {
+        int count = webResources.getChildCount();  
+        Xpp3Dom[] resources = new Xpp3Dom[count];
+        for (int i= 0; i< count ; i++) {
+          //MECLIPSEWTP-97 support old maven-war-plugin configurations which used <webResource> 
+          // instead of <resource>
+          Xpp3Dom webResource = webResources.getChild(i);
+          if ("resource".equals(webResource.getName())) {
+            resources[i] = webResource;
+          } else {
+            resources[i] = new Xpp3Dom(webResource,"resource");
+          }
+        }
+        return resources;
+      }
     }
     return null;
   }
@@ -104,13 +122,7 @@ class WarPluginConfiguration {
       String dir = warSourceDirectory[0].getValue();
       //MNGECLIPSE-1600 fixed absolute warSourceDirectory thanks to Snjezana Peco's patch
       if(project != null) {
-        IPath projectLocationPath = project.getLocation();
-        if(projectLocationPath != null && dir != null) {
-          String projectLocation = projectLocationPath.toOSString();
-          if(dir.startsWith(projectLocation)) {
-            return dir.substring(projectLocation.length());
-          }
-        }
+        return WTPProjectsUtil.tryProjectRelativePath(project, dir).toOSString();
       }
       return dir;
     }
@@ -165,8 +177,12 @@ class WarPluginConfiguration {
         Xpp3Dom manifest = arch.getChild("manifest");
         if(manifest != null) {
           Xpp3Dom prefix = manifest.getChild("classpathPrefix");
-          if(prefix != null) {
-            return prefix.getValue();
+          if(prefix != null && !StringUtils.nullOrEmpty(prefix.getValue())) {
+            String rawPrefix = prefix.getValue().trim();
+            if (!rawPrefix.endsWith("/")){
+              rawPrefix += "/";
+            }
+            return rawPrefix;
           }
         }
       }
@@ -237,6 +253,27 @@ class WarPluginConfiguration {
       }
     }
     return null;
+  }
+
+  /**
+   * @return
+   */
+  public List<String> getWebResourcesFilters() {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom filtersNode = config.getChild("filters");
+      if (filtersNode != null && filtersNode.getChildCount() > 0) {
+        List<String> filters = new ArrayList<String>(filtersNode.getChildCount());
+        for (Xpp3Dom filterNode : filtersNode.getChildren("filter")) {
+          String  filter = filterNode.getValue();
+          if (!StringUtils.nullOrEmpty(filter)) {
+            filters.add(filter);
+          }
+        }
+        return filters;
+      }
+    }
+    return Collections.emptyList();
   }
 
 

@@ -22,7 +22,7 @@ http://www.eclipse.org/legal/epl-v10.html
    </license>
 
    <url>
-      <update label="Maven Integration" url="http://m2eclipse.sonatype.org/update/"/>
+      <update label="Maven Integration" url="http://m2eclipse.sonatype.org/sites/m2e-extras/"/>
    </url>
 
    <requires>

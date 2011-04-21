@@ -36,7 +36,7 @@ import org.maven.ide.eclipse.core.MavenLogger;
 import org.maven.ide.eclipse.jdt.IClasspathDescriptor;
 import org.maven.ide.eclipse.project.IMavenProjectFacade;
 import org.maven.ide.eclipse.project.MavenProjectUtils;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 /**
  * ConnectorProjectConfiguratorDelegate
@@ -85,6 +85,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       facetedProject.modify(actions, monitor);
     }
 
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     if (!config.isJarIncluded()) {
       //project classes won't be jar'ed in the resulting rar.
       removeSourceLinks(project, mavenProject, monitor, "/");
@@ -92,7 +95,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     removeTestFolderLinks(project, mavenProject, monitor, "/"); 
     
     String customRaXml = config.getCustomRaXml(project);
-    linkFile(project, customRaXml, "META-INF/ra.xml", monitor);
+    linkFileFirst(project, customRaXml, "META-INF/ra.xml", monitor);
     
     //Remove "library unavailable at runtime" warning. TODO is it relevant for connector projects?
     setNonDependencyAttributeToContainer(project, monitor);
@@ -166,10 +169,11 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
   private IVirtualReference createReference(IVirtualComponent rarComponent, IProject project, Artifact artifact) {
     IVirtualComponent depComponent = ComponentCore.createComponent(project);
     IVirtualReference depRef = ComponentCore.createReference(rarComponent, depComponent);
-    String deployedFileName = FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping().mapFileName(artifact);
+    String deployedFileName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
     depRef.setArchiveName(deployedFileName);
     return depRef;
   }
+  
   private IVirtualReference createReference(IVirtualComponent rarComponent, Artifact artifact) {
       //Create dependency component, referenced from the local Repo.
       String artifactPath = ArtifactHelper.getM2REPOVarPath(artifact);

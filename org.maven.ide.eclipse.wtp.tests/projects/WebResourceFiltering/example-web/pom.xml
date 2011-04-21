@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.eclipse.me2eclipse.jira</groupId>
+	<artifactId>m2eclipse-web-xml-filtering</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>${project.artifactId}</name>
+	<packaging>war</packaging>
+
+	<properties>
+		<jdk.version>1.5</jdk.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- implicit dependencies for the webapp jar's 
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.0</version>
+			<scope>provided</scope>
+		</dependency>-->
+	    <dependency>
+	      <groupId>javax.servlet</groupId>
+	      <artifactId>servlet-api</artifactId>
+	      <version>2.5</version>
+	      <scope>provided</scope>
+	    </dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${props.final.war.name}</finalName>
+		
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.gif</exclude>
+					<exclude>**/*.jpg</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<filtering>true</filtering>
+				<directory>src/test/resources</directory>
+				<excludes>
+					<exclude>**/.svn</exclude>
+					<exclude>**/.svn/**</exclude>
+				</excludes>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</testResource>
+			<testResource>
+				<filtering>false</filtering>
+				<directory>src/test/resources</directory>
+				<includes>
+					<include>**/*.dat</include>
+					<include>**/*.mut</include>
+				</includes>
+			</testResource>
+			<testResource>
+				<!-- The java directory may also contain resources (hbm.xml etc.) -->
+				<directory>src/test/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+					<exclude>**/.svn</exclude>
+					<exclude>**/.svn/**</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+				
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+						<configuration>
+							<archiveClasses>true</archiveClasses>
+							<warSourceDirectory>${basedir}/src/main/webapp</warSourceDirectory>
+							<webResources>
+								<resource>
+									<directory>${basedir}/src/main/webapp</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>**/*.xml</include>
+									</includes>
+								</resource>
+							</webResources>
+							<archive>
+								<manifest>
+									<addClasspath>false</addClasspath>
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+								<manifestEntries>
+									<Integration-Java-Version>${java.version}</Integration-Java-Version>
+									<Integration-Java-Version>${java.version}</Integration-Java-Version>
+									<Integration-Java-Version>${java.version}</Integration-Java-Version>
+									<Integration-Java-Vendor>${java.vendor}</Integration-Java-Vendor>
+									<Integration-User-Name>${user.name}</Integration-User-Name>
+									<Integration-Target-Env>${target.env}</Integration-Target-Env>
+									<Application-Name>${project.name}</Application-Name>
+									<Application-ArtifactId>${project.artifactId}</Application-ArtifactId>
+									<Application-GroupId>${project.groupId}</Application-GroupId>
+									<Application-Version>${project.version}</Application-Version>
+									<Implementation-Build>${buildNumber}</Implementation-Build>
+								</manifestEntries>
+							</archive>
+					</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<profiles>
+		<profile>
+			<id>localhost</id>
+			<properties>
+				<!-- Properties relevant für den build -->
+				<props.target.env>localhost</props.target.env>
+				<props.final.war.name>example-web</props.final.war.name>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<filters>
+					<filter>src/main/filters/localhost.properties</filter>
+				</filters>
+			</build>
+		</profile>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<props.target.env>DEV</props.target.env>
+				<props.final.war.name>example-web</props.final.war.name>
+			</properties>
+			<build>
+				<filters>
+					<filter>src/main/filters/dev.properties</filter>
+				</filters>
+			</build>
+		</profile>
+	</profiles>
+	
+</project>
