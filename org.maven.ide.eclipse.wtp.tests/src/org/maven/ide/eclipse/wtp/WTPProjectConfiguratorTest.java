@@ -9,6 +9,9 @@
 package org.maven.ide.eclipse.wtp;
 
 
+import static org.maven.ide.eclipse.wtp.MavenWtpConstants.EAR_RESOURCES_FOLDER;
+import static org.maven.ide.eclipse.wtp.MavenWtpConstants.M2E_WTP_FOLDER;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -54,7 +57,6 @@ import org.maven.ide.eclipse.jdt.BuildPathManager;
 import org.maven.ide.eclipse.project.IProjectConfigurationManager;
 import org.maven.ide.eclipse.project.ResolverConfiguration;
 import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
-import static org.maven.ide.eclipse.wtp.MavenWtpConstants.*;
 /**
  * WTPProjectConfiguratorTest
  *
@@ -1561,9 +1563,24 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     assertFalse(applicationXmlInBuidDir.getFullPath()+" should have been deleted",applicationXmlInBuidDir.exists());
     assertTrue(applicationXmlInSourceDir.getFullPath()+" should have been created",applicationXmlInSourceDir.exists());
-
   }
 
+  public void testMECLIPSEWTP7_testResources() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-7/", new String[]{"web/pom.xml", "util/pom.xml"}, new ResolverConfiguration());
+    waitForJobsToComplete();
+    
+    IProject web =  projects[0];
+    assertNoErrors(web);    
+    IProject util =  projects[1];
+    assertNoErrors(util);
+   
+    
+    IResource[] underlyingResources = getUnderlyingResources(util);
+    assertEquals(2, underlyingResources.length);
+    assertEquals(util.getFolder("/src/main/java"), underlyingResources[0]);
+    assertEquals(util.getFolder("/src/main/resources"), underlyingResources[1]);
+  }
+  
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";

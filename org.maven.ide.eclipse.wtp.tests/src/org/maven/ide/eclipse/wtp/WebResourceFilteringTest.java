@@ -15,11 +15,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jst.javaee.web.internal.util.WebXMLHelperImpl;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
-import org.maven.ide.eclipse.core.IMavenConstants;
 
 public class WebResourceFilteringTest extends AbstractWTPTestCase {
   

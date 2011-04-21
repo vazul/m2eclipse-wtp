@@ -182,7 +182,6 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     waitForJobsToComplete();
     project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
     if (waitTime > 0 ) {
-      System.out.println("Waiting for "+ waitTime + " ms to build "+project.getName());
       Thread.sleep(waitTime);
     }
     waitForJobsToComplete();
@@ -191,4 +190,5 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
   protected void updateProject(IProject project) throws Exception {   
     updateProject(project, null, -1);
   }
+  
 }
