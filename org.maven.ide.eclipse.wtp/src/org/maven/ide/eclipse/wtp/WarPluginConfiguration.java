@@ -17,11 +17,9 @@ import java.util.List;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jst.j2ee.internal.J2EEVersionConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
@@ -75,7 +73,19 @@ public class WarPluginConfiguration {
       Xpp3Dom webResources = config.getChild("webResources");
       if (webResources != null && webResources.getChildCount() > 0)
       {
-        return webResources.getChildren();
+        int count = webResources.getChildCount();  
+        Xpp3Dom[] resources = new Xpp3Dom[count];
+        for (int i= 0; i< count ; i++) {
+          //MECLIPSEWTP-97 support old maven-war-plugin configurations which used <webResource> 
+          // instead of <resource>
+          Xpp3Dom webResource = webResources.getChild(i);
+          if ("resource".equals(webResource.getName())) {
+            resources[i] = webResource;
+          } else {
+            resources[i] = new Xpp3Dom(webResource,"resource");
+          }
+        }
+        return resources;
       }
     }
     return null;
@@ -112,13 +122,7 @@ public class WarPluginConfiguration {
       String dir = warSourceDirectory[0].getValue();
       //MNGECLIPSE-1600 fixed absolute warSourceDirectory thanks to Snjezana Peco's patch
       if(project != null) {
-        IPath projectLocationPath = project.getLocation();
-        if(projectLocationPath != null && dir != null) {
-          String projectLocation = projectLocationPath.toOSString();
-          if(dir.startsWith(projectLocation)) {
-            return dir.substring(projectLocation.length());
-          }
-        }
+        return WTPProjectsUtil.tryProjectRelativePath(project, dir).toOSString();
       }
       return dir;
     }

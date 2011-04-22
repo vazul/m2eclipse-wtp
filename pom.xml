@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.sonatype.forge</groupId>
     <artifactId>forge-parent</artifactId>
-    <version>8</version>
+    <version>9</version>
   </parent>
 
   <groupId>org.maven.ide.eclipse.wtp</groupId>
@@ -24,11 +24,11 @@
   <name>Maven Integration for Eclipse WTP (Parent)</name>
 
   <properties>
-    <tycho-version>0.10.0</tycho-version>
-    <m2eclipse-core.version>0.14.0.201103220912</m2eclipse-core.version>
-    <m2eclipse-core.site>0.14.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
-    <target.platform>m2e-wtp-e35</target.platform>        
-    <!-- <target.platform>m2e-wtp-e36</target.platform> -->       
+    <tycho-version>0.11.0</tycho-version>
+    <m2eclipse-core.version>0.13.0.201104211207</m2eclipse-core.version>
+    <m2eclipse-core.site>0.13.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
+    <target.platform>m2e-wtp-e36</target.platform>        
+    <!-- <target.platform>m2e-wtp-e37</target.platform> -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
   </properties>
 
@@ -51,13 +51,13 @@
       <layout>p2</layout>
       <url>http://download.eclipse.org/releases/helios</url>
     </repository>
-    -->
+    
     <repository>
       <id>m2e</id>
       <layout>p2</layout>
       <url>http://repository.sonatype.org/content/sites/forge-sites/m2e/${m2eclipse-core.site}</url>
     </repository>
-	
+	-->
   </repositories>
   <build>
     <plugins>

@@ -8,10 +8,7 @@
 
 package org.maven.ide.eclipse.wtp.internal.lifecycle;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.configurator.AbstractCustomizableLifecycleMapping;
-import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 
 
 /**

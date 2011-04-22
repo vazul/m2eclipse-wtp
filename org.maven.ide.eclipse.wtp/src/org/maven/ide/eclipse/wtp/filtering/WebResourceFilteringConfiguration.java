@@ -18,6 +18,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
 import org.maven.ide.eclipse.wtp.WarPluginConfiguration;
 
@@ -40,7 +41,7 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
   }
 
   public static IPath getTargetFolder(MavenProject mavenProject, IProject project) {
-    return ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).append("webresources");
+    return ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).append(MavenWtpConstants.WEB_RESOURCES_FOLDER);
   }
 
   public List<Xpp3Dom> getResources() {

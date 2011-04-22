@@ -28,8 +28,8 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 import org.maven.ide.eclipse.wtp.earmodules.EarModuleFactory;
 import org.maven.ide.eclipse.wtp.earmodules.EarPluginException;
 import org.maven.ide.eclipse.wtp.earmodules.SecurityRoleKey;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMapping;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,9 +109,9 @@ class EarPluginConfiguration {
         sVersion = Double.toString(version);
         try {
           return WTPProjectsUtil.EAR_FACET.getVersion(sVersion);
-        } catch (Throwable t) {
+        } catch (Exception e) {
           //If Ear Version > 5.0 and WTP < 3.2, downgrade to Ear facet 5.0
-          log.warn(t.getMessage());
+          log.warn(e.getMessage());
           if (version > 5.0){
             return WTPProjectsUtil.EAR_FACET.getVersion("5.0");
           }
@@ -253,15 +253,15 @@ class EarPluginConfiguration {
 
     Xpp3Dom config = getConfiguration();
     if(config == null) {
-      return FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping();
+      return FileNameMappingFactory.getDefaultFileNameMapping();
     }
 
     Xpp3Dom fileNameMappingDom = config.getChild("fileNameMapping");
     if(fileNameMappingDom != null) {
       String fileNameMappingName = fileNameMappingDom.getValue().trim();
-      return FileNameMappingFactory.INSTANCE.getFileNameMapping(fileNameMappingName);
+      return FileNameMappingFactory.getFileNameMapping(fileNameMappingName);
     }
-    return FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping();
+    return FileNameMappingFactory.getDefaultFileNameMapping();
   }
 
   /**

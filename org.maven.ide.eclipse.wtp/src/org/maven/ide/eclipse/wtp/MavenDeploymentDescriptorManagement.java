@@ -11,11 +11,8 @@ package org.maven.ide.eclipse.wtp;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -29,21 +26,24 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.core.IMavenConstants;
 import org.eclipse.m2e.core.embedder.IMaven;
+import org.eclipse.m2e.core.internal.MavenPluginActivator;
+import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
-import org.eclipse.m2e.core.project.MavenProjectManager;
+import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.internal.ide.filesystem.FileSystemStructureProvider;
 import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
-import org.maven.ide.eclipse.wtp.internal.MavenWtpPlugin;
 
 
 /**
@@ -72,10 +72,11 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
    */
 
   public void updateConfiguration(IProject project, MavenProject mavenProject, EarPluginConfiguration plugin,
-      IProgressMonitor monitor) throws CoreException {
-    MavenProjectManager projectManager = MavenPlugin.getDefault().getMavenProjectManager();
+     boolean useBuildDirectory, IProgressMonitor monitor) throws CoreException {
+
+    IMavenProjectRegistry projectManager = MavenPlugin.getMavenProjectRegistry();
     IMavenProjectFacade mavenFacade = projectManager.getProject(project);
-    IMaven maven = MavenPlugin.getDefault().getMaven();
+    IMaven maven = MavenPlugin.getMaven();
     //Create a maven request + session
     IFile pomResource = project.getFile(IMavenConstants.POM_FILE_NAME);
     MavenExecutionRequest request = projectManager.createExecutionRequest(pomResource, mavenFacade.getResolverConfiguration(), monitor);
@@ -87,12 +88,14 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       //TODO Better error management
       return;
     }
+    
     //Let's force the generated config files location
     Xpp3Dom configuration = genConfigMojo.getConfiguration();
     if(configuration == null) {
       configuration = new Xpp3Dom("configuration");
       genConfigMojo.setConfiguration(configuration);
     }
+    
     File generatedDescriptorLocation;
     try {
       generatedDescriptorLocation = getTempDirectory();
@@ -115,28 +118,65 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
     //Execute our hacked mojo 
     maven.execute(session, genConfigMojo, monitor);
-
+    
+    if (session.getResult().hasExceptions()){
+      IMavenMarkerManager markerManager  = MavenPluginActivator.getDefault().getMavenMarkerManager();
+      markerManager.addMarkers(mavenFacade.getPom(), MavenWtpConstants.WTP_MARKER_GENERATE_APPLICATIONXML_ERROR, session.getResult());
+    }
+    
     //Copy generated files to their final location
     File[] files = generatedDescriptorLocation.listFiles();
-    if(files.length > 0) {
-      List<File> filesToImport = new ArrayList<File>();
-      for(int i = 0; i < files.length; i++ ) {
-        filesToImport.add(files[i]);
+
+    //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
+    
+    IFolder targetFolder;
+    IFolder earResourcesFolder = getEarResourcesDir(project, mavenProject, monitor); 
+    if (useBuildDirectory) {
+      targetFolder = earResourcesFolder;
+    } else {
+      targetFolder = project.getFolder(plugin.getEarContentDirectory(project));
+
+      if (earResourcesFolder.exists() && earResourcesFolder.isAccessible()) {
+        earResourcesFolder.delete(true, monitor);
       }
+    }
+    
+    IFolder metaInfFolder = targetFolder.getFolder("/META-INF/");
+
+    if(files.length > 0) {
+      //We generated something
       try {
-        IFolder metaInfFolder = project.getFolder(plugin.getEarContentDirectory(project) + "/META-INF/");
         ImportOperation op = new ImportOperation(metaInfFolder.getFullPath(), generatedDescriptorLocation,
-            new FileSystemStructureProvider(), OVERWRITE_ALL_QUERY, filesToImport);
+            new FileSystemStructureProvider(), OVERWRITE_ALL_QUERY, Arrays.asList(files));
         op.setCreateContainerStructure(false);
+        op.setOverwriteResources(true);
+        
         op.run(monitor);
+        
       } catch(InvocationTargetException ex) {
         IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, IStatus.ERROR, ex.getMessage(), ex);
         throw new CoreException(status);
       } catch(InterruptedException ex) {
         throw new OperationCanceledException(ex.getMessage());
       }
+    } 
+    targetFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+    
+    deleteDirectory(generatedDescriptorLocation);    
+  }
+
+  private IFolder getEarResourcesDir(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
+      throws CoreException {
+    String appResourcesDir = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project).toPortableString()+Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER;
+    IFolder appResourcesFolder = project.getFolder(appResourcesDir);
+ 
+    if (!appResourcesFolder.exists()) {
+      ProjectUtils.createFolder(appResourcesFolder, monitor);
     }
-    deleteDirectory(generatedDescriptorLocation);
+    if (!appResourcesFolder.isDerived()) {
+      appResourcesFolder.setDerived(true, monitor);//TODO Eclipse < 3.6 doesn't support setDerived(bool, monitor)
+    }
+    return appResourcesFolder;
   }
 
 

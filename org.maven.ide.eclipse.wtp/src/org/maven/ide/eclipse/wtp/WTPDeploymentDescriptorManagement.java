@@ -37,7 +37,7 @@ import org.maven.ide.eclipse.wtp.earmodules.WebModule;
 @SuppressWarnings("restriction")
 public class WTPDeploymentDescriptorManagement implements DeploymentDescriptorManagement {
 
-  public void updateConfiguration(final IProject project, final  MavenProject mavenProject, final EarPluginConfiguration plugin, final
+  public void updateConfiguration(final IProject project, final  MavenProject mavenProject, final EarPluginConfiguration plugin, final boolean useBuildDirectory, final
       IProgressMonitor monitor) throws CoreException {
 
       final Set<SecurityRoleKey> securityRoleKeys = plugin.getSecurityRoleKeys();

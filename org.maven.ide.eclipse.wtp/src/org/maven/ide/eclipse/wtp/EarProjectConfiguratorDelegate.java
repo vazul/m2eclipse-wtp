@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * Copyright (c) 2008 Sonatype, Inc.
  * All rights reserved. This program and the accompanying materials
@@ -17,8 +18,10 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
@@ -61,6 +64,9 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
+    
+    monitor.setTaskName("Configuring EAR project " + project.getName());
+    
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
 
     if(facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
@@ -76,12 +82,19 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     Set<Action> actions = new LinkedHashSet<Action>();
     // WTP doesn't allow facet versions changes for JEE facets
     String contentDir = config.getEarContentDirectory(project);
-    
+  
+    IFolder firstInexistentfolder = null;
+    IFolder metaInfFolder = project.getFolder(contentDir).getFolder("META-INF");
+    if (!metaInfFolder.exists()) {
+      firstInexistentfolder = findFirstInexistentFolder(project, metaInfFolder.getProjectRelativePath());
+    }   
+
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
       IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
 
       // Configuring content directory
       earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDir);
+      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.GENERATE_DD, false);
 
       IProjectFacetVersion earFv = config.getEarFacetVersion();
       
@@ -92,11 +105,50 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       facetedProject.modify(actions, monitor);
     }
 
-    // FIXME Sometimes, test folders are still added to org.eclipse.wst.common.component
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
+
+    //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
+    boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
+
+    IVirtualComponent earComponent = ComponentCore.createComponent(project);
+    if (useBuildDirectory && earComponent != null) {
+      IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
+      ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
+      IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER); 
+      if (!WTPProjectsUtil.hasLink(project, new Path("/"), generatedResourcesPath, monitor)) {
+        IPath contentDirPath = new Path((contentDir.startsWith("/"))?contentDir:"/"+contentDir);
+        WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, new Path("/"), monitor);      
+      }
+
+      if (firstInexistentfolder != null && firstInexistentfolder.exists())
+      {
+        firstInexistentfolder.delete(true, monitor);
+      }
+    }
+
     removeTestFolderLinks(project, mavenProject, monitor, "/");
+    
+    ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);
+
+    //configureDeployedName(project, mavenProject.getBuild().getFinalName());
 
   }
 
+  private IFolder findFirstInexistentFolder(IProject project, IPath targetPath) {
+    StringBuilder path = new StringBuilder();
+    for (String segment : targetPath.segments()) {
+      path.append(IPath.SEPARATOR);
+      path.append(segment);
+      IFolder curFolder = project.getFolder(path.toString());
+      if (!curFolder.exists()) {
+        return curFolder;
+      }
+    }
+    return null;
+  }
+  
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
@@ -149,7 +201,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       earComponent.setReferences(newRefsArray);
     }
 
-    DeploymentDescriptorManagement.INSTANCE.updateConfiguration(project, mavenProject, config, monitor);
+    boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
+    DeploymentDescriptorManagement.INSTANCE.updateConfiguration(project, mavenProject, config, useBuildDirectory, monitor);
   }
 
 

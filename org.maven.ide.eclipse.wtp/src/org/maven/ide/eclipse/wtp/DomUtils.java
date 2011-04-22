@@ -37,7 +37,7 @@ public class DomUtils {
    */
   public static final void removeChildren(Xpp3Dom node) {
     if (node == null) return;
-    for (int i= node.getChildCount() -1; i>0 ; i--){
+    for (int i= node.getChildCount()-1 ; i>-1 ; i--){
       node.removeChild(i);
     }
   }

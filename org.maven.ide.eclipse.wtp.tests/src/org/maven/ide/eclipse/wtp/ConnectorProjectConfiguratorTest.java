@@ -30,6 +30,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE1949_RarSupport() throws Exception {
     
     IProject[] projects = importProjects("projects/MNGECLIPSE-1949/", new String[]{"rar1/pom.xml", "core/pom.xml"}, new ResolverConfiguration());
+    waitForJobsToComplete();
     
     IProject rar1 =  projects[0];
     assertNoErrors(rar1);    
@@ -98,6 +99,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE1949_RarSourceDirectory() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-1949/rar2/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     IFacetedProject connector = ProjectFacetsManager.create(project);
     assertNotNull(connector);
     assertNoErrors(project);
@@ -124,6 +126,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE1949_IncludeJar() throws Exception {
     //Check non default rarSourceDirectory 
     IProject project = importProject("projects/MNGECLIPSE-1949/rar3/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     IFacetedProject connector = ProjectFacetsManager.create(project);
     assertNotNull(connector);
     assertNoErrors(project);
@@ -154,6 +157,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
     }
     
     IProject project = importProject("projects/MNGECLIPSE-1949/rar4/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     IFacetedProject connector = ProjectFacetsManager.create(project);
     assertNotNull(connector);
     assertNoErrors(project);
@@ -182,6 +186,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE1949_RarInEar() throws Exception {
     
     IProject[] projects = importProjects("projects/MNGECLIPSE-1949/", new String[]{"rar5/pom.xml", "core/pom.xml", "connector-ear/pom.xml"}, new ResolverConfiguration());
+    waitForJobsToComplete();
     
     IProject rar5 =  projects[0];
     assertNotNull(rar5);

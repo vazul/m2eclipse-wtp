@@ -64,8 +64,8 @@ class EjbPluginConfiguration {
     if (ejbVersion != null) {
       try {
         return WTPProjectsUtil.EJB_FACET.getVersion(ejbVersion);
-      } catch (Throwable t) {
-        log.warn(t.getMessage());
+      } catch (Exception e) {
+        log.warn(e.getMessage());
         //If ejbVersion > 3.0 and WTP < 3.2, then downgrade to ejb facet 3.0
         if (ejbVersion.startsWith("3.")){
           return IJ2EEFacetConstants.EJB_30;

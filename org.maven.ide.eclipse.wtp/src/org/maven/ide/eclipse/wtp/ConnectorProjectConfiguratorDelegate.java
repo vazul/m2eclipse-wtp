@@ -25,7 +25,6 @@ import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelPro
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
-import org.eclipse.m2e.jdt.internal.BuildPathManager;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
@@ -36,7 +35,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.maven.ide.eclipse.wtp.earmodules.output.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +88,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       facetedProject.modify(actions, monitor);
     }
 
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     if (!config.isJarIncluded()) {
       //project classes won't be jar'ed in the resulting rar.
       removeSourceLinks(project, mavenProject, monitor, "/");
@@ -96,7 +98,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     removeTestFolderLinks(project, mavenProject, monitor, "/"); 
     
     String customRaXml = config.getCustomRaXml(project);
-    linkFile(project, customRaXml, "META-INF/ra.xml", monitor);
+    linkFileFirst(project, customRaXml, "META-INF/ra.xml", monitor);
     
     //Remove "library unavailable at runtime" warning. TODO is it relevant for connector projects?
     setNonDependencyAttributeToContainer(project, monitor);
@@ -170,10 +172,11 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
   private IVirtualReference createReference(IVirtualComponent rarComponent, IProject project, Artifact artifact) {
     IVirtualComponent depComponent = ComponentCore.createComponent(project);
     IVirtualReference depRef = ComponentCore.createReference(rarComponent, depComponent);
-    String deployedFileName = FileNameMappingFactory.INSTANCE.getDefaultFileNameMapping().mapFileName(artifact);
+    String deployedFileName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
     depRef.setArchiveName(deployedFileName);
     return depRef;
   }
+  
   private IVirtualReference createReference(IVirtualComponent rarComponent, Artifact artifact) {
       //Create dependency component, referenced from the local Repo.
       String artifactPath = ArtifactHelper.getM2REPOVarPath(artifact);
