@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
@@ -59,6 +60,8 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
+import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
+import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,34 +221,46 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       if ("pom".equals(depPackaging)) continue;//MNGECLIPSE-744 pom dependencies shouldn't be deployed
       
       try {
-          preConfigureDependencyProject(dependency, monitor);
-          MavenProject depMavenProject =  dependency.getMavenProject(monitor);
+        preConfigureDependencyProject(dependency, monitor);
+        MavenProject depMavenProject =  dependency.getMavenProject(monitor);
   
-          IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
-  
-          String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
-          Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
-          String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
-          
-          //in a skinny war the dependency modules are referenced by manifest classpath
-          //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
-          if(opts.isSkinnyWar() && opts.isReferenceFromEar(deployedName)) {
-            continue;
-          }
-  
-      		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-      		if (!artifact.isOptional()) {
-      		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-      		  reference.setRuntimePath(new Path("/WEB-INF/lib"));
-      		  reference.setArchiveName(deployedName);
-      		  references.add(reference);
-      		}
-        } catch(RuntimeException ex) {
-          //Should probably be NPEs at this point
-          String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
-          log.error(dump); 
-          throw ex;
+  		  IVirtualComponent depComponent;
+  		  boolean isOverlay = "war".equals(depPackaging);
+  		  if (isOverlay) {
+  		    depComponent = OverlayComponentCore.createOverlayComponent(dependency.getProject());
+  		  } else {
+  		    depComponent = ComponentCore.createComponent(dependency.getProject());
+  		  }
+    
+        String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
+        Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
+        String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+        
+        //in a skinny war the dependency modules are referenced by manifest classpath
+        //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
+        if(opts.isSkinnyWar() && opts.isReferenceFromEar(deployedName)) {
+          continue;
         }
+  
+    		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+    		if (!artifact.isOptional()) {
+    		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+    		  IPath path;
+    		  if (isOverlay) {
+    		    path = new Path(MavenWtpConstants.ROOT_FOLDER);
+    		  } else {
+    		    path = new Path("/WEB-INF/lib");
+            reference.setArchiveName(deployedName);
+    		  }
+    		  reference.setRuntimePath(path);
+    		  references.add(reference);
+    		}
+      } catch(RuntimeException ex) {
+        //Should probably be NPEs at this point
+        String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
+        log.error(dump); 
+        throw ex;
+      }
     }
 
     
@@ -276,7 +291,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
    */
   protected String getContextRoot(MavenProject mavenProject) {
     String contextRoot;
-
 	//MECLIPSEWTP-43 : Override with maven property
    String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
    if (StringUtils.isEmpty(property)) {
@@ -290,6 +304,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   	} else {
   		contextRoot = property;
   	}
+
     return contextRoot.trim().replace(" ", "_");
   }
 

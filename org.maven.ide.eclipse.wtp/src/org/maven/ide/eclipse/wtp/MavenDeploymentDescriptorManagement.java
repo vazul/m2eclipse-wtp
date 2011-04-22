@@ -57,7 +57,6 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
   private final VersionRange VALID_EAR_PLUGIN_RANGE = VersionRange.createFromVersion("2.4.3");
 
-  
   private static final IOverwriteQuery OVERWRITE_ALL_QUERY = new IOverwriteQuery() {
     public String queryOverwrite(String pathString) {
       return IOverwriteQuery.ALL;
