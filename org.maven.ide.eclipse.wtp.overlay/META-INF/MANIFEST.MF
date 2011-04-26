@@ -12,7 +12,13 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.emf.common,
  org.eclipse.emf.ecore,
  org.eclipse.jst.common.frameworks;bundle-version="1.1.400",
- org.eclipse.jst.j2ee;bundle-version="1.1.400"
+ org.eclipse.jst.j2ee;bundle-version="1.1.400",
+ org.eclipse.wst.server.core,
+ org.eclipse.wst.common.emfworkbench.integration,
+ org.eclipse.wst.common.emf,
+ org.eclipse.jem.workbench,
+ org.eclipse.jem.util
 Bundle-Vendor: Sonatype, Inc.
 Export-Package: org.maven.ide.eclipse.wtp.overlay.modulecore
 Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.maven.ide.eclipse.wtp.overlay.OverlayPluginActivator
