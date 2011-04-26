@@ -53,15 +53,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(rar1.getFolder("/src/main/rar"), rarResources[0]);
     assertEquals(rar1.getFolder("/src/main/java"), rarResources[1]);
 
-    
-    if (!WTPProjectsUtil.isJavaEE6Available()) {
-      //Component export is broken for WTP < 3.2 (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=298735)
-      //So we skip this last part.
-      return;
-    }
-    
     IVirtualReference[] references = rarComp.getReferences();
-
 
     assertEquals(4, references.length);
     IVirtualReference commonsCollections = references[0];
@@ -221,14 +213,7 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
     String uri = edit.getModuleURI(rarRef.getReferencedComponent());
     assertEquals("rar5-0.0.1-SNAPSHOT.rar", uri);
     
-    if (!WTPProjectsUtil.isJavaEE6Available()) {
-      //Component export is broken for WTP < 3.2 (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=298735)
-      //So we skip this last part.
-      return;
-    }
-    
     IVirtualReference[] references = rarComp.getReferences();
-
 
     assertEquals(3, references.length);
     IVirtualReference commonsCollections = references[0];

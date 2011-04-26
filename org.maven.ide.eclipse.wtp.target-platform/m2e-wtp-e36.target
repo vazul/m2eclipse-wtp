@@ -48,9 +48,9 @@
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20110304120314/repository"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.13.0.201104211207"/>
-<unit id="org.eclipse.m2e.feature.feature.group" version="0.13.0.201104211207"/>
-<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.13.0/N/0.13.0.201104211207/"/>
+<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.13.0.201104251605"/>
+<unit id="org.eclipse.m2e.feature.feature.group" version="0.13.0.201104251605"/>
+<repository location="http://repository.sonatype.org/content/sites/forge-sites/m2e/0.13.0/N/0.13.0.201104251605/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group" version="3.2.2.v201008170019-777DBo9tKEKIGLHXGCHk6K86AG"/>

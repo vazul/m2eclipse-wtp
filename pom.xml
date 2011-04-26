@@ -13,7 +13,7 @@
   <parent>
     <groupId>org.sonatype.forge</groupId>
     <artifactId>forge-parent</artifactId>
-    <version>9</version>
+    <version>10</version>
   </parent>
 
   <groupId>org.maven.ide.eclipse.wtp</groupId>
@@ -25,7 +25,7 @@
 
   <properties>
     <tycho-version>0.11.0</tycho-version>
-    <m2eclipse-core.version>0.13.0.201104211207</m2eclipse-core.version>
+    <m2eclipse-core.version>0.13.0.201104251605</m2eclipse-core.version>
     <m2eclipse-core.site>0.13.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e36</target.platform>        
     <!-- <target.platform>m2e-wtp-e37</target.platform> -->       
@@ -108,7 +108,7 @@
         <plugin>
         	<groupId>org.apache.maven.plugins</groupId>
         	<artifactId>maven-resources-plugin</artifactId>
-        	<version>2.4.3</version>
+        	<version>2.5</version>
         </plugin>
       </plugins>
     </pluginManagement>

@@ -30,7 +30,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
@@ -60,9 +59,8 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
-import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
-import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
+import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

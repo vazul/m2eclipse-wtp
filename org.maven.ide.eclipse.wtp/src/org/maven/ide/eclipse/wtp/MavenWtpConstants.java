@@ -8,7 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import org.eclipse.m2e.core.core.IMavenConstants;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 
 /**
  * Maven WTP Constants
