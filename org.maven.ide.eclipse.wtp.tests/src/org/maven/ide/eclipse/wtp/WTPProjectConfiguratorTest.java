@@ -198,8 +198,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("test-junit-3.8.1.jar", cp[1].getPath().lastSegment());
   }
 
-  @Test
-  public void testLooseBuildDirectory() throws Exception {
+  //@Test
+  public void _testLooseBuildDirectory() throws Exception {
     // import should not fail for projects with output folders located outside of project's basedir
     importProject("projects/MNGECLIPSE-767/pom.xml", new ResolverConfiguration());
   }

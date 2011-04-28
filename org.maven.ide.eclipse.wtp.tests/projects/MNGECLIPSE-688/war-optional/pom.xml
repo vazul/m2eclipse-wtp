@@ -4,9 +4,6 @@
   <artifactId>war-optional</artifactId>
   <packaging>war</packaging>
   <version>0.0.1-SNAPSHOT</version>
-  <build>
-    <directory>C:/TEMP/Build/${pom.artifactId}</directory>
-  </build>
   <dependencies>
   	<dependency>
   		<groupId>junit</groupId>
