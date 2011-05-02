@@ -60,7 +60,6 @@ import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
-import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -216,20 +215,18 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     List<IMavenProjectFacade> exportedDependencies = getWorkspaceDependencies(project, mavenProject);
     for(IMavenProjectFacade dependency : exportedDependencies) {
       String depPackaging = dependency.getPackaging();
-      if ("pom".equals(depPackaging)) continue;//MNGECLIPSE-744 pom dependencies shouldn't be deployed
+      if ("pom".equals(depPackaging) //MNGECLIPSE-744 pom dependencies shouldn't be deployed
+          || "war".equals(depPackaging) //Overlays are dealt with the overlay configurator
+          || "zip".equals(depPackaging)) {
+        continue;
+      }
       
       try {
         preConfigureDependencyProject(dependency, monitor);
         MavenProject depMavenProject =  dependency.getMavenProject(monitor);
   
-  		  IVirtualComponent depComponent;
-  		  boolean isOverlay = "war".equals(depPackaging);
-  		  if (isOverlay) {
-  		    depComponent = OverlayComponentCore.createOverlayComponent(dependency.getProject());
-  		  } else {
-  		    depComponent = ComponentCore.createComponent(dependency.getProject());
-  		  }
-    
+  		  IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+  		      
         String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
         Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
         String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
@@ -243,13 +240,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
     		if (!artifact.isOptional()) {
     		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-    		  IPath path;
-    		  if (isOverlay) {
-    		    path = new Path(MavenWtpConstants.ROOT_FOLDER);
-    		  } else {
-    		    path = new Path("/WEB-INF/lib");
-            reference.setArchiveName(deployedName);
-    		  }
+    		  IPath path = new Path("/WEB-INF/lib");
+          reference.setArchiveName(deployedName);
     		  reference.setRuntimePath(path);
     		  references.add(reference);
     		}
@@ -262,10 +254,17 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
 
     
-    IVirtualReference[] newRefs = references.toArray(new IVirtualReference[references.size()]);
-    if (hasChanged(component.getReferences(), newRefs)){
+    IVirtualReference[] oldRefs = WTPProjectsUtil.extractHardReferences(component, false);
+    
+    IVirtualReference[] updatedOverlayRefs = references.toArray(new IVirtualReference[references.size()]);
+    
+    if (WTPProjectsUtil.hasChanged(oldRefs, updatedOverlayRefs)){
       //Only write in the .component file if necessary 
-      component.setReferences(newRefs);
+      IVirtualReference[] overlayRefs = WTPProjectsUtil.extractHardReferences(component, true);
+      IVirtualReference[] allRefs = new IVirtualReference[overlayRefs.length + updatedOverlayRefs.length];
+      System.arraycopy(updatedOverlayRefs, 0, allRefs, 0, updatedOverlayRefs.length);
+      System.arraycopy(overlayRefs, 0, allRefs, updatedOverlayRefs.length, overlayRefs.length);
+      component.setReferences(allRefs);
     }
     
     //TODO why a 2nd loop???
@@ -308,7 +307,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
   public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
       IProgressMonitor monitor) throws CoreException {
-
+    
     //Improve skinny war support by generating the manifest classpath
     //similar to mvn eclipse:eclipse 
     //http://maven.apache.org/plugins/maven-war-plugin/examples/skinny-wars.html
@@ -454,6 +453,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         log.error("Could not write web module manifest file", ex);
       }
     }
+    
   }
 
   private static boolean isDifferent(File src, File dst) {

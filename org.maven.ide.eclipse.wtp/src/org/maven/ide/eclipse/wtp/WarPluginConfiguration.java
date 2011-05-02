@@ -13,7 +13,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -25,6 +27,8 @@ import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
+import org.maven.ide.eclipse.wtp.overlay.IOverlay;
+import org.maven.ide.eclipse.wtp.overlay.Overlay;
 
 
 /**
@@ -45,10 +49,13 @@ public class WarPluginConfiguration {
   final Plugin plugin;
 
   private IProject project;
+  
+  private MavenProject mavenProject;
 
   public WarPluginConfiguration(MavenProject mavenProject, IProject project) {
     this.plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-war-plugin");
     this.project = project;
+    this.mavenProject = mavenProject;
   }
 
   static boolean isWarProject(MavenProject mavenProject) {
@@ -276,5 +283,50 @@ public class WarPluginConfiguration {
     return Collections.emptyList();
   }
 
+  /**
+   * @return
+   */
+  public List<IOverlay> getOverlays() {
+//    Xpp3Dom config = getConfiguration();
+//    if(config != null) {
+//      Xpp3Dom overlaysNode = config.getChild("overlays");
+//      if (overlaysNode != null && overlaysNode.getChildCount() > 0) {
+//        List<IOverlay> overlays = new ArrayList<IOverlay>(overlaysNode.getChildCount());
+//        for (Xpp3Dom overlayNode : overlaysNode.getChildren("overlay")) {
+//          IOverlay overlay = parseOverlay(overlayNode);
+//          if (overlay != null) {
+//            overlays.add(overlay);
+//          }
+//        }
+//        return overlays;
+//      }
+//    }
+//    return Collections.emptyList();
+    return getDefaultOverlays();
+  }
+
+  /**
+   * @param overlayNode
+   * @return
+   */
+  private IOverlay parseOverlay(Xpp3Dom overlayNode) {
+    Artifact artifact = null;
+    Overlay overlay = new Overlay(artifact, "/");
+    return overlay;
+  }
+
+  private List<IOverlay> getDefaultOverlays() {
+    Set<Artifact> artifacts = mavenProject.getArtifacts();
+    if(artifacts == null || artifacts.isEmpty()) {
+      return Collections.<IOverlay> emptyList();
+    }
+    List<IOverlay> overlays = new ArrayList<IOverlay>();
+    for (Artifact artifact : artifacts) {
+      if ("war".equals(artifact.getType())) {
+        overlays.add(new Overlay(artifact, "/"));
+      }
+    }
+    return overlays;
+  }
 
 }

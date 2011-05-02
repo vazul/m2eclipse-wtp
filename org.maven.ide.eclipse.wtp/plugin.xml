@@ -36,6 +36,13 @@
           class="org.maven.ide.eclipse.wtp.WTPProjectConfigurator"
           name="WTP" />
    </extension>
+	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.overlay.configurator"
+          class="org.maven.ide.eclipse.wtp.OverlayConfigurator"
+          name="Overlay" 
+          secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"/>
+    </extension>   
    
    <!-- A workaround to allow to uninstall WTP facets -->   
    <extension point="org.eclipse.wst.common.project.facet.core.facets">

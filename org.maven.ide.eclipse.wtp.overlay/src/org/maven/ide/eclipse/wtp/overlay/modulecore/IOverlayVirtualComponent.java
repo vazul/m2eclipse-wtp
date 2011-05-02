@@ -10,12 +10,14 @@ package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
 import java.util.Set;
 
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+
 /**
  * IOverlayVirtualComponent
  *
  * @author Fred Bricon
  */
-public interface IOverlayVirtualComponent {
+public interface IOverlayVirtualComponent extends IVirtualComponent{
 
 	/**
 	 * Specify the resources to include.

@@ -18,11 +18,13 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
+import org.junit.Test;
 
 public class WebResourceFilteringTest extends AbstractWTPTestCase {
   
   private static String FILTERED_FOLDER_NAME = "target/" + MavenWtpConstants.M2E_WTP_FOLDER+ "/" + MavenWtpConstants.WEB_RESOURCES_FOLDER; 
   
+  @Test
   public void testMECLIPSE22_webfiltering() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/webfiltering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
@@ -68,6 +70,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertEquals("${custom.version} from webfilter.properties was not updated "+ getAsString(filterFile),"1.0",props.get("app.version"));
   }
 
+  @Test
   public void testMECLIPSE22_webfilteringFolderOrder() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/war-with-filtered-resources/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
@@ -93,6 +96,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     
   }
 
+  @Test
   public void testMECLIPSEWTP5_webXmlfiltering() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/example-web/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
@@ -123,6 +127,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("${props.target.env} from dev profile was not interpolated", xml.contains("<param-name>com.swisscom.asterix.intertax.build.targetEnv</param-name><param-value>DEV</param-value>"));
   }
 
+  @Test
   public void testMECLIPSEWTP95_filteringErrors() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/typo-filtering/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
@@ -144,6 +149,7 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("Files should have been filtered",filteredFolder.members().length > 0);
   }
 
+  @Test
   public void testMECLIPSE97_OldWebResourceSupport() throws Exception {
     IProject web = importProject("projects/WebResourceFiltering/old-webresource-support/pom.xml");
     web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());

@@ -1,7 +1,5 @@
 package org.maven.ide.eclipse.wtp.overlay;
 
-import org.eclipse.core.internal.resources.Workspace;
-import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -23,8 +21,8 @@ public class OverlayPluginActivator extends Plugin {
 	
 	@Override
 	public void stop(BundleContext context) throws Exception {
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		if (overlayresourceChangeListener != null) {
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		    workspace.removeResourceChangeListener(overlayresourceChangeListener);
 		}
 		super.stop(context);

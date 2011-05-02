@@ -469,33 +469,33 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     }
   }
 
-  @Test
-  public void testMNGECLIPSE597() throws Exception {
-    IProject[] projects = importProjects("projects/MNGECLIPSE-597", 
-        new String[] {"DWPMain/pom.xml", "DWPDependency/pom.xml", }, 
-        new ResolverConfiguration());
-
-    waitForJobsToComplete();
-    assertEquals(2, projects.length);
-    IProject dep = projects[1];
-    IProject main = projects[0];
-    
-    assertNoErrors(main);
-    assertNoErrors(dep);
-
-    IFacetedProject mainWar = ProjectFacetsManager.create(main);
-    assertNotNull(mainWar);
-    assertTrue(mainWar.hasProjectFacet(WebFacetUtils.WEB_FACET));
-
-    IFacetedProject depWar = ProjectFacetsManager.create(dep);
-    assertNotNull(depWar);
-    assertTrue(depWar.hasProjectFacet(WebFacetUtils.WEB_FACET));
-
-    IVirtualComponent comp = ComponentCore.createComponent(main);
-    IVirtualReference[] references = comp.getReferences();
-    IVirtualReference depRef = references[0];
-    assertEquals(dep, depRef.getReferencedComponent().getProject());
-  }
+//  @Test
+//  public void testMNGECLIPSE597() throws Exception {
+//    IProject[] projects = importProjects("projects/MNGECLIPSE-597", 
+//        new String[] {"DWPMain/pom.xml", "DWPDependency/pom.xml", }, 
+//        new ResolverConfiguration());
+//
+//    waitForJobsToComplete();
+//    assertEquals(2, projects.length);
+//    IProject dep = projects[1];
+//    IProject main = projects[0];
+//    
+//    assertNoErrors(main);
+//    assertNoErrors(dep);
+//
+//    IFacetedProject mainWar = ProjectFacetsManager.create(main);
+//    assertNotNull(mainWar);
+//    assertTrue(mainWar.hasProjectFacet(WebFacetUtils.WEB_FACET));
+//
+//    IFacetedProject depWar = ProjectFacetsManager.create(dep);
+//    assertNotNull(depWar);
+//    assertTrue(depWar.hasProjectFacet(WebFacetUtils.WEB_FACET));
+//
+//    IVirtualComponent comp = ComponentCore.createComponent(main);
+//    IVirtualReference[] references = comp.getReferences();
+//    IVirtualReference depRef = references[0];
+//    assertEquals(dep, depRef.getReferencedComponent().getProject());
+//  }
 
 
   @Test
@@ -1524,6 +1524,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("war",webModule.getWeb().getContextRoot());
   }
 
+  @Test
   public void testMECLIPSEWTP76_noVersionfileNames() throws Exception {
     // Exported filenames should be consistent when workspace resolution is on/off
     IProject[] projects = importProjects(
@@ -1551,6 +1552,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
   }  
 
+  @Test
   public void testMECLIPSEWTP108_DependencyArchiveName() throws Exception {
     IProject[] projects = importProjects("projects/MECLIPSEWTP-108", //
         new String[] {"pom.xml", "webapp/pom.xml", "utility/pom.xml"}, new ResolverConfiguration());
@@ -1562,6 +1564,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("Invalid archive name", "utility-1.0.jar", references[0].getArchiveName());
   }
 
+  @Test
   public void testMECLIPSEWTP58_generateApplicationXmlInBuildDir() throws Exception {
     
     IProject[] projects = importProjects(
@@ -1595,6 +1598,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertTrue(applicationXmlInSourceDir.getFullPath()+" should have been created",applicationXmlInSourceDir.exists());
   }
 
+  @Test
   public void testMECLIPSEWTP7_testResources() throws Exception {
     IProject[] projects = importProjects("projects/MECLIPSEWTP-7/", new String[]{"web/pom.xml", "util/pom.xml"}, new ResolverConfiguration());
     waitForJobsToComplete();

@@ -64,7 +64,7 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 				System.err.println("Clearing "+server.getName() + "'s module cache");
 				((Server)server).clearModuleCache();
 				//TODO Publish more elegantly (check server status ...)
-				server.publish(0, new NullProgressMonitor());
+				server.publish(IServer.PUBLISH_INCREMENTAL, new NullProgressMonitor());
 			}
 		}
 	}

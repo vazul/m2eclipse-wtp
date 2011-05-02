@@ -78,7 +78,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
     }
   }
 
-  static boolean isWTPProject(IProject project) {
+  protected static boolean isWTPProject(IProject project) {
     return ModuleCoreNature.getModuleCoreNature(project) != null;
   }
 

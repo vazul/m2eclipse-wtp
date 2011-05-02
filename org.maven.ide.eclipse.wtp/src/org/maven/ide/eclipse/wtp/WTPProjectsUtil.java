@@ -8,7 +8,10 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -27,9 +30,12 @@ import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeNode;
 import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeRoot;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
 
 /**
  * Utility class for WTP projects.
@@ -250,4 +256,76 @@ public class WTPProjectsUtil {
     return directory.removeFirstSegments(projectLocation.segmentCount()).makeRelative().setDevice(null);
   }
   
+  
+  public static boolean hasChanged(IVirtualReference[] existingRefs, IVirtualReference[] refArray) {
+    
+    if (existingRefs==refArray) {
+      return false;
+    }
+    if (existingRefs == null || existingRefs.length != refArray.length) {
+      return true;
+    }
+    for (int i=0; i<existingRefs.length;i++){
+      IVirtualReference existingRef = existingRefs[i];
+      IVirtualReference newRef = refArray[i];
+      if ((existingRef.getArchiveName() != null && !existingRef.getArchiveName().equals(newRef.getArchiveName())) ||
+          (existingRef.getArchiveName() == null && newRef.getArchiveName() != null) ||
+          !existingRef.getReferencedComponent().equals(newRef.getReferencedComponent()) ||
+          !existingRef.getRuntimePath().equals(newRef.getRuntimePath())) 
+      {
+        return true;  
+      }
+    }
+    return false;    
+  }
+  
+  public static boolean hasChanged2(IVirtualReference[] existingRefs, IVirtualReference[] refArray) {
+    
+    if (existingRefs==refArray) {
+      return false;
+    }
+    if (existingRefs == null || existingRefs.length != refArray.length) {
+      return true;
+    }
+    for (int i=0; i<existingRefs.length;i++){
+      IVirtualReference existingRef = existingRefs[i];
+      IVirtualReference newRef = refArray[i];
+      if (
+          !existingRef.getReferencedComponent().equals(newRef.getReferencedComponent()) ||
+          !existingRef.getRuntimePath().equals(newRef.getRuntimePath())) 
+      {
+        return true;  
+      }
+    }
+    return false;    
+  }
+  
+  public static IVirtualReference[] extractHardReferences(IVirtualComponent warComponent, boolean overlays) {
+    Map<String, Object> options = new HashMap<String, Object>(1);
+    options.put(IVirtualComponent.REQUESTED_REFERENCE_TYPE, IVirtualComponent.HARD_REFERENCES);
+    IVirtualReference[] allReferences = warComponent.getReferences(options);
+    if (allReferences == null || allReferences.length == 0) {
+      return new IVirtualReference[]{};
+    }
+    
+    List<IVirtualReference> selectedRefs = new ArrayList<IVirtualReference>();
+    for (IVirtualReference ref  : allReferences) {
+      IVirtualComponent component = ref.getReferencedComponent();
+      if (component != null) {
+        if (component instanceof IOverlayVirtualComponent) {
+          if (overlays) {
+            selectedRefs.add(ref);
+          }
+        } else {
+          if (!overlays) {
+            selectedRefs.add(ref);
+          }
+        }
+      }
+    }
+    
+    IVirtualReference[] selectedReferences = new IVirtualReference[selectedRefs.size()]; 
+    selectedRefs.toArray(selectedReferences);
+    return selectedReferences;
+  }
 }
