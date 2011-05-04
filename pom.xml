@@ -27,8 +27,8 @@
     <tycho-version>0.11.0</tycho-version>
     <m2eclipse-core.version>0.13.0.201104251605</m2eclipse-core.version>
     <m2eclipse-core.site>0.13.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
-    <target.platform>m2e-wtp-e36</target.platform>        
-    <!-- <target.platform>m2e-wtp-e37</target.platform> -->       
+    <target.platform>m2e-wtp-e37</target.platform>        
+    <!-- <target.platform>m2e-wtp-e36</target.platform> -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
   </properties>
 
