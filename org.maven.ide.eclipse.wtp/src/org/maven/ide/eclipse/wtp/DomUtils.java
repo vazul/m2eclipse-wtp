@@ -8,6 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 public class DomUtils {
@@ -27,6 +28,11 @@ public class DomUtils {
       }
     }
     return result;
+  }
+  
+  public static final String getChildValue(Xpp3Dom parent, String childName, String defaultValue) {
+    String result = getChildValue(parent, childName);
+    return StringUtils.defaultString(result, defaultValue);
   }
 
   public static final boolean getBooleanChildValue(Xpp3Dom parent, String childName) {

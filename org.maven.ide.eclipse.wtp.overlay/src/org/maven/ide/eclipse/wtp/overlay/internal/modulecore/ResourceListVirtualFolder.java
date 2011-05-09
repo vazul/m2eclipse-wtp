@@ -31,6 +31,7 @@ public class ResourceListVirtualFolder extends VirtualFolder {
 	private ArrayList<IResource> children;
 	private ArrayList<IContainer> underlying;
 	private ResourceFilter filter;
+	
 	public ResourceListVirtualFolder(
 			IProject aComponentProject,
 			IPath aRuntimePath) {

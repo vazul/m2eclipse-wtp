@@ -62,7 +62,9 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 		for(IServer server : republishableServers) {
 			if (server instanceof Server) {
 				System.err.println("Clearing "+server.getName() + "'s module cache");
-				((Server)server).clearModuleCache();
+				synchronized (server) {
+					((Server)server).clearModuleCache();
+				}
 				//TODO Publish more elegantly (check server status ...)
 				server.publish(IServer.PUBLISH_INCREMENTAL, new NullProgressMonitor());
 			}

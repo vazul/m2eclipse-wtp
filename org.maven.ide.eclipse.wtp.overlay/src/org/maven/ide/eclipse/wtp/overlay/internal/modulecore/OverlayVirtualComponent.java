@@ -102,20 +102,26 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	}
 
 	public void setInclusions(Set<String> inclusionPatterns) {
-		this.exclusionPatterns = exclusionPatterns;
-	}
-
-	public void setExclusions(Set<String> inclusionPatterns) {
 		this.inclusionPatterns = inclusionPatterns;
 	}
 
+	public void setExclusions(Set<String> exclusionPatterns) {
+		this.exclusionPatterns = exclusionPatterns;
+	}
+
+	public Set<String> getExclusions() {
+		return exclusionPatterns;
+	}
+
+	public Set<String> getInclusions() {
+		return inclusionPatterns;
+	}
 	@Override
 	public IVirtualReference[] getReferences(Map<String, Object> paramMap){;
 		CompositeVirtualFolder  root = getRoot(); 
 		if (root != null) {
 			try {
 				IVirtualReference[] references = root.getReferences(); 
-				System.err.println("returning "+references.length + " refs"); 
 				return references;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -123,7 +129,6 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 		}
 		return new IVirtualReference[0];
 	}
-
 
 	private Set<IVirtualReference> getReferences(IChildModuleReference[] childModules) {
 		Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>(childModules.length);

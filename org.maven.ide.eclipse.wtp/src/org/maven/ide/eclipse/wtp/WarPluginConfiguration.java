@@ -17,6 +17,9 @@ import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.war.Overlay;
+import org.apache.maven.plugin.war.overlay.InvalidOverlayConfigurationException;
+import org.apache.maven.plugin.war.overlay.OverlayManager;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
@@ -27,14 +30,13 @@ import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
-import org.maven.ide.eclipse.wtp.overlay.IOverlay;
-import org.maven.ide.eclipse.wtp.overlay.Overlay;
 
 
 /**
  * See http://maven.apache.org/plugins/maven-war-plugin/war-mojo.html
  * 
  * @author Igor Fedorenko
+ * @author Fred Bricon
  */
 @SuppressWarnings("restriction")
 public class WarPluginConfiguration {
@@ -286,47 +288,73 @@ public class WarPluginConfiguration {
   /**
    * @return
    */
-  public List<IOverlay> getOverlays() {
-//    Xpp3Dom config = getConfiguration();
-//    if(config != null) {
-//      Xpp3Dom overlaysNode = config.getChild("overlays");
-//      if (overlaysNode != null && overlaysNode.getChildCount() > 0) {
-//        List<IOverlay> overlays = new ArrayList<IOverlay>(overlaysNode.getChildCount());
-//        for (Xpp3Dom overlayNode : overlaysNode.getChildren("overlay")) {
-//          IOverlay overlay = parseOverlay(overlayNode);
-//          if (overlay != null) {
-//            overlays.add(overlay);
-//          }
-//        }
-//        return overlays;
-//      }
-//    }
-//    return Collections.emptyList();
-    return getDefaultOverlays();
+  public List<Overlay> getOverlays() {
+    Overlay currentProjectOverlay = Overlay.createInstance();
+    currentProjectOverlay.setArtifact(mavenProject.getArtifact());
+    OverlayManager overlayManager = null;
+    try {
+      overlayManager = new OverlayManager(getConfiguredOverlays(), 
+                                                         mavenProject, 
+                                                         "**/**",//TODO cf global inclusions
+                                                         "META-INF/MANIFEST.MF",//TODO cf global exclusions 
+                                                         currentProjectOverlay);
+    } catch(InvalidOverlayConfigurationException ex) {
+      // TODO Auto-generated catch block
+      System.err.println(ex);
+    }
+    
+    List<Overlay> overlays = overlayManager.getOverlays();
+    return overlays;
   }
 
+  public List<Overlay> getConfiguredOverlays() {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom overlaysNode = config.getChild("overlays");
+      if (overlaysNode != null && overlaysNode.getChildCount() > 0) {
+        List<Overlay> overlays = new ArrayList<Overlay>(overlaysNode.getChildCount());
+        for (Xpp3Dom overlayNode : overlaysNode.getChildren("overlay")) {
+          overlays.add(parseOverlay(overlayNode));
+        }
+        return overlays;
+      }
+    }
+    return Collections.emptyList();
+  }
+  
   /**
    * @param overlayNode
    * @return
    */
-  private IOverlay parseOverlay(Xpp3Dom overlayNode) {
-    Artifact artifact = null;
-    Overlay overlay = new Overlay(artifact, "/");
+  private Overlay parseOverlay(Xpp3Dom overlayNode) {
+    String artifactId = DomUtils.getChildValue(overlayNode, "artifactId");
+    String groupId = DomUtils.getChildValue(overlayNode, "groupId");
+    String exclusions = DomUtils.getChildValue(overlayNode, "exclusions");
+    String inclusions = DomUtils.getChildValue(overlayNode, "inclusions");
+    String classifier = DomUtils.getChildValue(overlayNode, "classifier");
+    boolean filtered = DomUtils.getBooleanChildValue(overlayNode, "filtered");
+    boolean skip = DomUtils.getBooleanChildValue(overlayNode, "skip");
+    String type = DomUtils.getChildValue(overlayNode, "type", "war");
+    String targetPath = DomUtils.getChildValue(overlayNode, "targetPath", "/");
+
+    Overlay overlay = new Overlay();
+    overlay.setArtifactId(artifactId);
+    overlay.setGroupId(groupId);
+    overlay.setClassifier(classifier);
+    if (!StringUtils.nullOrEmpty(exclusions)) {
+      overlay.setExcludes(exclusions);
+    }
+    if (!StringUtils.nullOrEmpty(inclusions)) {
+      overlay.setIncludes(inclusions);
+    }
+    overlay.setFiltered(filtered);
+    overlay.setSkip(skip);
+    overlay.setTargetPath(targetPath);
+    overlay.setType(type);
+    
     return overlay;
   }
 
-  private List<IOverlay> getDefaultOverlays() {
-    Set<Artifact> artifacts = mavenProject.getArtifacts();
-    if(artifacts == null || artifacts.isEmpty()) {
-      return Collections.<IOverlay> emptyList();
-    }
-    List<IOverlay> overlays = new ArrayList<IOverlay>();
-    for (Artifact artifact : artifacts) {
-      if ("war".equals(artifact.getType())) {
-        overlays.add(new Overlay(artifact, "/"));
-      }
-    }
-    return overlays;
-  }
+
 
 }

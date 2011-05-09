@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 Sonatype, Inc.
+ * Copyright (c) 2011 Sonatype, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.resources.VirtualArchiveComponent;
@@ -33,9 +34,14 @@ import org.maven.ide.eclipse.wtp.overlay.utilities.CompressionUtil;
  *
  * @author Fred Bricon
  */
+@SuppressWarnings("restriction")
 public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent implements IOverlayVirtualComponent {
 
 	protected IPath unpackDirPath;
+	
+	private Set<String> inclusions;
+	
+	private Set<String> exclusions;
 	
 	public OverlayVirtualArchiveComponent(IProject aComponentProject,
 			String archiveLocation, IPath unpackDirPath, IPath aRuntimePath) {
@@ -44,24 +50,29 @@ public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent impl
 	}
 
 	public void setInclusions(Set<String> inclusionPatterns) {
-		// TODO Auto-generated method stub
-		
+		this.inclusions = inclusionPatterns;
 	}
 
-	public void setExclusions(Set<String> inclusionPatterns) {
-		// TODO Auto-generated method stub
-		
+	public void setExclusions(Set<String> exclusionPatterns) {
+		this.exclusions = exclusionPatterns;
 	}
 	
 	public IVirtualFolder getRootFolder() {
 		IVirtualComponent component = ComponentCore.createComponent(getProject());
-		IVirtualFolder root =null;
+		ResourceListVirtualFolder root =null;
 		if (component != null) {
 			IFolder overlaysFolder =  getProject().getFolder(unpackDirPath);
 			try {
-				IContainer[] containers = new IContainer[] {overlaysFolder.getFolder(getArchive().getName())};
+				unpackIfNeeded(new NullProgressMonitor());
+				
+				IFolder unpackedFolder = overlaysFolder.getFolder(getArchive().getName());
+				IContainer[] containers = new IContainer[] {unpackedFolder};
 				root = new ResourceListVirtualFolder(getProject(), getRuntimePath(), containers);
+				root.setFilter(new DefaultResourceFilter(inclusions, exclusions, unpackedFolder.getLocation()));
 			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CoreException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -75,6 +86,10 @@ public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent impl
 			archive = getArchive();
 			IFolder unpackFolder =  getProject().getFolder(unpackDirPath);
 			if (needsUnpacking(archive, unpackFolder)) {
+				IFolder unpackArchiveFolder  =  unpackFolder.getFolder(archive.getName());
+				if (unpackArchiveFolder.exists()) {
+					unpackArchiveFolder.delete(true, monitor);
+				}
 				unpack(archive, unpackFolder, monitor);
 				refreshProject();
 			}
@@ -104,22 +119,13 @@ public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent impl
 	}
 
 	private boolean needsUnpacking(File archive, IFolder unpackFolder) {
-		return !unpackFolder.getFolder(archive.getName()).exists() 
-			|| isObsolete(archive, unpackFolder);
-	}
-
-	private boolean isObsolete(File archive, IFolder unpackFolder) {
-		IFile flag = getFlagFile(archive, unpackFolder);
-		if (!flag.exists()) {
+		IFolder unpackArchiveFolder = unpackFolder.getFolder(archive.getName());
+		if (!unpackArchiveFolder.exists()) {
 			return true;
 		}
-		long lastUnpacked = new File(flag.getLocation().toOSString()).lastModified();
+		long lastUnpacked = new File(unpackArchiveFolder.getLocation().toOSString()).lastModified();
 		long lastModified = archive.lastModified();
 		return lastModified > lastUnpacked;
-	}
-
-	private IFile getFlagFile(File archive, IFolder unpackFolder) {
-		return unpackFolder.getFile(archive.getName()+".lastUpdated");
 	}
 
 	private void unpack(File archive, IFolder unpackFolder,
@@ -127,14 +133,8 @@ public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent impl
 		IFolder unpackLocation = unpackFolder.getFolder(archive.getName()); 
 		createFolder(unpackLocation, monitor);
 		CompressionUtil.unzip(archive, new File(unpackLocation.getLocation().toOSString()), monitor);
-		IFile flag = getFlagFile(archive, unpackFolder);
-		if (!flag.exists()) {
-			File underlyingFlagFile = new File(flag.getLocation().toOSString());
-			underlyingFlagFile.createNewFile();
-			flag.refreshLocal(0, monitor);
-			flag.setHidden(true);
-		}
-		flag.touch(monitor);
+		File unpackLocationFolder = new File(unpackLocation.getLocation().toOSString());
+		unpackLocationFolder.setLastModified(archive.lastModified());
 	}
 	
 	private static void createFolder(IFolder folder, IProgressMonitor monitor) throws CoreException {
@@ -147,4 +147,60 @@ public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent impl
 	  }
 	  folder.create(true, true, monitor);
 	}
+
+	public IPath getUnpackFolderPath() {
+		return unpackDirPath;
+	}
+
+	public Set<String> getExclusions() {
+		return exclusions;
+	}
+
+	public Set<String> getInclusions() {
+		return inclusions;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((exclusions == null) ? 0 : exclusions.hashCode());
+		result = prime * result
+				+ ((inclusions == null) ? 0 : inclusions.hashCode());
+		result = prime * result
+				+ ((unpackDirPath == null) ? 0 : unpackDirPath.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OverlayVirtualArchiveComponent other = (OverlayVirtualArchiveComponent) obj;
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (exclusions == null) {
+			if (other.exclusions != null)
+				return false;
+		} else if (!exclusions.equals(other.exclusions))
+			return false;
+		if (inclusions == null) {
+			if (other.inclusions != null)
+				return false;
+		} else if (!inclusions.equals(other.inclusions))
+			return false;
+		if (unpackDirPath == null) {
+			if (other.unpackDirPath != null)
+				return false;
+		} else if (!unpackDirPath.equals(other.unpackDirPath))
+			return false;
+		return true;
+	}
+	
 }
