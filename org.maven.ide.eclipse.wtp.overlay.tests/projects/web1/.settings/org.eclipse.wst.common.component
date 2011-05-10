@@ -3,7 +3,7 @@
     <wb-module deploy-name="web1">
         <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
-        <dependent-module deploy-path="/" handle="module:/overlay/var/REPO/domain/overlay-web.war">
+        <dependent-module deploy-path="/" handle="module:/overlay/var/REPO/domain/overlay-web.war&unpackFolder=target/overlays">
             <dependency-type>consumes</dependency-type>
         </dependent-module>
         <dependent-module deploy-path="/" handle="module:/overlay/slf/">

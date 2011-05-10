@@ -10,9 +10,11 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +32,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IAccessRule;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
@@ -332,7 +335,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     Iterator<IClasspathEntryDescriptor> iter = classpath.getEntryDescriptors().iterator();
     while (iter.hasNext()) {
       IClasspathEntryDescriptor descriptor = iter.next();
-      IClasspathEntry entry = descriptor.getClasspathEntry();
+      IClasspathEntry entry = descriptor.toClasspathEntry();
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
@@ -389,7 +392,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       // Optional artifact shouldn't be deployed
       if(Artifact.SCOPE_PROVIDED.equals(scope) || Artifact.SCOPE_TEST.equals(scope)
           || Artifact.SCOPE_SYSTEM.equals(scope) || descriptor.isOptionalDependency()) {
-        descriptor.addClasspathAttribute(NONDEPENDENCY_ATTRIBUTE);
+        descriptor.setClasspathAttribute(NONDEPENDENCY_ATTRIBUTE.getName(), NONDEPENDENCY_ATTRIBUTE.getValue());
       }
 
       // collect duplicate file names 
@@ -404,7 +407,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     iter = classpath.getEntryDescriptors().iterator();
     while (iter.hasNext()) {
       IClasspathEntryDescriptor descriptor = iter.next();
-      IClasspathEntry entry = descriptor.getClasspathEntry();
+      IClasspathEntry entry = descriptor.toClasspathEntry();
 
       if (dups.contains(entry.getPath().lastSegment())) {
         File src = new File(entry.getPath().toOSString());
@@ -416,12 +419,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
               FileUtils.copyFile(src, dst);
               dst.setLastModified(src.lastModified());
             }
-            descriptor.setClasspathEntry(JavaCore.newLibraryEntry(Path.fromOSString(dst.getCanonicalPath()), //
-                entry.getSourceAttachmentPath(), //
-                entry.getSourceAttachmentRootPath(), //
-                entry.getAccessRules(), //
-                entry.getExtraAttributes(), //
-                entry.isExported()));
+            //FIXME Waiting for https://bugs.eclipse.org/bugs/show_bug.cgi?id=345159
+            //descriptor.setPath(Path.fromOSString(dst.getCanonicalPath()));
           }
         } catch(IOException ex) {
           log.error("File copy failed", ex);
@@ -489,7 +488,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     public boolean isReferenceFromEar(IClasspathEntryDescriptor descriptor) {
 
-      IClasspathEntry entry = descriptor.getClasspathEntry();
+      IClasspathEntry entry = descriptor.toClasspathEntry();
       String scope = descriptor.getScope();
 
       //these dependencies aren't added to the manifest cp
