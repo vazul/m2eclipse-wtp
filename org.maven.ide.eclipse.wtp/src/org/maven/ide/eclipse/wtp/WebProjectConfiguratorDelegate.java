@@ -332,7 +332,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     Iterator<IClasspathEntryDescriptor> iter = classpath.getEntryDescriptors().iterator();
     while (iter.hasNext()) {
       IClasspathEntryDescriptor descriptor = iter.next();
-      IClasspathEntry entry = descriptor.getClasspathEntry();
+      IClasspathEntry entry = descriptor.toClasspathEntry();
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
@@ -389,7 +389,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       // Optional artifact shouldn't be deployed
       if(Artifact.SCOPE_PROVIDED.equals(scope) || Artifact.SCOPE_TEST.equals(scope)
           || Artifact.SCOPE_SYSTEM.equals(scope) || descriptor.isOptionalDependency()) {
-        descriptor.addClasspathAttribute(NONDEPENDENCY_ATTRIBUTE);
+        descriptor.setClasspathAttribute(NONDEPENDENCY_ATTRIBUTE.getName(), NONDEPENDENCY_ATTRIBUTE.getValue());
       }
 
       // collect duplicate file names 
@@ -404,7 +404,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     iter = classpath.getEntryDescriptors().iterator();
     while (iter.hasNext()) {
       IClasspathEntryDescriptor descriptor = iter.next();
-      IClasspathEntry entry = descriptor.getClasspathEntry();
+      IClasspathEntry entry = descriptor.toClasspathEntry();
 
       if (dups.contains(entry.getPath().lastSegment())) {
         File src = new File(entry.getPath().toOSString());
@@ -416,12 +416,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
               FileUtils.copyFile(src, dst);
               dst.setLastModified(src.lastModified());
             }
-            descriptor.setClasspathEntry(JavaCore.newLibraryEntry(Path.fromOSString(dst.getCanonicalPath()), //
-                entry.getSourceAttachmentPath(), //
-                entry.getSourceAttachmentRootPath(), //
-                entry.getAccessRules(), //
-                entry.getExtraAttributes(), //
-                entry.isExported()));
+            descriptor.setPath(Path.fromOSString(dst.getCanonicalPath()));
           }
         } catch(IOException ex) {
           log.error("File copy failed", ex);
@@ -489,9 +484,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     public boolean isReferenceFromEar(IClasspathEntryDescriptor descriptor) {
 
-      IClasspathEntry entry = descriptor.getClasspathEntry();
       String scope = descriptor.getScope();
-
       //these dependencies aren't added to the manifest cp
       //retain optional dependencies here, they might be used just to express the 
       //dependency to be used in the manifest
@@ -502,7 +495,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
       //calculate in regard to includes/excludes whether this jar is
       //to be packaged into  WEB-INF/lib
-      String jarFileName = "WEB-INF/lib/" + entry.getPath().lastSegment();
+      String jarFileName = "WEB-INF/lib/" + descriptor.getPath().lastSegment();
       return isExcludedFromWebInfLib(jarFileName);
     }
 
