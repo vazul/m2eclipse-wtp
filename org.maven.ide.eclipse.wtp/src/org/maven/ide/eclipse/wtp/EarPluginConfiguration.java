@@ -8,10 +8,13 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -28,6 +31,7 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 import org.maven.ide.eclipse.wtp.earmodules.EarModuleFactory;
 import org.maven.ide.eclipse.wtp.earmodules.EarPluginException;
 import org.maven.ide.eclipse.wtp.earmodules.SecurityRoleKey;
+import org.maven.ide.eclipse.wtp.internal.StringUtils;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
@@ -42,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Fred Bricon
  */
-class EarPluginConfiguration {
+public class EarPluginConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(EarPluginConfiguration.class);
 
@@ -346,6 +350,35 @@ class EarPluginConfiguration {
     }
     
     return securityRoles;
+  }
+
+  public boolean isFiltering()  {
+    Xpp3Dom configuration = getConfiguration();
+    if(configuration == null) {
+      return false;
+    }
+    return DomUtils.getBooleanChildValue(configuration, "filtering");
+  }
+  
+  /**
+   * @return
+   */
+  public Collection<? extends String> getEarFilters() {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom filtersNode = config.getChild("filters");
+      if (filtersNode != null && filtersNode.getChildCount() > 0) {
+        List<String> filters = new ArrayList<String>(filtersNode.getChildCount());
+        for (Xpp3Dom filterNode : filtersNode.getChildren("filter")) {
+          String  filter = filterNode.getValue();
+          if (!StringUtils.nullOrEmpty(filter)) {
+            filters.add(filter);
+          }
+        }
+        return filters;
+      }
+    }
+    return Collections.emptyList();
   }
 
 }

@@ -379,7 +379,8 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
   }
   
   public static ResourceFilteringBuildParticipant getParticipant(MojoExecution execution) {
-    if ("maven-war-plugin".equals(execution.getArtifactId()) && "war".equals(execution.getGoal()))
+    if ("maven-war-plugin".equals(execution.getArtifactId()) && "war".equals(execution.getGoal()) 
+        || "maven-ear-plugin".equals(execution.getArtifactId()) && "generate-application-xml".equals(execution.getGoal()))
     {
       return new ResourceFilteringBuildParticipant(); 
     }
