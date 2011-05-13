@@ -25,6 +25,9 @@ public class ResourceFilteringConfigurationFactory {
     if (JEEPackaging.WAR == packaging)
     {
       return new WebResourceFilteringConfiguration(mavenProjectFacade);
+    } else if (JEEPackaging.EAR == packaging)
+    {
+      return new EarResourceFilteringConfiguration(mavenProjectFacade);
     }
     return null;
   }

@@ -419,8 +419,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
               FileUtils.copyFile(src, dst);
               dst.setLastModified(src.lastModified());
             }
-            //FIXME Waiting for https://bugs.eclipse.org/bugs/show_bug.cgi?id=345159
-            //descriptor.setPath(Path.fromOSString(dst.getCanonicalPath()));
+            descriptor.setPath(Path.fromOSString(dst.getCanonicalPath()));
           }
         } catch(IOException ex) {
           log.error("File copy failed", ex);
@@ -488,9 +487,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     public boolean isReferenceFromEar(IClasspathEntryDescriptor descriptor) {
 
-      IClasspathEntry entry = descriptor.toClasspathEntry();
       String scope = descriptor.getScope();
-
       //these dependencies aren't added to the manifest cp
       //retain optional dependencies here, they might be used just to express the 
       //dependency to be used in the manifest
@@ -501,7 +498,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
       //calculate in regard to includes/excludes whether this jar is
       //to be packaged into  WEB-INF/lib
-      String jarFileName = "WEB-INF/lib/" + entry.getPath().lastSegment();
+      String jarFileName = "WEB-INF/lib/" + descriptor.getPath().lastSegment();
       return isExcludedFromWebInfLib(jarFileName);
     }
 

@@ -32,12 +32,6 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
 
   @Test
   public void testProjectImportDefault() throws Exception {
-    deleteProject("MNGECLIPSE-20");
-    deleteProject("MNGECLIPSE-20-app");
-    deleteProject("MNGECLIPSE-20-ear");
-    deleteProject("MNGECLIPSE-20-ejb");
-    deleteProject("MNGECLIPSE-20-type");
-    deleteProject("MNGECLIPSE-20-web");
 
     ResolverConfiguration configuration = new ResolverConfiguration();
     IProject[] projects = importProjects("projects/MNGECLIPSE-20", new String[] {"pom.xml", "type/pom.xml",
@@ -126,12 +120,6 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
 
   @Test
   public void testProjectImportNoWorkspaceResolution() throws Exception {
-    deleteProject("MNGECLIPSE-20");
-    deleteProject("MNGECLIPSE-20-app");
-    deleteProject("MNGECLIPSE-20-ear");
-    deleteProject("MNGECLIPSE-20-ejb");
-    deleteProject("MNGECLIPSE-20-type");
-    deleteProject("MNGECLIPSE-20-web");
 
     ResolverConfiguration configuration = new ResolverConfiguration();
     configuration.setResolveWorkspaceProjects(false);
@@ -253,12 +241,6 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
 
   @Test
   public void testMNGECLIPSE1028() throws Exception {
-    deleteProject("import-order-matters");
-    deleteProject("project1");
-    deleteProject("project2");
-    deleteProject("project3");
-    deleteProject("project4");
-    deleteProject("project5");
 
     IProject[] projects = importProjects("projects/import-order-matters", new String[] {"pom.xml", "project1/pom.xml",
         "project2/pom.xml", "project3/pom.xml", "project4/pom.xml", "project5/pom.xml",}, new ResolverConfiguration());
@@ -274,10 +256,6 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
 
   @Test
   public void testMNGECLIPSE1028_JavaVersion() throws Exception {
-    deleteProject("import-order-matters2");
-    deleteProject("project1-ear");
-    deleteProject("project2-war");
-    deleteProject("project3-jar");
 
     IProject[] projects = importProjects("projects/import-order-matters2", new String[] {"pom.xml", "project1-ear/pom.xml",
         "project2-war/pom.xml", "project3-jar/pom.xml"}, new ResolverConfiguration());

@@ -24,8 +24,8 @@
   <name>Maven Integration for Eclipse WTP (Parent)</name>
 
   <properties>
-    <tycho-version>0.11.0</tycho-version>
-    <m2eclipse-core.version>0.13.0.201105031639</m2eclipse-core.version>
+    <tycho-version>0.12.0</tycho-version>
+    <m2eclipse-core.version>0.13.0.201105101606</m2eclipse-core.version>
     <m2eclipse-core.site>0.13.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e37</target.platform>        
     <!-- <target.platform>m2e-wtp-e36</target.platform> -->       
@@ -65,14 +65,14 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.sonatype.tycho</groupId>
+        <groupId>org.eclipse.tycho</groupId>
         <artifactId>tycho-maven-plugin</artifactId>
         <version>${tycho-version}</version>
         <extensions>true</extensions>
       </plugin>
 
       <plugin>
-        <groupId>org.sonatype.tycho</groupId>
+        <groupId>org.eclipse.tycho</groupId>
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho-version}</version>
         <configuration>
@@ -93,8 +93,8 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.sonatype.tycho</groupId>
-          <artifactId>maven-osgi-test-plugin</artifactId>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-surefire-plugin</artifactId>
           <version>${tycho-version}</version>
           <configuration>
             <useUIHarness>true</useUIHarness>
