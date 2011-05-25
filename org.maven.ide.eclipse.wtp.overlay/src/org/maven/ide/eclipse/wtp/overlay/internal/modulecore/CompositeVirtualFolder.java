@@ -36,27 +36,27 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
  * @author Fred Bricon
  */
 @SuppressWarnings("restriction")
-public class CompositeVirtualFolder implements IVirtualFolder {
+public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 
 	private FlatVirtualComponent flatVirtualComponent;
 	private IPath runtimePath;
 	private IProject project;
 	private Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>();
 	private IVirtualResource[] members;
+	private IResourceFilter filter;
 	
-	public CompositeVirtualFolder(FlatVirtualComponent aFlatVirtualComponent, IPath aRuntimePath) {
+	public CompositeVirtualFolder(FlatVirtualComponent aFlatVirtualComponent, IPath aRuntimePath, IResourceFilter filter) {
 		this.flatVirtualComponent = aFlatVirtualComponent;
 		if (flatVirtualComponent != null && flatVirtualComponent.getComponent() != null) {
 			project = flatVirtualComponent.getComponent().getProject();
 		}
 		this.runtimePath = aRuntimePath;
+		this.filter = filter;
 		try {
 			treeWalk();
 		} catch (CoreException e) {
+			//TODO handle exception
 			e.printStackTrace();
-		}
-		if (members == null) {
-			members = new IVirtualResource[0]; 
 		}
 	}
 
@@ -69,6 +69,9 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	}
 
 	public IVirtualResource[] members() throws CoreException {
+		if (members == null) {
+			members = new IVirtualResource[0]; 
+		}
 		return members;
 	}
 	
@@ -86,6 +89,9 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	}
 
 	private IVirtualResource convert(IFlatResource flatResource) {
+		if (filter != null && !filter.accepts(flatResource)) {
+			return null;
+		}
 		IVirtualResource virtualResource = null;
 		if (flatResource instanceof IFlatFolder) {
 			virtualResource = convertFolder((IFlatFolder) flatResource);
@@ -307,6 +313,14 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 
 	public IVirtualReference[] getReferences() {
 		return references.toArray(new IVirtualReference[references.size()]);
+	}
+	
+	public IResourceFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(IResourceFilter filter) {
+		this.filter = filter;
 	}
 	
 }

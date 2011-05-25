@@ -21,11 +21,12 @@ import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlayVirtualCompo
  * @author Fred Bricon
  */
 public class OverlayComponentCore {
-
+	
 	public static IOverlayVirtualComponent createOverlayComponent(IProject aProject) {
 		return new OverlayVirtualComponent(aProject);
 	}
 
+	//TODO check and prevent circular references
 	public static IOverlayVirtualComponent createSelfOverlayComponent(IProject aProject) {
 		return new OverlaySelfComponent(aProject);
 	}

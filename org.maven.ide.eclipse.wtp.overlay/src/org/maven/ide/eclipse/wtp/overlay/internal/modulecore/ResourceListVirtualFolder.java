@@ -26,11 +26,11 @@ import org.eclipse.wst.common.componentcore.internal.resources.VirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 
-public class ResourceListVirtualFolder extends VirtualFolder {
+public class ResourceListVirtualFolder extends VirtualFolder implements IFilteredVirtualFolder {
 
 	private ArrayList<IResource> children;
 	private ArrayList<IContainer> underlying;
-	private ResourceFilter filter;
+	private IResourceFilter filter;
 	
 	public ResourceListVirtualFolder(
 			IProject aComponentProject,
@@ -55,7 +55,7 @@ public class ResourceListVirtualFolder extends VirtualFolder {
 		addChildren(looseResources);
 	}
 
-	public void setFilter(ResourceFilter filter) {
+	public void setFilter(IResourceFilter filter) {
 		this.filter = filter;
 	}
 	
@@ -141,5 +141,9 @@ public class ResourceListVirtualFolder extends VirtualFolder {
 				map.put(resource.getName(), childFolder);
 			}
 		} // end container
+	}
+
+	public IResourceFilter getFilter() {
+		return filter;
 	}
 }

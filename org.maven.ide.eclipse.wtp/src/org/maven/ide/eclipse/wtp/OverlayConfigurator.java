@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.war.Overlay;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
@@ -23,8 +24,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
+import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
+import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
@@ -32,12 +35,6 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.eclipse.wst.server.core.IModule;
-import org.eclipse.wst.server.core.IRuntimeType;
-import org.eclipse.wst.server.core.IServerType;
-import org.eclipse.wst.server.core.ServerCore;
-import org.eclipse.wst.server.core.ServerUtil;
-import org.eclipse.wst.server.core.model.ModuleDelegate;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
 import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
 import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
@@ -167,5 +164,13 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
   
   public void configureClasspath(IMavenProjectFacade facade, IClasspathDescriptor classpath, IProgressMonitor monitor)
       throws CoreException {
+  }
+  
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.wtp.WTPProjectConfigurator#getBuildParticipant(org.eclipse.m2e.core.project.IMavenProjectFacade, org.apache.maven.plugin.MojoExecution, org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata)
+   */
+  public AbstractBuildParticipant getBuildParticipant(IMavenProjectFacade projectFacade, MojoExecution execution,
+      IPluginExecutionMetadata executionMetadata) {
+    return null;
   }
 }

@@ -10,12 +10,14 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.wst.common.componentcore.internal.flat.IFlatResource;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 
-public class DefaultResourceFilter implements ResourceFilter {
+public class FileSystemResourceFilter implements IResourceFilter {
 
 	private SimpleScanner scanner;
 
-	public DefaultResourceFilter(Collection<String> inclusions, Collection<String> exclusions, IPath baseDirPath) {
+	public FileSystemResourceFilter(Collection<String> inclusions, Collection<String> exclusions, IPath baseDirPath) {
 		scanner = new SimpleScanner(baseDirPath);
 		if (inclusions != null && !inclusions.isEmpty()) {
 			scanner.setIncludes(inclusions.toArray(new String[inclusions.size()]));
@@ -33,6 +35,10 @@ public class DefaultResourceFilter implements ResourceFilter {
 		return scanner.accepts(resource.getLocation().toPortableString(), resource instanceof IFile);
 	}
 
+	public boolean accepts(IFlatResource resource) {
+		return scanner.accepts(resource.getModuleRelativePath().toPortableString()+IPath.SEPARATOR+resource.getName(), resource instanceof IVirtualFile);
+	}
+	
 	class SimpleScanner extends DirectoryScanner {
 		
 		private IPath baseDirPath;

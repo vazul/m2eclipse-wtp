@@ -62,7 +62,7 @@ public class OverlayVirtualArchiveComponent extends VirtualArchiveComponent impl
 			} else {
 			  IContainer[] containers = new IContainer[] {unpackedFolder};
 			  root = new ResourceListVirtualFolder(getProject(), getRuntimePath(), containers);
-			  root.setFilter(new DefaultResourceFilter(inclusions, exclusions, unpackedFolder.getLocation()));
+			  root.setFilter(new FileSystemResourceFilter(inclusions, exclusions, unpackedFolder.getLocation()));
 			}
 		}
 		return root;

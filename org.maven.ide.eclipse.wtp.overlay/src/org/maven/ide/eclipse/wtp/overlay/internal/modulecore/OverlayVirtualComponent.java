@@ -43,8 +43,6 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 
 	protected IProject project;
 
-	protected FlatVirtualComponent flatVirtualComponent; 
-	
 	protected Set<String> exclusionPatterns;
 	
 	protected Set<String> inclusionPatterns;
@@ -63,7 +61,7 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	}
 
 	public IVirtualFolder getRootFolder() {
-		System.err.println("returning rootFolder "); 
+		//System.err.println("returning rootFolder "); 
 		return getRoot();
 	}
 
@@ -72,13 +70,14 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 			return cachedRoot;
 		}
 		
-		System.err.println("returning new root "); 
+		//System.err.println("returning new root "); 
 		if (project != null) {
 			IVirtualComponent component = ComponentCore.createComponent(project);
 			if (component != null) {
 				//FlatVirtualComponent will build the project structure from the definition in .component
-				flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
-				cachedRoot = new CompositeVirtualFolder(flatVirtualComponent, ROOT);
+				FlatVirtualComponent flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
+				IResourceFilter filter = null;//new DynamicResourceFilter(getInclusions(), getExclusions()); 
+				cachedRoot = new CompositeVirtualFolder(flatVirtualComponent, ROOT, filter);
 			}
 		}
 		lastCacheUpdate = System.currentTimeMillis();
@@ -124,6 +123,7 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 				IVirtualReference[] references = root.getReferences(); 
 				return references;
 			} catch (Exception e) {
+				//TODO handle exception
 				e.printStackTrace();
 			}
 		}
@@ -138,4 +138,43 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 		return references;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime
+				* result
+				+ ((exclusionPatterns == null) ? 0 : exclusionPatterns
+						.hashCode());
+		result = prime
+				* result
+				+ ((inclusionPatterns == null) ? 0 : inclusionPatterns
+						.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OverlayVirtualComponent other = (OverlayVirtualComponent) obj;
+		if (!super.equals(obj)) {
+			return false;
+		}
+		if (exclusionPatterns == null) {
+			if (other.exclusionPatterns != null)
+				return false;
+		} else if (!exclusionPatterns.equals(other.exclusionPatterns))
+			return false;
+		if (inclusionPatterns == null) {
+			if (other.inclusionPatterns != null)
+				return false;
+		} else if (!inclusionPatterns.equals(other.inclusionPatterns))
+			return false;
+		return true;
+	}
 }

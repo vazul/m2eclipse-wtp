@@ -13,9 +13,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.war.Overlay;
 import org.apache.maven.plugin.war.overlay.InvalidOverlayConfigurationException;
@@ -292,18 +290,20 @@ public class WarPluginConfiguration {
     Overlay currentProjectOverlay = Overlay.createInstance();
     currentProjectOverlay.setArtifact(mavenProject.getArtifact());
     OverlayManager overlayManager = null;
+    List<Overlay> overlays = null;
     try {
       overlayManager = new OverlayManager(getConfiguredOverlays(), 
                                                          mavenProject, 
                                                          "**/**",//TODO cf global inclusions
                                                          "META-INF/MANIFEST.MF",//TODO cf global exclusions 
                                                          currentProjectOverlay);
+      overlays = overlayManager.getOverlays();
     } catch(InvalidOverlayConfigurationException ex) {
-      // TODO Auto-generated catch block
+      // TODO Handle error with markers
       System.err.println(ex);
+      overlays = Collections.emptyList();
     }
     
-    List<Overlay> overlays = overlayManager.getOverlays();
     return overlays;
   }
 

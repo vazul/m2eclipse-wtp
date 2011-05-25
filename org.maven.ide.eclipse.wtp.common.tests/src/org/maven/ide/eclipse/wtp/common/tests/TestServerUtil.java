@@ -1,17 +1,11 @@
 package org.maven.ide.eclipse.wtp.common.tests;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.wst.common.componentcore.internal.flat.FlatFolder;
-import org.eclipse.wst.common.componentcore.internal.flat.IFlatFolder;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.IRuntimeType;
@@ -55,7 +49,7 @@ public class TestServerUtil {
     for(IModuleResource r : resources) {
       all.add(r);
       if (r instanceof IModuleFolder) {
-        walk((IModuleResource[])((IModuleFolder)r).members(), all);
+        walk(((IModuleFolder)r).members(), all);
       }
     }
     
