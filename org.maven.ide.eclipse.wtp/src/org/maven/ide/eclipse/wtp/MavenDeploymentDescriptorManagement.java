@@ -161,7 +161,8 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
     } 
     targetFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     
-    deleteDirectory(generatedDescriptorLocation);    
+    deleteDirectory(generatedDescriptorLocation);
+    
   }
 
   private IFolder getEarResourcesDir(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
@@ -173,7 +174,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       ProjectUtils.createFolder(appResourcesFolder, monitor);
     }
     if (!appResourcesFolder.isDerived()) {
-      appResourcesFolder.setDerived(true, monitor);//TODO Eclipse < 3.6 doesn't support setDerived(bool, monitor)
+      appResourcesFolder.setDerived(true, monitor);
     }
     return appResourcesFolder;
   }
@@ -229,6 +230,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
   private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId, String goal) throws CoreException {
     for(MojoExecution execution : executionPlan.getMojoExecutions()) {
+      System.err.println(execution.getArtifactId() + " : " + execution.getGoal());
       if(artifactId.equals(execution.getArtifactId()) && goal.equals(execution.getGoal())) {
         return execution;
       }

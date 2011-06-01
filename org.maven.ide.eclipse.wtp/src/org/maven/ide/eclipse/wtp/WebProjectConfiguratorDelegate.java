@@ -172,10 +172,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       //the regular web source directory. First resources discovered take precedence on deployment
       IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
       component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
-      if (config.getWebResources() != null && config.getWebResources().length > 0) {
+      //if (config.getWebResources() != null && config.getWebResources().length > 0) {
         String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
         WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
-      }   
+      //}   
     }
   }
 
@@ -364,8 +364,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
         if (!descriptor.isOptionalDependency() || usedInEar) {
           // remove mandatory project dependency from classpath
-          iter.remove();
-          continue;
+          //iter.remove();
+          //continue;
         }//else : optional dependency not used in ear -> need to trick ClasspathAttribute with NONDEPENDENCY_ATTRIBUTE 
       }
 
@@ -380,8 +380,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         manifestCp.append(entry.getPath().lastSegment());
 
         // ear references aren't kept in the Maven Dependencies
-        iter.remove();
-        continue;
+        //iter.remove();
+        //continue;
       }
 
       // add non-dependency attribute
@@ -443,7 +443,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       mf.setClassPath(manifestCp.toString());
 
       try {
-        J2EEProjectUtilities.writeManifest(project, mf);
+        //J2EEProjectUtilities.writeManifest(project, mf);
       } catch(Exception ex) {
         log.error("Could not write web module manifest file", ex);
       }
