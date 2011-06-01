@@ -338,7 +338,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       Artifact artifact = mavenProject.getArtifactMap().get(key);
       String extension = artifact.getArtifactHandler().getExtension();
 
-      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() && Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope)) {
+      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() 
+      && (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope))) {
         //get deployed name for project dependencies
         //TODO can this be done somehow more elegantly?
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
