@@ -139,7 +139,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNoErrors(war);
     assertNoErrors(runtimeJar);
     IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
-    assertEquals(3, warComponent.getReferences().length);
+    IVirtualReference[] references = warComponent.getReferences();
+    assertEquals("Unexpected number of references found :"+toString(references),3, references.length);
   }
 
   @Test

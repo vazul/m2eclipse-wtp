@@ -256,14 +256,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     IVirtualReference[] oldRefs = WTPProjectsUtil.extractHardReferences(component, false);
     
-    IVirtualReference[] updatedOverlayRefs = references.toArray(new IVirtualReference[references.size()]);
+    IVirtualReference[] newRefs = references.toArray(new IVirtualReference[references.size()]);
     
-    if (WTPProjectsUtil.hasChanged(oldRefs, updatedOverlayRefs)){
+    if (WTPProjectsUtil.hasChanged(oldRefs, newRefs)){
       //Only write in the .component file if necessary 
       IVirtualReference[] overlayRefs = WTPProjectsUtil.extractHardReferences(component, true);
-      IVirtualReference[] allRefs = new IVirtualReference[overlayRefs.length + updatedOverlayRefs.length];
-      System.arraycopy(updatedOverlayRefs, 0, allRefs, 0, updatedOverlayRefs.length);
-      System.arraycopy(overlayRefs, 0, allRefs, updatedOverlayRefs.length, overlayRefs.length);
+      IVirtualReference[] allRefs = new IVirtualReference[overlayRefs.length + newRefs.length];
+      System.arraycopy(newRefs, 0, allRefs, 0, newRefs.length);
+      System.arraycopy(overlayRefs, 0, allRefs, newRefs.length, overlayRefs.length);
       component.setReferences(allRefs);
     }
     
@@ -338,7 +338,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       Artifact artifact = mavenProject.getArtifactMap().get(key);
       String extension = artifact.getArtifactHandler().getExtension();
 
-      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() && Artifact.SCOPE_COMPILE.equals(scope)) {
+      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() && Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope)) {
         //get deployed name for project dependencies
         //TODO can this be done somehow more elegantly?
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
