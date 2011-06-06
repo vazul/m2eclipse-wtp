@@ -21,6 +21,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.m2e.jdt.IClasspathManager;
+import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 
 /**
  * ProjectUtils
@@ -111,4 +116,22 @@ public class ProjectUtils {
       project.setDescription(description, monitor);
     }
   }
+  
+  public static IClasspathEntry getEarContainerEntry(IJavaProject javaProject) {
+    if(javaProject != null) {
+      try {
+        for(IClasspathEntry entry : javaProject.getRawClasspath()) {
+          IPath containerPath = entry.getPath();
+          if (containerPath != null && containerPath.segmentCount() > 0
+              && "org.eclipse.jst.j2ee.internal.module.container".equals(containerPath.segment(0))){
+            return entry;
+          }
+        }
+      } catch(JavaModelException ex) {
+        return null;
+      }
+    }
+    return null;
+  }
+  
 }

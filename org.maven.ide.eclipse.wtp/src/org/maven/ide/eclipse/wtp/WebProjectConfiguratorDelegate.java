@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.jst.j2ee.commonarchivecore.internal.helpers.ArchiveManifest;
@@ -57,7 +58,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
-import org.maven.ide.eclipse.wtp.internal.AntPathMatcher;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
@@ -256,14 +256,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     IVirtualReference[] oldRefs = WTPProjectsUtil.extractHardReferences(component, false);
     
-    IVirtualReference[] updatedOverlayRefs = references.toArray(new IVirtualReference[references.size()]);
+    IVirtualReference[] newRefs = references.toArray(new IVirtualReference[references.size()]);
     
-    if (WTPProjectsUtil.hasChanged(oldRefs, updatedOverlayRefs)){
+    if (WTPProjectsUtil.hasChanged(oldRefs, newRefs)){
       //Only write in the .component file if necessary 
       IVirtualReference[] overlayRefs = WTPProjectsUtil.extractHardReferences(component, true);
-      IVirtualReference[] allRefs = new IVirtualReference[overlayRefs.length + updatedOverlayRefs.length];
-      System.arraycopy(updatedOverlayRefs, 0, allRefs, 0, updatedOverlayRefs.length);
-      System.arraycopy(overlayRefs, 0, allRefs, updatedOverlayRefs.length, overlayRefs.length);
+      IVirtualReference[] allRefs = new IVirtualReference[overlayRefs.length + newRefs.length];
+      System.arraycopy(newRefs, 0, allRefs, 0, newRefs.length);
+      System.arraycopy(overlayRefs, 0, allRefs, newRefs.length, overlayRefs.length);
       component.setReferences(allRefs);
     }
     
@@ -314,8 +314,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
-    StringBuilder manifestCp = new StringBuilder();
-
+    IJavaProject javaProject = JavaCore.create(project);
+    IClasspathEntry earContainer = ProjectUtils.getEarContainerEntry(javaProject);
+    IClasspathEntry[] earContainerEntries = null;
+    if (earContainer != null) {
+      earContainerEntries = JavaCore.getReferencedClasspathEntries(earContainer, javaProject);
+    }
+    
     /*
      * Need to take care of three separate cases
      * 
@@ -336,9 +341,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
-      String extension = artifact.getArtifactHandler().getExtension();
 
-      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() && Artifact.SCOPE_COMPILE.equals(scope)) {
+      //Remove dependent project from the Maven Library, as it's supposed to be brought by the Web Library
+      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind()
+      && (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope))) {
         //get deployed name for project dependencies
         //TODO can this be done somehow more elegantly?
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
@@ -348,50 +354,31 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         if(component == null){
           continue;
         }
-        String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
-        
-        boolean usedInEar = opts.isReferenceFromEar(deployedName);
-        if(opts.isSkinnyWar() && usedInEar) {
-          if(manifestCp.length() > 0) {
-            manifestCp.append(" ");
-          }
-          //MNGECLIPSE-2393 prepend ManifestClasspath prefix
-          if (config.getManifestClasspathPrefix() != null && !JEEPackaging.isJEEPackaging(artifact.getType())) {
-              manifestCp.append(config.getManifestClasspathPrefix());
-          }
-          manifestCp.append(deployedName);
-        }
-
-        if (!descriptor.isOptionalDependency() || usedInEar) {
+        if (!descriptor.isOptionalDependency()) {
           // remove mandatory project dependency from classpath
-          //iter.remove();
-          //continue;
-        }//else : optional dependency not used in ear -> need to trick ClasspathAttribute with NONDEPENDENCY_ATTRIBUTE 
-      }
-
-      if(opts.isSkinnyWar() && opts.isReferenceFromEar(descriptor)) {
-
-        if(manifestCp.length() > 0) {
-          manifestCp.append(" ");
+          iter.remove();
+          continue;
         }
-        if(config.getManifestClasspathPrefix() != null && !JEEPackaging.isJEEPackaging(artifact.getType())) {
-          manifestCp.append(config.getManifestClasspathPrefix());
-        }
-        manifestCp.append(entry.getPath().lastSegment());
-
-        // ear references aren't kept in the Maven Dependencies
-        //iter.remove();
-        //continue;
       }
+      
+      String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+      boolean packaged  = opts.isPackaged(deployedName);
+      boolean usedInEar = !packaged && isUsedInEar(earContainerEntries, deployedName);
 
+      if (usedInEar) {
+        // remove mandatory project dependency from classpath
+        iter.remove();
+        continue;
+      }//else : optional dependency not used in ear -> need to trick ClasspathAttribute with NONDEPENDENCY_ATTRIBUTE 
+    
       // add non-dependency attribute
       // Check the scope & set WTP non-dependency as appropriate
       // Optional artifact shouldn't be deployed
-      if(Artifact.SCOPE_PROVIDED.equals(scope) || Artifact.SCOPE_TEST.equals(scope)
-          || Artifact.SCOPE_SYSTEM.equals(scope) || descriptor.isOptionalDependency()) {
+      if((Artifact.SCOPE_PROVIDED.equals(scope) || Artifact.SCOPE_TEST.equals(scope)
+          || Artifact.SCOPE_SYSTEM.equals(scope) || descriptor.isOptionalDependency()) || !packaged) {
         descriptor.setClasspathAttribute(NONDEPENDENCY_ATTRIBUTE.getName(), NONDEPENDENCY_ATTRIBUTE.getValue());
       }
-
+    
       // collect duplicate file names 
       if (!names.add(entry.getPath().lastSegment())) {
         dups.add(entry.getPath().lastSegment());
@@ -422,34 +409,26 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
           log.error("File copy failed", ex);
         }
       }
-      
     }
-
-    if(opts.isSkinnyWar()) {
-      
-      //writing the manifest only works when the project has been properly created
-      //placing this check on the top of the method broke 2 other tests
-      //thats why its placed here now.
-      if(ComponentCore.createComponent(project) == null) {
-        return;
-      }
-
-      //write manifest, using internal API - seems ok for 3.4/3.5, though
-      ArchiveManifest mf = J2EEProjectUtilities.readManifest(project);
-      if(mf == null) {
-        mf = new ArchiveManifestImpl();
-      }
-      mf.addVersionIfNecessary();
-      mf.setClassPath(manifestCp.toString());
-
-      try {
-        //J2EEProjectUtilities.writeManifest(project, mf);
-      } catch(Exception ex) {
-        log.error("Could not write web module manifest file", ex);
-      }
-    }
-    
   }
+
+  /**
+   * @param earContainerEntries
+   * @param deployedName
+   * @return
+   */
+  private boolean isUsedInEar(IClasspathEntry[] earContainerEntries, String deployedName) {
+    if (earContainerEntries == null || earContainerEntries.length == 0)
+    return false;
+    
+    for(IClasspathEntry entry : earContainerEntries) {
+      if (deployedName.equals(entry.getPath().lastSegment())){
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   private static boolean isDifferent(File src, File dst) {
     if (!dst.exists()) {
@@ -458,89 +437,5 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     return src.length() != dst.length() 
         || src.lastModified() != dst.lastModified();
-  }
-
-  private static class WarPackagingOptions {
-
-    private boolean isAddManifestClasspath;
-
-    //these are used in the skinny use case to decide wheter a dependencies gets 
-    //referenced from the ear, or if it is (exceptionally) placed in the WEB-INF/lib
-    String[] packagingIncludes;
-
-    String[] packagingExcludes;
-
-    public WarPackagingOptions(WarPluginConfiguration config) {
-
-      isAddManifestClasspath = config.isAddManifestClasspath();
-
-      packagingExcludes = config.getPackagingExcludes();
-      packagingIncludes = config.getPackagingIncludes();
-    }
-
-    public boolean isSkinnyWar() {
-      return isAddManifestClasspath;
-    }
-
-    public boolean isReferenceFromEar(IClasspathEntryDescriptor descriptor) {
-
-      String scope = descriptor.getScope();
-      //these dependencies aren't added to the manifest cp
-      //retain optional dependencies here, they might be used just to express the 
-      //dependency to be used in the manifest
-      if(Artifact.SCOPE_PROVIDED.equals(scope) || Artifact.SCOPE_TEST.equals(scope)
-          || Artifact.SCOPE_SYSTEM.equals(scope)) {
-        return false;
-      }
-
-      //calculate in regard to includes/excludes whether this jar is
-      //to be packaged into  WEB-INF/lib
-      String jarFileName = "WEB-INF/lib/" + descriptor.getPath().lastSegment();
-      return isExcludedFromWebInfLib(jarFileName);
-    }
-
-    /**
-     * @param depComponent
-     * @return
-     */
-    public boolean isReferenceFromEar(String jarFileName) {
-      
-      //calculate in regard to includes/excludes wether this jar is
-      //to be packaged into  WEB-INF/lib
-      return isExcludedFromWebInfLib("WEB-INF/lib/"+jarFileName);
-    }
-
-    private boolean isExcludedFromWebInfLib(String virtualLibPath) {
-
-      AntPathMatcher matcher = new AntPathMatcher();
-
-      for(String excl : packagingExcludes) {
-        if(matcher.match(excl, virtualLibPath)) {
-
-          //stop here already, since exclusions seem to have precedence over inclusions
-          //it is not documented as such for the maven war-plugin, I concluded this from experimentation
-          //should be verfied, though
-          return true;
-        }
-      }
-
-      //so the path is not excluded, check if it is included into the war packaging
-      for(String incl : packagingIncludes) {
-        if(matcher.match(incl, virtualLibPath)) {
-          return false;
-        }
-      }
-
-      //if we're here it means the path has not been specifically included either
-      //that means either no inclusions are defined at all (<packagingIncludes> missing or empty)
-      //or the jar is really not included
-      if(packagingIncludes.length == 0) {
-        //undefined inclusions mean maven war plugin default -> will be included in war
-        return false;
-      } else {
-        //specifically not included
-        return true;
-      }
-    }
   }
 }

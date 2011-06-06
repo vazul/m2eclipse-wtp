@@ -18,19 +18,16 @@ import org.maven.ide.eclipse.wtp.ProjectUtils;
 /**
  * EarManifestConfigurator
  *
- * @author fbricon
  */
 public class EarManifestConfigurator extends JarManifestConfigurator {
 
   protected IPath getManifestdir(IMavenProjectFacade facade) {
     IProject project = facade.getProject();
     IPath localEarResourceFolder =  ProjectUtils.getM2eclipseWtpFolder(facade.getMavenProject(), project);
-    return project.getFullPath().append(localEarResourceFolder).append(MavenWtpConstants.EAR_RESOURCES_FOLDER).append("META-INF");
+    return project.getFullPath().append(localEarResourceFolder)
+                                .append(MavenWtpConstants.EAR_RESOURCES_FOLDER);
   }
   
-  /* (non-Javadoc)
-   * @see org.maven.ide.eclipse.wtp.manifest.AbstractManifestConfigurator#getExecutionKey()
-   */
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-ear-plugin", "", "ear", null, null);
     return key;

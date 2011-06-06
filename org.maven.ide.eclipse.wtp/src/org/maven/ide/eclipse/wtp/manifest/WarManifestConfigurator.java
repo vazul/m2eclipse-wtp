@@ -12,8 +12,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
+import org.maven.ide.eclipse.wtp.IPackagingConfiguration;
 import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
+import org.maven.ide.eclipse.wtp.WarPackagingOptions;
+import org.maven.ide.eclipse.wtp.WarPluginConfiguration;
 
 /**
  * WarManifestConfigurator
@@ -26,8 +29,7 @@ public class WarManifestConfigurator extends JarManifestConfigurator {
     IProject project = facade.getProject();
     IPath localEarResourceFolder =  ProjectUtils.getM2eclipseWtpFolder(facade.getMavenProject(), project);
     return project.getFullPath().append(localEarResourceFolder)
-                                .append(MavenWtpConstants.WEB_RESOURCES_FOLDER)
-                                .append("META-INF");
+                                .append(MavenWtpConstants.WEB_RESOURCES_FOLDER);
   }
   
   /* (non-Javadoc)
@@ -43,5 +45,11 @@ public class WarManifestConfigurator extends JarManifestConfigurator {
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-war-plugin", "", "war", null, null);
     return key;
+  }
+  
+  protected IPackagingConfiguration getPackagingConfiguration (IMavenProjectFacade facade) {
+    WarPluginConfiguration warconfig = new WarPluginConfiguration(facade.getMavenProject(), facade.getProject());
+    IPackagingConfiguration packagingconfig = new WarPackagingOptions(warconfig);
+    return packagingconfig;
   }
 }

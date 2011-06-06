@@ -6,13 +6,15 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.manifest.wrapper;
+package org.maven.ide.eclipse.wtp;
+
 
 /**
- * IArchiver
+ * IPackagingOption
  *
- * @author fbricon
+ * @author Fred Bricon
  */
-public interface IArchiver {
+public interface IPackagingConfiguration {
 
+  boolean isPackaged(String deployedFileName);
 }

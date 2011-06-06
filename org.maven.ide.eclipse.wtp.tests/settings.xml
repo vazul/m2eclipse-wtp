@@ -1,6 +1,5 @@
 <settings>
   <localRepository>target/localrepo</localRepository>
-
   <profiles>
     <profile>
       <id>test</id>
@@ -19,7 +18,7 @@
             <snapshots><enabled>true</enabled></snapshots>
             <releases><enabled>true</enabled></releases>
           </pluginRepository>
-        </pluginRepositories>
+        </pluginRepositories> 
         <properties>
         	<db.username>fred</db.username>
         </properties>

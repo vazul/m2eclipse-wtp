@@ -139,13 +139,12 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     //assertHasMarker("org.maven.ide.eclipse.maven2Problem:Cannot find setter, adder nor field in org.apache.maven.plugin.resources.Resource for 'filter'", markers);
     
     IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
-    assertFalse("Filtered folder shouldn't exist", filteredFolder.exists());
+    assertTrue("Filtered folder should always be created", filteredFolder.exists());
        
     //Let's change the active profile to see if the values are updated
     updateProject(web, "good.pom.xml");    
     
     assertNoErrors(web);
-    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
     assertTrue("Files should have been filtered",filteredFolder.members().length > 0);
   }
 

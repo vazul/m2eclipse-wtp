@@ -25,10 +25,10 @@
 
   <properties>
     <tycho-version>0.12.0</tycho-version>
-    <m2eclipse-core.version>0.13.0.201105252313</m2eclipse-core.version>
+    <m2eclipse-core.version>0.13.0.201105260005</m2eclipse-core.version>
     <m2eclipse-core.site>0.13.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e37</target.platform>        
-    <!-- <target.platform>m2e-wtp-e36</target.platform> -->       
+    <test.timeout>1800</test.timeout><!--  30 mins -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
   </properties>
 
@@ -100,9 +100,8 @@
               <include>**/*Test.java</include>
             </includes>
             <argLine>${tycho.test.jvmArgs}</argLine>
-            <!-- kill test JVM it tests take more than 20 minutes (1200 seconds) 
-              to finish -->
-            <forkedProcessTimeoutInSeconds>1200</forkedProcessTimeoutInSeconds>
+            <!-- kill test JVM if tests take more than X seconds to finish -->
+            <forkedProcessTimeoutInSeconds>${test.timeout}</forkedProcessTimeoutInSeconds>
           </configuration>
         </plugin>
         <plugin>

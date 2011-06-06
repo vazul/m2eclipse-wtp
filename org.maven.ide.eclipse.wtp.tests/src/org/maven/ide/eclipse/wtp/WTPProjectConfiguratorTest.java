@@ -75,8 +75,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
 
     IResource[] underlyingResources = getUnderlyingResources(project);
-    assertEquals(1, underlyingResources.length);
-    assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[0]);
+    assertEquals(2, underlyingResources.length);
+    assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[1]);
 
     assertFalse(project.exists(new Path("/src/main/webapp/WEB-INF/lib")));
 }
@@ -139,7 +139,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNoErrors(war);
     assertNoErrors(runtimeJar);
     IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
-    assertEquals(3, warComponent.getReferences().length);
+    IVirtualReference[] references = warComponent.getReferences();
+    assertEquals("Unexpected number of references found :"+toString(references),3, references.length);
   }
 
   @Test
@@ -162,8 +163,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualComponent component = ComponentCore.createComponent(project);
     IVirtualFolder root = component.getRootFolder();
     IResource[] underlyingResources = root.getUnderlyingResources();
-    assertEquals(1, underlyingResources.length);
-    assertEquals(project.getFolder("/webapp"), underlyingResources[0]);
+    assertEquals(2, underlyingResources.length);
+    assertEquals(project.getFolder("/webapp"), underlyingResources[1]);
   }
 
 
@@ -174,14 +175,14 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
     IVirtualFolder rootwar = warComponent.getRootFolder();
     IResource[] warResources = rootwar.getUnderlyingResources();
-    assertEquals(1, warResources.length);
-    assertEquals(projects[0].getFolder("/WebContent"), warResources[0]);
+    assertEquals(2, warResources.length);
+    assertEquals(projects[0].getFolder("/WebContent"), warResources[1]);
 
     IVirtualComponent earComponent = ComponentCore.createComponent(projects[1]);
     IVirtualFolder rootEar = earComponent.getRootFolder();
     IResource[] earResources = rootEar.getUnderlyingResources();
-    assertEquals(1, earResources.length);
-    assertEquals(projects[1].getFolder("/EarContent"), earResources[0]);
+    assertEquals(2, earResources.length);
+    assertEquals(projects[1].getFolder("/EarContent"), earResources[1]);
   }
 
   
@@ -1307,8 +1308,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualComponent webComp = ComponentCore.createComponent(web);
     IVirtualFolder rootWeb = webComp.getRootFolder();
     IResource[] webResources = rootWeb.getUnderlyingResources();
-    assertEquals(1, webResources.length);
-    assertEquals(web.getFolder("/src/main/webapp"), webResources[0]);
+    assertEquals(2, webResources.length);
+    assertEquals(web.getFolder("/src/main/webapp"), webResources[1]);
     
     IVirtualFile virtualWebXml = rootWeb.getFile("WEB-INF/web.xml");
     assertTrue(virtualWebXml.exists());
@@ -1331,8 +1332,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNoErrors(web);
     
     webResources = rootWeb.getUnderlyingResources();
-    assertEquals(1, webResources.length);
-    assertEquals(web.getFolder("/src/main/webapp"), webResources[0]);
+    assertEquals(2, webResources.length);
+    assertEquals(web.getFolder("/src/main/webapp"), webResources[1]);
     
     webXmlFiles = virtualWebXml.getUnderlyingFiles();
     assertEquals("found "+toString(webXmlFiles),  1, webXmlFiles.length);
@@ -1512,7 +1513,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(warRef);
     assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
 
-    IVirtualComponent warComp = warRef.getReferencedComponent();
+    IVirtualComponent warComp = ComponentCore.createComponent(war);
     IVirtualReference[] fullSkinnyReferences = warComp.getReferences();
     assertEquals(1, fullSkinnyReferences.length);
     assertTrue(fullSkinnyReferences[0].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
