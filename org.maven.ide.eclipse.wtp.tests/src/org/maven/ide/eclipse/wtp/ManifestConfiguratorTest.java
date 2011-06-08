@@ -75,4 +75,37 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     String manifest =getAsString(manifestFile);
     assertContains("Class-Path: lib/log4j-1.2.13.jar lib/core-0.0.1-SNAPSHOT.jar lib/junit", manifest);
   }
+  
+  @Test
+  public void testManifestInEarAndConnector() throws Exception {
+    IProject[] projects = importProjects(
+        "projects/manifests/ear-connector/", //
+        new String[] { 
+                      "ear/pom.xml", 
+                      "core/pom.xml", 
+                      "rar/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    IProject ear =  projects[0];
+    assertNoErrors(ear);    
+    IProject jar =  projects[1];
+    assertNoErrors(jar);    
+    IProject rar =  projects[2];
+    assertNoErrors(rar);      
+    
+    IFile manifestFile = rar.getFile("target/classes/META-INF/MANIFEST.MF");
+    String manifest =getAsString(manifestFile);
+    assertContains("Class-Path: lib/commons-collections-2.0.jar lib/core-0.0.1-SNAPSHOT.ja", manifest);
+    //For some reason, CR/LF not detected in String.contains, so we split the assert
+    assertContains(" r lib/junit-3.8.1.jar", manifest);
+    
+    IFile earManifestFile = ear.getFile("target/m2e-wtp/ear-resources/META-INF/MANIFEST.MF");
+    String earManifest =getAsString(earManifestFile);
+    assertNotContains("Class-Path:", earManifest);
+    String createdBy = "Created-By: Maven Integration for Eclipse";
+    assertContains(createdBy, manifest);
+  }
+  
 }

@@ -76,7 +76,7 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
     fixMissingModuleCoreNature(project, monitor);
     
-    removeTestFolderLinks(project, mavenProject, monitor, "/"); //XXX Doesn't work in certain -unidentified yet- circumstances!!!
+    removeTestFolderLinks(project, mavenProject, monitor, "/");
 
     //Remove "library unavailable at runtime" warning.
     setNonDependencyAttributeToContainer(project, monitor);
