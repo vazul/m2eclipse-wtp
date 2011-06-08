@@ -52,5 +52,27 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     assertContains("Class-Path: junit-3.8.1.jar", manifest);
   }
 
-  
+  @Test
+  public void testMECLIPSEWTP63_EjbManifest() throws Exception {
+    IProject[] projects = importProjects(
+        "projects/manifests/MECLIPSEWTP-63/", //
+        new String[] {"javaEE/pom.xml", 
+                      "javaEE/ear/pom.xml", 
+                      "javaEE/core/pom.xml", 
+                      "javaEE/ejb/pom.xml"},
+        new ResolverConfiguration());
+
+    waitForJobsToComplete();
+    
+    IProject ear =  projects[1];
+    assertNoErrors(ear);    
+    IProject jar =  projects[2];
+    assertNoErrors(jar);    
+    IProject ejb =  projects[3];
+    assertNoErrors(ejb);      
+    
+    IFile manifestFile = ejb.getFile("target/classes/META-INF/MANIFEST.MF");
+    String manifest =getAsString(manifestFile);
+    assertContains("Class-Path: lib/log4j-1.2.13.jar lib/core-0.0.1-SNAPSHOT.jar lib/junit", manifest);
+  }
 }
