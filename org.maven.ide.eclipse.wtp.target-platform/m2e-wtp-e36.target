@@ -45,7 +45,7 @@
 <location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
 <unit id="org.slf4j.api" version="1.6.1.v20100831-0715"/>
 <unit id="ch.qos.logback.core" version="0.9.27.v20110224-1110"/>
-<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20110304120314/repository"/>
+<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.m2e.sdk.feature.feature.group" version="0.13.0.201105260005"/>

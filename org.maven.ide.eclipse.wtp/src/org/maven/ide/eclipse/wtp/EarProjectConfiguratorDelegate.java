@@ -20,6 +20,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -126,6 +127,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       {
         firstInexistentfolder.delete(true, monitor);
       }
+      
+      project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     }
 
     removeTestFolderLinks(project, mavenProject, monitor, "/");
@@ -136,19 +139,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
   }
 
-  private IFolder findFirstInexistentFolder(IProject project, IPath targetPath) {
-    StringBuilder path = new StringBuilder();
-    for (String segment : targetPath.segments()) {
-      path.append(IPath.SEPARATOR);
-      path.append(segment);
-      IFolder curFolder = project.getFolder(path.toString());
-      if (!curFolder.exists()) {
-        return curFolder;
-      }
-    }
-    return null;
-  }
-  
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
@@ -241,10 +231,5 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String artifactPath = ArtifactHelper.getM2REPOVarPath(artifact);
       IVirtualComponent depComponent = ComponentCore.createArchiveComponent(earComponent.getProject(), artifactPath);
       return depComponent;
-  }
-  
-  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
-      IProgressMonitor monitor) throws CoreException {
-    // do nothing
   }
 }

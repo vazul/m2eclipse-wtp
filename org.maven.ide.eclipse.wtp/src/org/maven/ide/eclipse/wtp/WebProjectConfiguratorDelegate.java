@@ -97,6 +97,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IFile defaultWebXml = project.getFolder(warSourceDirectory).getFile("WEB-INF/web.xml");
     IFolder libDir = project.getFolder(warSourceDirectory).getFolder("WEB-INF/lib");
     
+    IFolder firstInexistentfolder = null;
+    IFolder metaInfFolder = project.getFolder(warSourceDirectory).getFolder("META-INF");
+    if (!metaInfFolder.exists()) {
+      firstInexistentfolder = findFirstInexistentFolder(project, metaInfFolder.getProjectRelativePath());
+    }   
+
+    
     boolean alreadyHasWebXml = defaultWebXml.exists();
     boolean alreadyHasLibDir = libDir.exists();
         
@@ -176,6 +183,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
         WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
       //}   
+    }
+    
+    if (firstInexistentfolder != null && firstInexistentfolder.exists())
+    {
+      firstInexistentfolder.delete(true, monitor);
     }
   }
 
@@ -315,11 +327,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
     IJavaProject javaProject = JavaCore.create(project);
-    IClasspathEntry earContainer = ProjectUtils.getEarContainerEntry(javaProject);
-    IClasspathEntry[] earContainerEntries = null;
-    if (earContainer != null) {
-      earContainerEntries = JavaCore.getReferencedClasspathEntries(earContainer, javaProject);
-    }
+    IClasspathEntry[] earContainerEntries = ProjectUtils.getEarContainerEntries(javaProject);
     
     /*
      * Need to take care of three separate cases
@@ -341,10 +349,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
-
+      boolean deployableScope = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope));
       //Remove dependent project from the Maven Library, as it's supposed to be brought by the Web Library
-      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind()
-      && (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope))) {
+      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() &&  deployableScope) {
         //get deployed name for project dependencies
         //TODO can this be done somehow more elegantly?
         IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
@@ -363,7 +370,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       
       String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
       boolean packaged  = opts.isPackaged(deployedName);
-      boolean usedInEar = !packaged && isUsedInEar(earContainerEntries, deployedName);
+      boolean usedInEar = !packaged && deployableScope;//&& isUsedInEar(earContainerEntries, deployedName);
 
       if (usedInEar) {
         // remove mandatory project dependency from classpath

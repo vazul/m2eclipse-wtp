@@ -21,8 +21,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathContainer;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.m2e.jdt.IClasspathManager;
 import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
@@ -117,21 +119,20 @@ public class ProjectUtils {
     }
   }
   
-  public static IClasspathEntry getEarContainerEntry(IJavaProject javaProject) {
+  public static IClasspathEntry[] getEarContainerEntries(IJavaProject javaProject) {
+    IClasspathEntry[] entries = null;
     if(javaProject != null) {
       try {
-        for(IClasspathEntry entry : javaProject.getRawClasspath()) {
-          IPath containerPath = entry.getPath();
-          if (containerPath != null && containerPath.segmentCount() > 0
-              && "org.eclipse.jst.j2ee.internal.module.container".equals(containerPath.segment(0))){
-            return entry;
-          }
+        IClasspathContainer earContainer = 
+            JavaCore.getClasspathContainer(new Path("org.eclipse.jst.j2ee.internal.module.container"), javaProject);
+        if (earContainer != null) {
+          entries = earContainer.getClasspathEntries();
         }
       } catch(JavaModelException ex) {
-        return null;
+        //Ignore
       }
     }
-    return null;
+    return entries;
   }
   
 }

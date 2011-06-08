@@ -69,6 +69,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testSimple01_import() throws Exception {
     IProject project = importProject("projects/simple/p01/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
@@ -159,7 +160,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testNonDefaultWarSourceDirectory() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-627/TestWar/pom.xml", new ResolverConfiguration());
-    
+    waitForJobsToComplete();
     IVirtualComponent component = ComponentCore.createComponent(project);
     IVirtualFolder root = component.getRootFolder();
     IResource[] underlyingResources = root.getUnderlyingResources();
@@ -171,7 +172,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE1600_absoluteDirectories() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-1600/", new String[] {"test/pom.xml", "testEAR/pom.xml"}, new ResolverConfiguration());
-    
+    waitForJobsToComplete();
     IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
     IVirtualFolder rootwar = warComponent.getRootFolder();
     IResource[] warResources = rootwar.getUnderlyingResources();
@@ -673,9 +674,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     //check that manifest classpath only contain utility1 and commons-lang
     classpath = mf2.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
     assertTrue(classpath.contains(utilityRef1.getArchiveName()));
-    assertFalse(classpath.contains(utilityRef2.getArchiveName()));
-    assertTrue(classpath.contains("commons-lang-2.4.jar"));
-    assertFalse(classpath.contains("commons-collections-2.0.jar"));
+    assertTrue(classpath.contains(utilityRef2.getArchiveName()));
+    //assertFalse(classpath.contains(utilityRef2.getArchiveName())); 
+    assertTrue(classpath.contains("commons-lang-2.4.jar"));//Maven manifest contains all entries!!!
+    //assertFalse(classpath.contains("commons-collections-2.0.jar"));
+    assertTrue(classpath.contains("commons-collections-2.0.jar"));//Maven manifest contains all entries!!!
+    
     //...but not junit, which is a test dependency
     assertFalse(classpath.contains("junit-3.8.1.jar"));
     
@@ -1297,6 +1301,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE2357_customWebXml() throws Exception {
     IProject web = importProject("projects/MNGECLIPSE-2357/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     assertEquals("MNGECLIPSE-2357",J2EEProjectUtilities.getServerContextRoot(web));
     
     IFacetedProject facetedProject = ProjectFacetsManager.create(web);
@@ -1385,10 +1390,10 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualReference[] warRefs = skinnyWarComp.getReferences();
     assertEquals(toString(warRefs),5, warRefs.length);
     
-    assertEquals(utility1, warRefs[0].getReferencedComponent().getProject());
-    assertEquals("/", warRefs[0].getRuntimePath().toString());
-    assertEquals(ejb, warRefs[1].getReferencedComponent().getProject());
-    assertEquals("/", warRefs[1].getRuntimePath().toString());    
+    assertEquals(ejb, warRefs[0].getReferencedComponent().getProject());
+    assertEquals("/", warRefs[0].getRuntimePath().toString());    
+    assertEquals(utility1, warRefs[1].getReferencedComponent().getProject());
+    assertEquals("/", warRefs[1].getRuntimePath().toString());
     assertTrue(warRefs[2].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
     assertEquals("/", warRefs[2].getRuntimePath().toString());  
     assertTrue(warRefs[3].getReferencedComponent().getDeployedName().endsWith("commons-collections-2.0.jar"));  
@@ -1400,9 +1405,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
     //check that manifest classpath contains all dependencies
     String classpath = mf1.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+    assertTrue(classpath.startsWith(ejbRef.getArchiveName()));
     assertTrue(classpath.contains("lib/"+utilityRef1.getArchiveName()));
-    assertTrue(classpath.contains(ejbRef.getArchiveName()));
-    assertFalse(classpath.contains("lib/"+ejbRef.getArchiveName()));
+    //assertFalse(classpath.contains("lib/"+ejbRef.getArchiveName()));
     assertTrue(classpath.contains("lib/commons-lang-2.4.jar"));
     assertTrue(classpath.contains("lib/commons-collections-2.0.jar"));
     //...but not junit, which is a test dependency

@@ -118,15 +118,6 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
   }
 
   /**
-   * @see org.maven.ide.eclipse.wtp.IProjectConfiguratorDelegate#configureClasspath(org.eclipse.core.resources.IProject, org.apache.maven.project.MavenProject, org.maven.ide.eclipse.jdt.IClasspathDescriptor, org.eclipse.core.runtime.IProgressMonitor)
-   */
-  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
-      IProgressMonitor monitor) throws CoreException {
-    // Nothing to do
-    
-  }
-
-  /**
    * @see org.maven.ide.eclipse.wtp.IProjectConfiguratorDelegate#setModuleDependencies(org.eclipse.core.resources.IProject, org.apache.maven.project.MavenProject, org.eclipse.core.runtime.IProgressMonitor)
    */
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)

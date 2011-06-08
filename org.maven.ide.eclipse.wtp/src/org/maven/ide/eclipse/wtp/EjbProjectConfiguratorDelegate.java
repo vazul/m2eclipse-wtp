@@ -86,10 +86,4 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       throws CoreException {
     // TODO check if there's anything to do!
   }
-
-  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
-      IProgressMonitor monitor) throws CoreException {
-    // do nothing
-  }
-
 }

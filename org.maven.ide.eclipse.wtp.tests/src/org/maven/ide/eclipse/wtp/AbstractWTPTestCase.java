@@ -195,4 +195,8 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     updateProject(project, null, -1);
   }
   
+  protected void assertContains(String findMe, String holder) {
+    assertTrue("'" +findMe + "' is missing from : \n" + holder, holder.contains(findMe));
+  }
+  
 }

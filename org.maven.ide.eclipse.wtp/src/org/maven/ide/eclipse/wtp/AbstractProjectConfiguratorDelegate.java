@@ -17,6 +17,7 @@ import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -38,6 +39,7 @@ import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
@@ -214,9 +216,9 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
         cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
         break;
       }
-}
-javaProject.setRawClasspath(cp, monitor);
-}
+    }
+    javaProject.setRawClasspath(cp, monitor);
+  }
 
   /**
    * @param dependencyMavenProjectFacade
@@ -297,4 +299,21 @@ javaProject.setRawClasspath(cp, monitor);
       return WTPProjectsUtil.hasChanged(existingRefs, refArray);
   }
 
+  protected IFolder findFirstInexistentFolder(IProject project, IPath targetPath) {
+    StringBuilder path = new StringBuilder();
+    for (String segment : targetPath.segments()) {
+      path.append(IPath.SEPARATOR);
+      path.append(segment);
+      IFolder curFolder = project.getFolder(path.toString());
+      if (!curFolder.exists()) {
+        return curFolder;
+      }
+    }
+    return null;
+  }
+  
+  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
+      IProgressMonitor monitor) throws CoreException {
+    // do nothing
+  }
 }

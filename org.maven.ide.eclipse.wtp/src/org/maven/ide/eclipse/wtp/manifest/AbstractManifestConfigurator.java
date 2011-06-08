@@ -43,6 +43,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jst.j2ee.internal.common.classpath.J2EEComponentClasspathUpdater;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
@@ -53,6 +54,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.maven.ide.eclipse.wtp.IPackagingConfiguration;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
@@ -112,6 +114,10 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
   public void mavenProjectChanged(IMavenProjectFacade newFacade, IMavenProjectFacade oldFacade, IProgressMonitor monitor)
       throws CoreException {
 
+    IProject project = newFacade.getProject();
+    if (!ModuleCoreNature.isFlexibleProject(project)) {
+      return;
+    }
     final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
     IFolder output = root.getFolder(getManifestdir(newFacade).append("META-INF"));
     IFile manifest = output.getFile("MANIFEST.MF");
@@ -148,9 +154,10 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     MavenProject oldProject = oldFacade.getMavenProject();
 
     //Assume Sets of artifacts are actually ordered
-    if(dependenciesChanged(oldProject.getArtifacts() == null ? null
-        : new ArrayList<Artifact>(oldProject.getArtifacts()), newProject.getArtifacts() == null ? null
-        : new ArrayList<Artifact>(newProject.getArtifacts()))) {
+    if(dependenciesChanged(oldProject.getArtifacts() == null ? null 
+                                                             : new ArrayList<Artifact>(oldProject.getArtifacts()), 
+                           newProject.getArtifacts() == null ? null
+                                                             : new ArrayList<Artifact>(newProject.getArtifacts()))) {
       return true;
     }
 
@@ -183,7 +190,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
    * @return
    */
   private boolean dependenciesChanged(List<Artifact> artifacts, List<Artifact> others) {
-    if(artifacts.equals(others)) {
+    if(artifacts==others) {
       return false;
     }
     if(artifacts.size() != others.size()) {
@@ -261,7 +268,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
 
       //Invoke the manifest generation API via reflection
       reflectManifestGeneration(mavenProject, mojoExecution, session, new File(manifest.getLocation().toOSString()));
-
+      J2EEComponentClasspathUpdater.getInstance().queueUpdate(mavenFacade.getProject());
       //refresh the target folder
       destinationFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     } catch(Throwable ex) {
@@ -361,16 +368,9 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
         artifact = a;
       }
 
-      if(isIncludedInClassPath(packagingConfiguration, artifact)) {
-        newArtifacts.add(artifact);
-      }
+      newArtifacts.add(artifact);
     }
     return newArtifacts;
-  }
-
-  protected boolean isIncludedInClassPath(IPackagingConfiguration packagingConfiguration, Artifact artifact) {
-    String deployedName = getDeployedName(artifact);
-    return packagingConfiguration.isPackaged(deployedName);
   }
 
   protected String getDeployedName(Artifact artifact) {
