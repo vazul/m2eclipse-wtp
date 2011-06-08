@@ -1,25 +1,9 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Properties;
-
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
-import org.eclipse.wst.common.componentcore.ComponentCore;
-import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.junit.Test;
 
 
@@ -38,20 +22,34 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     
     IFile manifestFile = jar.getFile("target/classes/META-INF/MANIFEST.MF");
     assertTrue("The manifest is missing", manifestFile.exists());
+    String manifest =getAsString(manifestFile);
+    String url = "url: http://www.eclipse.org";
+    String mode = "mode: development";
+    String createdBy = "Created-By: Maven Integration for Eclipse";
+    assertContains(url, manifest);
+    assertContains(mode, manifest);
+    assertContains(createdBy, manifest);
+    assertNotContains("Class-Path", manifest);
     
-    InputStream is = null;
-    try {
-      is = manifestFile.getContents();
-      String manifest = IOUtil.toString(is);
-      String url = "url: http://www.eclipse.org";
-      String mode = "mode: development";
-      String createdBy = "Created-By: Maven Integration for Eclipse";
-      assertContains(url, manifest);
-      assertContains(mode, manifest);
-      assertContains(createdBy, manifest);
-    } finally {
-      IOUtil.close(is);
-    }
+    
+    //Check manifest is updated on config change
+    updateProject(jar, "pom2.xml");
+    assertNoErrors(jar);
+    manifest =getAsString(manifestFile);
+    createdBy = "Created-By: Some dude"; 
+    assertContains(createdBy, manifest);//Created-By can be overridden manually
+    assertNotContains("Class-Path", manifest);//Nothing to add to the classpath, so it's not added
+    assertContains(url, manifest);
+    assertContains(mode, manifest);
+    assertContains("Implementation-Title: jar", manifest);
+    assertContains("Specification-Version: 0.0.1-SNAPSHOT", manifest);
+    assertContains(mode, manifest);
+    
+    //Change the classpath by changing the junit scope
+    updateProject(jar, "pom3.xml");
+    assertNoErrors(jar);
+    manifest =getAsString(manifestFile);
+    assertContains("Class-Path: junit-3.8.1.jar", manifest);
   }
 
   
