@@ -381,4 +381,23 @@ public class EarPluginConfiguration {
     return Collections.emptyList();
   }
 
+  public String getEscapeString() {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      return DomUtils.getChildValue(config, "escapeString");
+    }
+    return null;
+  }
+
+  public Xpp3Dom[] getNonfilteredExtensions() {
+    Xpp3Dom config = getConfiguration();
+    if(config != null) {
+      Xpp3Dom extensionsNode = config.getChild("nonFilteredFileExtensions");
+      if (extensionsNode != null && extensionsNode.getChildCount() > 0) {
+        return extensionsNode.getChildren();
+      }
+    }
+    return null;
+  }
+
 }

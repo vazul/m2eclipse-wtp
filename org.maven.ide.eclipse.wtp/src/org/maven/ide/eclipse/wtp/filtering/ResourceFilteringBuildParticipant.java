@@ -96,7 +96,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       }
       if (forceCopyBuildContext != null || hasResourcesChanged(facade, delta, resources)) {
         log.info("Executing resource filtering for {}",project.getName());
-        executeCopyResources(facade, filters, targetFolder, resources, monitor);
+        executeCopyResources(facade, configuration, targetFolder, resources, monitor);
         //FIXME deal with absolute paths
         IFolder destFolder = project.getFolder(targetFolder);
         if (destFolder.exists()){
@@ -225,11 +225,11 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
   }
   
 
-  private void executeCopyResources(IMavenProjectFacade facade, List<String> filters, IPath targetFolder, List<Xpp3Dom> resources, IProgressMonitor monitor) throws CoreException {
+  private void executeCopyResources(IMavenProjectFacade facade,  ResourceFilteringConfiguration filteringConfiguration, IPath targetFolder, List<Xpp3Dom> resources, IProgressMonitor monitor) throws CoreException {
 
     //Create a maven request + session
     ResolverConfiguration resolverConfig = facade.getResolverConfiguration();
-    
+    List<String> filters = filteringConfiguration.getFilters();
     IMavenProjectRegistry projectManager = MavenPlugin.getMavenProjectRegistry();
     MavenExecutionRequest request = projectManager.createExecutionRequest(facade.getPom(), resolverConfig, monitor);
     request.setRecursive(false);
@@ -259,6 +259,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       //Set output directory to the m2eclipse-wtp webresources directory
       setValue(configuration, "outputDirectory", targetFolder.toPortableString());
       
+      setValue(configuration, "escapeString", filteringConfiguration.getEscapeString());
+
+      setNonfilteredExtensions(configuration, filteringConfiguration.getNonfilteredExtensions());
+
       //Setup filters
       setupFilters(configuration, filters);
 
@@ -287,6 +291,27 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     } finally {
       //Restore original configuration
       copyFilteredResourcesMojo.setConfiguration(originalConfig);      
+    }
+  }
+
+  /**
+   * @param configuration
+   * @param extensions
+   */
+  private void setNonfilteredExtensions(Xpp3Dom configuration, List<Xpp3Dom> extensions) {
+    if (extensions == null || extensions.isEmpty()) {
+      return;
+    }
+    Xpp3Dom nonFilteredFileExtensionsNode = configuration.getChild("nonFilteredFileExtensions");
+    if (nonFilteredFileExtensionsNode == null) {
+      nonFilteredFileExtensionsNode = new Xpp3Dom("nonFilteredFileExtensions");
+      configuration.addChild(nonFilteredFileExtensionsNode);
+    } else {
+      DomUtils.removeChildren(nonFilteredFileExtensionsNode);
+    }
+    
+    for (Xpp3Dom ext : extensions) {
+      nonFilteredFileExtensionsNode.addChild(ext);
     }
   }
 
