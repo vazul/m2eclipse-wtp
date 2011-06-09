@@ -115,6 +115,10 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
 
+    if (!manifestAlreadyExists && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+    
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
     if (useBuildDirectory && earComponent != null) {
       IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
@@ -125,16 +129,16 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, new Path("/"), monitor);      
       }
 
+      if (firstInexistentfolder != null && firstInexistentfolder.exists())
+      {
+        firstInexistentfolder.delete(true, monitor);
+      }
+      
       project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     }
 
-    if (!manifestAlreadyExists && manifest.exists()) {
-      manifest.delete(true, monitor);
-    }
-    if (firstInexistentfolder != null && firstInexistentfolder.exists())
-    {
-      firstInexistentfolder.delete(true, monitor);
-    }
+
+
     
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
