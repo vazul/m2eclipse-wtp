@@ -42,7 +42,7 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 
-
+@SuppressWarnings("restriction")
 public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
 
   protected static final IProjectFacetVersion DEFAULT_WEB_VERSION = WebFacetUtils.WEB_FACET.getVersion("2.5");

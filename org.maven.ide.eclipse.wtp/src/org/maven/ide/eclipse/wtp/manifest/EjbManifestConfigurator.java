@@ -17,9 +17,6 @@ import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
  */
 public class EjbManifestConfigurator extends JarManifestConfigurator {
 
-  /* (non-Javadoc)
-   * @see org.maven.ide.eclipse.wtp.manifest.AbstractManifestConfigurator#getExecutionKey()
-   */
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-ejb-plugin", "", "ejb", null, null);
     return key;

@@ -8,35 +8,23 @@
 
 package org.maven.ide.eclipse.wtp.manifest;
 
-import java.util.Iterator;
-
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.ArtifactUtils;
-import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClasspathAttribute;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
-import org.eclipse.m2e.jdt.IClasspathEntryDescriptor;
 import org.eclipse.m2e.jdt.IJavaProjectConfigurator;
-import org.eclipse.wst.common.componentcore.ComponentCore;
-import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.maven.ide.eclipse.wtp.IPackagingConfiguration;
 import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
 import org.maven.ide.eclipse.wtp.WarPackagingOptions;
 import org.maven.ide.eclipse.wtp.WarPluginConfiguration;
-import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,11 +143,7 @@ public class WarManifestConfigurator extends JarManifestConfigurator implements 
     */
   }
 
-  /**
-   * @param earContainerEntries
-   * @param deployedName
-   * @return
-   */
+  /*
   private boolean isUsedInEar(IClasspathEntry[] earContainerEntries, String deployedName) {
     if (earContainerEntries == null || earContainerEntries.length == 0)
     return false;
@@ -171,11 +155,10 @@ public class WarManifestConfigurator extends JarManifestConfigurator implements 
     }
     return false;
   }
-
+  */
 
   public void configureRawClasspath(ProjectConfigurationRequest request, IClasspathDescriptor classpath,
       IProgressMonitor monitor) throws CoreException {
-    // TODO Auto-generated method configureRawClasspath
-    
   }
+
 }

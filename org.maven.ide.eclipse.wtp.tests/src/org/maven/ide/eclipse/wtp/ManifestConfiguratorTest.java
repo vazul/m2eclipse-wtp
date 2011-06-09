@@ -2,17 +2,22 @@
 package org.maven.ide.eclipse.wtp;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.junit.Test;
 
-
+@SuppressWarnings("restriction")
 public class ManifestConfiguratorTest extends AbstractWTPTestCase {
 
   @Test
   public void testMECLIPSEWTP45_JarManifest() throws Exception {
 
-    IProject[] projects = importProjects("projects/manifests/MECLIPSEWTP-45/", new String[]{"pom.xml", "jar/pom.xml", "war/pom.xml"}, new ResolverConfiguration());
+    IProject[] projects = importProjects("projects/manifests/MECLIPSEWTP-45/", 
+        new String[]{"pom.xml", 
+                    "jar/pom.xml", 
+                    "war/pom.xml"}, 
+        new ResolverConfiguration());
     waitForJobsToComplete();
    
     IProject jar =  projects[1];
@@ -74,6 +79,9 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     IFile manifestFile = ejb.getFile("target/classes/META-INF/MANIFEST.MF");
     String manifest =getAsString(manifestFile);
     assertContains("Class-Path: lib/log4j-1.2.13.jar lib/core-0.0.1-SNAPSHOT.jar lib/junit", manifest);
+    
+    manifestFile = ejb.getFile("src/main/resources/META-INF/MANIFEST.MF");
+    assertFalse(manifestFile.exists());
   }
   
   @Test
@@ -95,17 +103,110 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     IProject rar =  projects[2];
     assertNoErrors(rar);      
     
-    IFile manifestFile = rar.getFile("target/classes/META-INF/MANIFEST.MF");
-    String manifest =getAsString(manifestFile);
+    IFile rarManifestFile = rar.getFile("target/classes/META-INF/MANIFEST.MF");
+    String manifest =getAsString(rarManifestFile);
     assertContains("Class-Path: lib/commons-collections-2.0.jar lib/core-0.0.1-SNAPSHOT.ja", manifest);
     //For some reason, CR/LF not detected in String.contains, so we split the assert
     assertContains(" r lib/junit-3.8.1.jar", manifest);
     
+    rarManifestFile = rar.getFile("src/main/rar/META-INF/MANIFEST.MF");
+    assertFalse(rarManifestFile.exists());
+
     IFile earManifestFile = ear.getFile("target/m2e-wtp/ear-resources/META-INF/MANIFEST.MF");
     String earManifest =getAsString(earManifestFile);
     assertNotContains("Class-Path:", earManifest);
     String createdBy = "Created-By: Maven Integration for Eclipse";
     assertContains(createdBy, manifest);
+    
+    earManifestFile = rar.getFile("src/main/application/META-INF/MANIFEST.MF");
+    assertFalse(earManifestFile.exists());
   }
+  
+  
+  @Test
+  public void testMECLIPSEWTP66_unWantedManifests() throws Exception {
+
+    IProject[] projects = importProjects("projects/manifests/MECLIPSEWTP-66/", 
+        new String[]{"pom.xml", 
+                     "jar/pom.xml", 
+                     "jar2/pom.xml", 
+                     "jar3/pom.xml", 
+                     "jar4/pom.xml",
+                     "war/pom.xml"}, 
+        new ResolverConfiguration());
+
+    //10 to 30% of my test runs, jar2 is not updated 'cause
+    //The worker thread is gone like : 
+    //Worker thread ended job: Updating Maven Dependencies(76), but still holds rule: ThreadJob(Updating Maven Dependencies(76),[R/,])
+    //Let's add an ugly delay, see if it improves the situation
+    long delay = 5000;
+    System.err.println("Waiting an extra "+delay + " ms");
+    Thread.sleep(delay);
+    waitForJobsToComplete();
+   
+    String expectedManifest = "target/classes/META-INF/MANIFEST.MF";
+    IProject jar =  projects[1];
+    assertNoErrors(jar);    
+    assertMissingMetaInf(jar);
+    assertTrue(jar.getFile(expectedManifest).exists());;
+    
+    IProject jar2 =  projects[2];
+    assertNoErrors(jar2);
+    assertMissingMetaInf(jar2);
+    assertTrue(jar2.getFile(expectedManifest).exists());;
+    
+    IProject jar3 =  projects[3];
+    assertNoErrors(jar3);    
+    assertMissingMetaInf(jar3);
+    assertTrue(jar3.getFile(expectedManifest).exists());;
+
+    //Check the existing folder hasn't been deleted
+    IProject jar4 =  projects[4];
+    assertNoErrors(jar4);
+    IFolder metaInf = jar4.getFolder("src/main/resources/META-INF/");
+    assertTrue(metaInf.exists());
+    //But no Manifest should be there
+    assertFalse(metaInf.getFile("MANIFEST.MF").exists());
+    assertTrue(jar4.getFile(expectedManifest).exists());;
+
+    IProject war =  projects[5];
+    assertNoErrors(war);
+    assertMissingMetaInf(war);
+    
+  }
+  
+  @Test
+  public void testProvidedManifest() throws Exception {
+    IProject ejb = importProject("projects/manifests/ejb-provided-manifest/pom.xml");
+    waitForJobsToComplete();
+    
+    IFile manifestFile = ejb.getFile("src/main/resources/META-INF/MANIFEST.MF");
+    assertTrue("The manifest was deleted", manifestFile.exists());
+    
+    IFile generatedManifestFile = ejb.getFile("target/classes/META-INF/MANIFEST.MF");
+    assertTrue("The generated manifest is missing", generatedManifestFile.exists());
+    
+    String manifest =getAsString(generatedManifestFile);
+    String createdBy = "Created-By: Maven Integration for Eclipse";
+    assertContains(createdBy, manifest);
+    assertContains("Built-By: You know who", manifest);
+    assertContains("Implementation-Title: ejb-provided-manifest", manifest);
+    assertContains("Class-Path: custom.jar", manifest);    
+  }
+
+  
+  protected void assertMissingMetaInf(IProject project) {
+    String metaInf= "META-INF";
+    assertMissingFolder(project.getFolder(metaInf));
+    assertMissingFolder(project.getFolder("src/main/java/"+metaInf));
+    assertMissingFolder(project.getFolder("src/main/resources/" +metaInf));
+    assertMissingFolder(project.getFolder("src/main/webapp/" +metaInf));
+  }
+  
+  protected void assertMissingFolder(IFolder folder) {
+    assertFalse(folder + " should not exist ", folder.exists());
+  }
+  
+  
   
 }

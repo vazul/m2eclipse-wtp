@@ -9,8 +9,12 @@
 package org.maven.ide.eclipse.wtp.manifest;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,6 +34,7 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.ReflectionUtils;
 import org.codehaus.plexus.util.WriterFactory;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -38,6 +43,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -55,7 +62,6 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
-import org.maven.ide.eclipse.wtp.IPackagingConfiguration;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
@@ -88,8 +94,16 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
 
       return new AbstractBuildParticipant() {
         public Set<IProject> build(int kind, IProgressMonitor monitor) throws Exception {
-          //Will basically only generate the MANIFEST.MF if it doesn't exist
-          mavenProjectChanged(projectFacade, null, monitor);
+          IResourceDelta delta = getDelta(projectFacade.getProject());
+          
+          boolean force = false;
+          if (delta != null) {
+            ManifestDeltaVisitor visitor = new ManifestDeltaVisitor();
+            delta.accept(visitor);
+            force = visitor.foundManifest;
+          }
+          //The manifest will be (re)generated if it doesn't exist or an existing manifest is modified
+          mavenProjectChanged(projectFacade, null, force, monitor);
           return null;
         }
       };
@@ -97,6 +111,22 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     return null;
   }
 
+  private class ManifestDeltaVisitor implements IResourceDeltaVisitor {
+
+    private final String MANIFEST = "MANIFEST.MF";// TODO Do not assume user provided manifests are named like that, 
+    // read info from maven plugin instead. 
+
+    boolean foundManifest;
+
+    public boolean visit(IResourceDelta delta) throws CoreException {
+      if (delta.getResource() instanceof IFile 
+          && MANIFEST.equals(delta.getResource().getName())) {
+        foundManifest = true;
+      }
+      return !foundManifest;
+    }
+  }
+  
   /**
    * Generates the project manifest if necessary, that is if the project manifest configuration has changed or if the
    * dependencies have changed.
@@ -108,10 +138,11 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     if(oldFacade == null && newFacade == null) {
       return;
     }
-    mavenProjectChanged(newFacade, oldFacade, monitor);
+    mavenProjectChanged(newFacade, oldFacade, false, monitor);
   }
 
-  public void mavenProjectChanged(IMavenProjectFacade newFacade, IMavenProjectFacade oldFacade, IProgressMonitor monitor)
+ 
+  public void mavenProjectChanged(IMavenProjectFacade newFacade, IMavenProjectFacade oldFacade, boolean forceGeneration, IProgressMonitor monitor)
       throws CoreException {
 
     IProject project = newFacade.getProject();
@@ -122,7 +153,8 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     IFolder output = root.getFolder(getManifestdir(newFacade).append("META-INF"));
     IFile manifest = output.getFile("MANIFEST.MF");
 
-    if(needsNewManifest(manifest, oldFacade, newFacade, monitor)) {
+    //System.err.println("checking for manifest "+project);
+    if(forceGeneration || needsNewManifest(manifest, oldFacade, newFacade, monitor)) {
       generateManifest(newFacade, manifest, monitor);
     }
 
@@ -224,10 +256,6 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     return false;
   }
 
-  /**
-   * @param mavenProject
-   * @return
-   */
   protected Xpp3Dom getArchiveConfiguration(MavenProject mavenProject) {
     Plugin plugin = mavenProject.getPlugin(getPluginKey());
     if(plugin == null)
@@ -270,7 +298,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
       reflectManifestGeneration(mavenProject, mojoExecution, session, new File(manifest.getLocation().toOSString()));
       J2EEComponentClasspathUpdater.getInstance().queueUpdate(mavenFacade.getProject());
       //refresh the target folder
-      destinationFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+      destinationFolder.refreshLocal(IResource.DEPTH_ONE, null);
     } catch(Throwable ex) {
       //TODO add marker
       ex.printStackTrace();
@@ -288,6 +316,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     IFile pomResource = mavenFacade.getPom();
     MavenExecutionRequest request = projectManager.createExecutionRequest(pomResource,
         mavenFacade.getResolverConfiguration(), monitor);
+    request.setOffline(MavenPlugin.getMavenConfiguration().isOffline());
     return maven.createSession(request, mavenFacade.getMavenProject());
   }
 
@@ -328,10 +357,17 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
       //Create the Manifest instance
       Object manifest = getManifest.invoke(mavenArchiver, mavenProject, archiveConfiguration);
 
+      //Get the user provided manifest, if it exists
+      Object userManifest = getProvidedManifest(manifest.getClass(), archiveConfiguration);
+
+      //Merge both manifests, the user provided manifest data takes precedence
+      mergeManifests(manifest, userManifest);
+      
       //Serialize the Manifest instance to an actual file
       Method write = manifest.getClass().getMethod("write", PrintWriter.class);
       printWriter = new PrintWriter(WriterFactory.newWriter(manifestFile, WriterFactory.UTF_8));
       write.invoke(manifest, printWriter);
+      //System.err.println("wrote "+manifestFile);
     } finally {
       if(printWriter != null) {
         printWriter.close();
@@ -341,6 +377,51 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
 
       maven.releaseMojo(mojo, mojoExecution);
     }
+  }
+
+  /**
+   * @param archiveConfiguration
+   * @return
+   * @throws NoSuchMethodException 
+   * @throws SecurityException 
+   * @throws InvocationTargetException 
+   * @throws IllegalAccessException 
+   * @throws InstantiationException 
+   * @throws IllegalArgumentException 
+   */
+  private Object getProvidedManifest(Class manifestClass, Object archiveConfiguration) 
+      throws SecurityException, IllegalArgumentException, 
+            InstantiationException, IllegalAccessException, InvocationTargetException {
+
+    Object newManifest = null;
+    Reader reader = null;
+    try {
+      Method getManifestFile = archiveConfiguration.getClass().getMethod("getManifestFile");
+      File manifestFile = (File) getManifestFile.invoke(archiveConfiguration);
+      if (manifestFile == null || !manifestFile.exists() || !manifestFile.canRead()) {
+        return null;
+      }
+
+      reader = new FileReader(manifestFile);
+      Constructor constructor = manifestClass.getConstructor(Reader.class);
+      newManifest = constructor.newInstance(reader);
+    } catch(FileNotFoundException ex) {
+      //ignore
+    } catch(NoSuchMethodException ex) {
+      //ignore, this is not supported by this archiver version
+    } finally {
+      IOUtil.close(reader);
+    }
+    return newManifest;
+  }
+
+  private void mergeManifests(Object manifest, Object sourceManifest) 
+      throws SecurityException, NoSuchMethodException, IllegalArgumentException, 
+      IllegalAccessException, InvocationTargetException {
+    if (sourceManifest == null) return;
+    
+    Method merge = manifest.getClass().getMethod("merge", sourceManifest.getClass());
+    merge.invoke(manifest, sourceManifest);
   }
 
   protected abstract String getArchiverFieldName();
@@ -356,11 +437,11 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
       return null;
     Set<Artifact> newArtifacts = new LinkedHashSet<Artifact>(artifacts.size());
 
-    IPackagingConfiguration packagingConfiguration = getPackagingConfiguration(facade);
-
     for(Artifact a : artifacts) {
       Artifact artifact;
       if(a.getFile().isDirectory()) {
+        //Workaround Driven Development : Create a dummy file associated with an Artifact, 
+        // so this artifact won't be ignored during the resolution of the Class-Path entry in the Manifest
         artifact = new DefaultArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), a.getScope(), a.getType(),
             a.getClassifier(), a.getArtifactHandler());
         artifact.setFile(fakeFile(a));
@@ -371,18 +452,6 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
       newArtifacts.add(artifact);
     }
     return newArtifacts;
-  }
-
-  protected String getDeployedName(Artifact artifact) {
-    return FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
-  }
-
-  protected IPackagingConfiguration getPackagingConfiguration(IMavenProjectFacade facade) {
-    return new IPackagingConfiguration() {
-      public boolean isPackaged(String deployedFileName) {
-        return true;
-      }
-    };
   }
 
   /**
@@ -406,6 +475,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     }
 
     Xpp3Dom createdByNode = manifestEntriesNode.getChild(CREATED_BY_ENTRY);
+    //Create a default "Created-By: Maven Integration for Eclipse", because it's cool
     if(createdByNode == null) {
       createdByNode = new Xpp3Dom(CREATED_BY_ENTRY);
       createdByNode.setValue("Maven Integration for Eclipse");
@@ -458,8 +528,6 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     return null;
   }
 
-  //Create a dummy file associated with an Artifact, so this artifact won't be ignored 
-  //during the resolution of the Class-Path entry in the Manifest
   private File fakeFile(Artifact artifact) throws IOException {
     File tmpDir = new File(System.getProperty("java.io.tmpdir"));
     File tmpRepo = new File(tmpDir, artifact.getGroupId().replace(".", "/"));

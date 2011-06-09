@@ -35,8 +35,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
-import org.eclipse.jst.j2ee.commonarchivecore.internal.helpers.ArchiveManifest;
-import org.eclipse.jst.j2ee.commonarchivecore.internal.helpers.ArchiveManifestImpl;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEModuleFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
@@ -98,12 +96,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IFolder libDir = project.getFolder(warSourceDirectory).getFolder("WEB-INF/lib");
     
     IFolder firstInexistentfolder = null;
-    IFolder metaInfFolder = project.getFolder(warSourceDirectory).getFolder("META-INF");
-    if (!metaInfFolder.exists()) {
-      firstInexistentfolder = findFirstInexistentFolder(project, metaInfFolder.getProjectRelativePath());
+    IFolder contentFolder = project.getFolder(warSourceDirectory);
+    IFile manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
+    boolean manifestAlreadyExists =manifest.exists(); 
+    if (!manifestAlreadyExists) {
+      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
     }   
 
-    
     boolean alreadyHasWebXml = defaultWebXml.exists();
     boolean alreadyHasLibDir = libDir.exists();
         
@@ -185,7 +184,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       //}   
     }
     
-    if (firstInexistentfolder != null && firstInexistentfolder.exists())
+    if (!manifestAlreadyExists && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+    if (firstInexistentfolder != null && firstInexistentfolder.exists() && firstInexistentfolder.members().length == 0 )
     {
       firstInexistentfolder.delete(true, monitor);
     }

@@ -18,6 +18,7 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -34,7 +35,6 @@ import org.eclipse.jst.j2ee.model.IEARModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.application.Application;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
-import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
@@ -85,11 +85,14 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     String contentDir = config.getEarContentDirectory(project);
   
     IFolder firstInexistentfolder = null;
-    IFolder metaInfFolder = project.getFolder(contentDir).getFolder("META-INF");
-    if (!metaInfFolder.exists()) {
-      firstInexistentfolder = findFirstInexistentFolder(project, metaInfFolder.getProjectRelativePath());
+    IFolder contentFolder = project.getFolder(contentDir);
+    IFile manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
+    boolean manifestAlreadyExists =manifest.exists(); 
+    if (!manifestAlreadyExists) {
+      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
     }   
-
+    
+    
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
       IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
 
@@ -109,7 +112,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
     fixMissingModuleCoreNature(project, monitor);
     
-
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
 
@@ -123,14 +125,17 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, new Path("/"), monitor);      
       }
 
-      if (firstInexistentfolder != null && firstInexistentfolder.exists())
-      {
-        firstInexistentfolder.delete(true, monitor);
-      }
-      
       project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     }
 
+    if (!manifestAlreadyExists && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+    if (firstInexistentfolder != null && firstInexistentfolder.exists())
+    {
+      firstInexistentfolder.delete(true, monitor);
+    }
+    
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);

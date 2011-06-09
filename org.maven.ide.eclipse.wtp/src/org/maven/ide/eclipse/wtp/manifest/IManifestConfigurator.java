@@ -17,7 +17,7 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 /**
  * IManifestConfigurator
  *
- * @author fbricon
+ * @author Fred Bricon
  */
 public interface IManifestConfigurator {
 

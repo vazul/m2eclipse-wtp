@@ -17,6 +17,8 @@ import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -112,10 +114,32 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       return;
     }
 
+    //System.err.println("configuring "+project);
     boolean isDebugEnabled = DebugUtilities.isDebugEnabled();
     if (isDebugEnabled) {
       DebugUtilities.debug(DebugUtilities.dumpProjectState("Before configuration ",project));
     }
+    
+    //MECLIPSEWTP-66 delete extra MANIFEST.MF
+    // 1 - predict where the MANIFEST.MF will be created
+    IFolder firstInexistentfolder = null;
+    IPath[] sourceRoots = MavenProjectUtils.getSourceLocations(project, mavenProject.getCompileSourceRoots());
+    IPath sourceFolder = null;
+    if ((sourceRoots == null || sourceRoots.length == 0) || !project.getFolder(sourceRoots[0]).exists()) {
+      sourceRoots = MavenProjectUtils.getResourceLocations(project, mavenProject.getResources());
+    }
+    if ((sourceRoots != null && sourceRoots.length > 0 && project.getFolder(sourceRoots[0]).exists())) {
+      sourceFolder = sourceRoots[0];
+    }
+    IContainer contentFolder = sourceFolder == null? project : project.getFolder(sourceFolder);
+    IFile manifest = contentFolder.getFile(new Path("META-INF/MANIFEST.MF"));
+
+    // 2 - check if the manifest already exists, and its parent folder
+    boolean manifestAlreadyExists =manifest.exists(); 
+    if (!manifestAlreadyExists) {
+      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
+    }
+    
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
     Set<Action> actions = new LinkedHashSet<Action>();
     installJavaFacet(actions, project, facetedProject);
@@ -146,6 +170,15 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
 
     setNonDependencyAttributeToContainer(project, monitor);
+    
+    //MECLIPSEWTP-66 delete extra MANIFEST.MF
+    // 3 - Remove extra manifest if necessary and its the parent hierarchy 
+    if (firstInexistentfolder != null && firstInexistentfolder.exists()) {
+      firstInexistentfolder.delete(true, monitor);
+    }
+    if (!manifestAlreadyExists && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
   }
 
   /**
@@ -299,13 +332,14 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       return WTPProjectsUtil.hasChanged(existingRefs, refArray);
   }
 
-  protected IFolder findFirstInexistentFolder(IProject project, IPath targetPath) {
+  protected IFolder findFirstInexistentFolder(IProject project, IContainer keptFolder, IFile file) {
     StringBuilder path = new StringBuilder();
-    for (String segment : targetPath.segments()) {
+    for (String segment : file.getParent().getProjectRelativePath().segments()) {
       path.append(IPath.SEPARATOR);
       path.append(segment);
       IFolder curFolder = project.getFolder(path.toString());
-      if (!curFolder.exists()) {
+      if (!curFolder.exists() && 
+          !curFolder.getProjectRelativePath().isPrefixOf(keptFolder.getProjectRelativePath())) {
         return curFolder;
       }
     }

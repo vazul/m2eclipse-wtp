@@ -26,8 +26,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.m2e.jdt.IClasspathManager;
-import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 
 /**
  * ProjectUtils

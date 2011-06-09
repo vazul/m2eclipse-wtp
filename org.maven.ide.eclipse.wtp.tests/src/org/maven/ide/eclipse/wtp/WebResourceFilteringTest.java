@@ -20,6 +20,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.junit.Test;
 
+@SuppressWarnings("restriction")
 public class WebResourceFilteringTest extends AbstractWTPTestCase {
   
   private static String FILTERED_FOLDER_NAME = "target/" + MavenWtpConstants.M2E_WTP_FOLDER+ "/" + MavenWtpConstants.WEB_RESOURCES_FOLDER; 

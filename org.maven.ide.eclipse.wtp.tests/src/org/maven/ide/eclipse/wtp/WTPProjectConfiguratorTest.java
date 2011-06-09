@@ -64,6 +64,7 @@ import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
  *
  * @author igor
  */
+@SuppressWarnings("restriction")
 public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   @Test
