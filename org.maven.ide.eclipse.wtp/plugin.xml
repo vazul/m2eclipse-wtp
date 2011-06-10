@@ -105,7 +105,7 @@
       <navigatorContent id="org.maven.ide.eclipse.wtp.navigatorContent"
             contentProvider="org.maven.ide.eclipse.wtp.internal.WTPResourcesContentProvider"
             labelProvider="org.maven.ide.eclipse.wtp.internal.WTPResourcesLabelProvider"
-            name="Web Resources"
+            name="Deployed Resources"
             icon="icons/web-resources.gif"
             activeByDefault="true"
             priority="normal">
