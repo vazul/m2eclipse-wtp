@@ -54,14 +54,14 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
   // IWorkbenchAdapter
   
   public String getLabel(Object o) {
-    IContainer[] folders = getRootFolders();
-    StringBuilder label = new StringBuilder(getLabel());
-    if(folders.length == 1) {
-      IContainer c = folders[0];
-      if (c.getFullPath().segmentCount()>1)
-        label.append(" : ").append(c.getFullPath().removeFirstSegments(1));
-    }
-    return label.toString();
+//    IContainer[] folders = getRootFolders();
+//    StringBuilder label = new StringBuilder(getLabel());
+//    if(folders.length == 1) {
+//      IContainer c = folders[0];
+//      label.append(" : ").append(c.getFullPath().removeFirstSegments(1));
+//    }
+//    return label.toString();
+    return getLabel();
   }
 
   public ImageDescriptor getImageDescriptor(Object object) {
