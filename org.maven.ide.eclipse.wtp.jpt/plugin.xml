@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.7"?>
+<plugin>
+   <extension
+         point="org.eclipse.jpt.common.core.resourceLocators">
+      <resourceLocator
+            class="org.maven.ide.eclipse.wtp.jpt.MavenResourceLocator"
+            id="mavenResourceLocator"
+            priority="high"
+            >
+                    <enablement>
+            <with variable="project">
+                <test property="org.eclipse.wst.common.project.facet.core.projectFacet" value="jst.java" forcePluginActivation="true"/>
+            </with>
+        </enablement>
+      </resourceLocator>
+   </extension>
+</plugin>

@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Dali support for Eclipse WTP
+Bundle-SymbolicName: org.maven.ide.eclipse.wtp.jpt;singleton:=true
+Bundle-Version: 0.13.0.qualifier
+Bundle-RequiredExecutionEnvironment: J2SE-1.5,
+ JavaSE-1.6
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.jpt.common.core;bundle-version="1.0.0"
+Bundle-Vendor: Sonatype, Inc.
+Export-Package: org.maven.ide.eclipse.wtp.jpt
+Bundle-Activator: org.maven.ide.eclipse.wtp.jpt.DaliPluginActivator
+Bundle-ActivationPolicy: lazy

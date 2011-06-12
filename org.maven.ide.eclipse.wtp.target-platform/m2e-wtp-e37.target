@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde version="3.6"?>
 
-<target name="m2e-wtp-e37" sequenceNumber="6">
+<target name="m2e-wtp-e37" sequenceNumber="9">
 <locations>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
@@ -17,7 +17,7 @@
 <unit id="org.eclipse.equinox.p2.sdk.feature.group" version="3.7.0.v20110519-9N7sHDJGMMn4xUrt4cFAa6939XLL"/>
 <repository location="http://download.eclipse.org/eclipse/updates/3.7milestones"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.slf4j.api" version="1.6.1.v20100831-0715"/>
 <unit id="ch.qos.logback.core" version="0.9.27.v20110224-1110"/>
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository"/>
@@ -65,6 +65,11 @@
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.epp.usagedata.feature.feature.group" version="1.3.1.R201102081640"/>
 <repository location="http://download.eclipse.org/releases/indigo"/>
+</location>
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.jpt.jpa.feature.feature.group" version="3.0.0.v201104050000-7Q7F77FBBoPaeQKbWRZaW6A"/>
+<unit id="org.eclipse.jpt.common_sdk.feature.feature.group" version="1.0.0.v201104050000-3--8342EoIEEJAQFV9G9BBlG8CC8ODT888A"/>
+<repository location="http://download.eclipse.org/webtools/repository/indigo/"/>
 </location>
 </locations>
 </target>
