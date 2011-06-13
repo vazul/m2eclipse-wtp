@@ -9,6 +9,8 @@
 package org.maven.ide.eclipse.wtp;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -86,5 +88,17 @@ public class ArtifactHelper {
     return M2_REPO_PREFIX + ArtifactHelper.getLocalRepoRelativePath(artifact).toPortableString();
   }
 
+  /**
+   * Temporary fix for app-client type artifacts, where the artifactHandler is not correctly loaded 
+   * thus the extension and the addtoclasspath value are incorrect.
+   * @param artifactHandler
+   */
+  @Deprecated
+  public static void fixArtifactHandler(ArtifactHandler artifactHandler) {
+	  if ("app-client".equals(artifactHandler.getExtension()) && artifactHandler instanceof DefaultArtifactHandler) {
+		  ((DefaultArtifactHandler)artifactHandler).setExtension("jar");
+		  ((DefaultArtifactHandler)artifactHandler).setAddedToClasspath(true);
+	  }
+  }
   
 }

@@ -26,6 +26,11 @@
       id="org.maven.ide.eclipse.wtp.RarLifecycleMapping"
       name="Rar Build Lifecycle Mapping">
     </lifecycleMapping>
+    <lifecycleMapping
+      class="org.maven.ide.eclipse.wtp.internal.lifecycle.AcrLifecycleMapping"
+      id="org.maven.ide.eclipse.wtp.AcrLifecycleMapping"
+      name="Application Client Build Lifecycle Mapping">
+    </lifecycleMapping>    
   </extension>
   
    <extension-point id="dependencyConfigurators" name="Dependency Configurators" schema="schema/dependencyConfigurators.exsd"/>
@@ -80,7 +85,15 @@
           name="RarManifestConfigurator" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
           />
-    </extension>               
+    </extension>  
+	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.acrmanifest.configurator"
+          class="org.maven.ide.eclipse.wtp.manifest.AcrManifestConfigurator"
+          name="AcrManifestConfigurator" 
+          secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
+          />
+    </extension>                    
    <!-- A workaround to allow to uninstall WTP facets -->   
    <extension point="org.eclipse.wst.common.project.facet.core.facets">
       <action type="uninstall" facet="jst.ear" version="[1.2-6.0]">
@@ -97,6 +110,9 @@
       </action>
       <action type="uninstall" facet="jst.connector" version="[1.0-1.6]">
          <delegate class="org.maven.ide.eclipse.wtp.facets.RarUninstallDelegate"/>
+      </action>
+      <action type="uninstall" facet="jst.connector" version="[1.0-6.0]">
+         <delegate class="org.maven.ide.eclipse.wtp.facets.AcrUninstallDelegate"/>
       </action>
    </extension>
    

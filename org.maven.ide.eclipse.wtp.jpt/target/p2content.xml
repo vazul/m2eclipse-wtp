@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='1'>
+  <unit id='org.maven.ide.eclipse.wtp.overlay' version='0.13.0.201106100844'>
+    <update id='org.maven.ide.eclipse.wtp.overlay' range='[0.0.0,0.13.0.201106100844)' severity='0'/>
+    <properties size='5'>
+      <property name='org.eclipse.equinox.p2.name' value='Overlay support for Eclipse WTP'/>
+      <property name='org.eclipse.equinox.p2.provider' value='Sonatype, Inc.'/>
+      <property name='maven-groupId' value='org.maven.ide.eclipse.wtp'/>
+      <property name='maven-artifactId' value='org.maven.ide.eclipse.wtp.overlay'/>
+      <property name='maven-version' value='0.13.0-SNAPSHOT'/>
+    </properties>
+    <provides size='4'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='org.maven.ide.eclipse.wtp.overlay' version='0.13.0.201106100844'/>
+      <provided namespace='osgi.bundle' name='org.maven.ide.eclipse.wtp.overlay' version='0.13.0.201106100844'/>
+      <provided namespace='java.package' name='org.maven.ide.eclipse.wtp.overlay.modulecore' version='0.0.0'/>
+      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+    </provides>
+    <requires size='13'>
+      <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.core.resources' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.wst.common.core' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.wst.common.modulecore' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.emf.common' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.emf.ecore' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.jst.common.frameworks' range='1.1.400'/>
+      <required namespace='osgi.bundle' name='org.eclipse.jst.j2ee' range='1.1.400'/>
+      <required namespace='osgi.bundle' name='org.eclipse.wst.server.core' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.wst.common.emfworkbench.integration' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.wst.common.emf' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.jem.workbench' range='0.0.0'/>
+      <required namespace='osgi.bundle' name='org.eclipse.jem.util' range='0.0.0'/>
+    </requires>
+    <artifacts size='1'>
+      <artifact classifier='osgi.bundle' id='org.maven.ide.eclipse.wtp.overlay' version='0.13.0.201106100844'/>
+    </artifacts>
+    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+    <touchpointData size='1'>
+      <instructions size='1'>
+        <instruction key='manifest'>
+          Bundle-ManifestVersion: 2&#xA;Bundle-RequiredExecutionEnvironment: J2SE-1.5,JavaSE-1.6&#xA;Bundle-ActivationPolicy: lazy&#xA;Bundle-Name: Overlay support for Eclipse WTP&#xA;Archiver-Version: Plexus Archiver&#xA;Require-Bundle: org.eclipse.core.runtime,org.eclipse.core.resources,org.eclipse.wst.common.core,org.eclipse.wst.common.modulecore,org.eclipse.emf.common,org.eclipse.emf.ecore,org.eclipse.jst.common.frameworks;bundle-version=&quot;1.1.400&quot;,org.eclipse.jst.j2ee;bundle-version=&quot;1.1.400&quot;,org.eclipse.wst.server.core,org.eclipse.wst.common.emfworkbench.integration,org.eclipse.wst.common.emf,org.eclipse.jem.workbench,org.eclipse.jem.util&#xA;Build-Jdk: 1.6.0_24&#xA;Bundle-Activator: org.maven.ide.eclipse.wtp.overlay.OverlayPluginActivator&#xA;Bundle-Vendor: Sonatype, Inc.&#xA;Created-By: Apache Maven&#xA;Manifest-Version: 1.0&#xA;Bundle-Version: 0.13.0.201106100844&#xA;Built-By: fbricon&#xA;Export-Package: org.maven.ide.eclipse.wtp.overlay.modulecore&#xA;Bundle-SymbolicName: org.maven.ide.eclipse.wtp.overlay;singleton:=true&#xA;
+        </instruction>
+      </instructions>
+    </touchpointData>
+  </unit>
+</units>

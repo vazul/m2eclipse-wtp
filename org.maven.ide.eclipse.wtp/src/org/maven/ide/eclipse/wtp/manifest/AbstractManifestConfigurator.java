@@ -62,6 +62,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
+import org.maven.ide.eclipse.wtp.ArtifactHelper;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
@@ -449,6 +450,9 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
         artifact = a;
       }
 
+      //Also fix artifacthandler issue with app-clients
+      ArtifactHelper.fixArtifactHandler(a.getArtifactHandler());
+      
       newArtifacts.add(artifact);
     }
     return newArtifacts;

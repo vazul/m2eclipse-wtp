@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Export-Package: org.maven.ide.eclipse.wtp.overlay.modulecore
+Require-Bundle: org.eclipse.core.runtime,org.eclipse.core.resources,or
+ g.eclipse.wst.common.core,org.eclipse.wst.common.modulecore,org.eclip
+ se.emf.common,org.eclipse.emf.ecore,org.eclipse.jst.common.frameworks
+ ;bundle-version="1.1.400",org.eclipse.jst.j2ee;bundle-version="1.1.40
+ 0",org.eclipse.wst.server.core,org.eclipse.wst.common.emfworkbench.in
+ tegration,org.eclipse.wst.common.emf,org.eclipse.jem.workbench,org.ec
+ lipse.jem.util
+Bundle-Vendor: Sonatype, Inc.
+Bundle-ActivationPolicy: lazy
+Bundle-Version: 0.13.0.201106100844
+Bundle-Name: Overlay support for Eclipse WTP
+Bundle-Activator: org.maven.ide.eclipse.wtp.overlay.OverlayPluginActiv
+ ator
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.maven.ide.eclipse.wtp.overlay;singleton:=true
+Bundle-RequiredExecutionEnvironment: J2SE-1.5,JavaSE-1.6
+

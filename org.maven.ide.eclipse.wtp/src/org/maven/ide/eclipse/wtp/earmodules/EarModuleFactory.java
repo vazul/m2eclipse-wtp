@@ -110,6 +110,8 @@ public final class EarModuleFactory {
       earModule  = new WsrModule(artifact);
     } else if("har".equals(artifactType)) {
       earModule  = new HarModule(artifact);
+    } else if("app-client".equals(artifactType)) {
+        earModule  = new AppClientModule(artifact);
     } else {
       throw new IllegalStateException("Could not handle artifact type[" + artifactType + "]");
     }
@@ -166,6 +168,9 @@ public final class EarModuleFactory {
     }
     else if ( "harModule".equals(artifactType)){
       earModule = new HarModule();
+    }
+    else if ( "appClientModule".equals(artifactType)){
+        earModule = new AppClientModule();
     }
     else {
         throw new IllegalStateException( "Could not handle artifact type[" + artifactType + "]" );

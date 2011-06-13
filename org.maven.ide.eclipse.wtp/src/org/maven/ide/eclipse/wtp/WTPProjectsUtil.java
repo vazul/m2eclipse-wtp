@@ -56,6 +56,8 @@ public class WTPProjectsUtil {
   public static final IProjectFacet DYNAMIC_WEB_FACET = ProjectFacetsManager
       .getProjectFacet(IJ2EEFacetConstants.DYNAMIC_WEB);
 
+  public static final IProjectFacet APP_CLIENT_FACET = ProjectFacetsManager.getProjectFacet(IJ2EEFacetConstants.APPLICATION_CLIENT);
+
   /**
    * Defaults Web facet version to 2.5
    */

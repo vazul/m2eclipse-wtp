@@ -151,6 +151,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     
     //Adding artifact references in .component. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=297777#c1
     for(Artifact artifact : artifacts) {
+    	ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
       //Don't deploy pom, non runtime or optional dependencies
       if("pom".equals(artifact.getType()) || !SCOPE_FILTER_RUNTIME.include(artifact) || artifact.isOptional()) {
         continue;

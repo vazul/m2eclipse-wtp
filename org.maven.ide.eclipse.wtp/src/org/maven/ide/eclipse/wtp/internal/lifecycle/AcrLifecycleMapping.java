@@ -6,13 +6,15 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.facets;
+package org.maven.ide.eclipse.wtp.internal.lifecycle;
 
+import org.eclipse.m2e.core.project.configurator.AbstractCustomizableLifecycleMapping;
 
 /**
- * Java uninstallDelegate
+ * AcrLifecycleMapping
  *
- * @author Eugene Kuleshov
+ * @author fbricon
  */
-public class JavaUninstallDelegate extends NoOpUninstallDelegate {
+public class AcrLifecycleMapping extends AbstractCustomizableLifecycleMapping {
+
 }

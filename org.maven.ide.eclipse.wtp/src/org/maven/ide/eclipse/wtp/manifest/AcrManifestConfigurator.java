@@ -6,13 +6,19 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.facets;
+package org.maven.ide.eclipse.wtp.manifest;
 
+import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 
 /**
- * Java uninstallDelegate
+ * AcrManifestConfigurator
  *
- * @author Eugene Kuleshov
+ * @author Fred Bricon
  */
-public class JavaUninstallDelegate extends NoOpUninstallDelegate {
+public class AcrManifestConfigurator extends JarManifestConfigurator {
+
+  protected MojoExecutionKey getExecutionKey() {
+    MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-acr-plugin", "", "acr", null, null);
+    return key;
+  }
 }

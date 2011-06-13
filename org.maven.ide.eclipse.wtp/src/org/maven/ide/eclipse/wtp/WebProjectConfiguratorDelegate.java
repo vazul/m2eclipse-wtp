@@ -243,6 +243,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   		      
         String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
         Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
+        ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
         String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
         
         //in a skinny war the dependency modules are referenced by manifest classpath
@@ -329,7 +330,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
     IJavaProject javaProject = JavaCore.create(project);
-    IClasspathEntry[] earContainerEntries = ProjectUtils.getEarContainerEntries(javaProject);
+    //IClasspathEntry[] earContainerEntries = ProjectUtils.getEarContainerEntries(javaProject);
     
     /*
      * Need to take care of three separate cases
@@ -351,6 +352,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
+      ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
       boolean deployableScope = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope));
       //Remove dependent project from the Maven Library, as it's supposed to be brought by the Web Library
       if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() &&  deployableScope) {
@@ -369,7 +371,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
           continue;
         }
       }
-      
       String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
       boolean packaged  = opts.isPackaged(deployedName);
       boolean usedInEar = !packaged && deployableScope;//&& isUsedInEar(earContainerEntries, deployedName);

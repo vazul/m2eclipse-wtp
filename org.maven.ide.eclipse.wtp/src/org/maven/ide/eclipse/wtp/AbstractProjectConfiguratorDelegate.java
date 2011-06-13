@@ -350,4 +350,5 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       IProgressMonitor monitor) throws CoreException {
     // do nothing
   }
+
 }
