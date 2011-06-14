@@ -122,6 +122,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     {
       firstInexistentfolder.delete(true, monitor);
     }
+  
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
+    
   }
 
   private void removeSourceLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor, String folder) throws CoreException {

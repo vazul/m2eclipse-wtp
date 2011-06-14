@@ -33,6 +33,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
+import org.eclipse.jst.common.project.facet.core.JavaFacet;
+import org.eclipse.jst.common.project.facet.core.internal.JavaFacetUtil;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.internal.IMavenConstants;
@@ -114,7 +116,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       return;
     }
 
-    //System.err.println("configuring "+project);
     boolean isDebugEnabled = DebugUtilities.isDebugEnabled();
     if (isDebugEnabled) {
       DebugUtilities.debug(DebugUtilities.dumpProjectState("Before configuration ",project));
@@ -161,7 +162,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       DebugUtilities.debug(DebugUtilities.dumpProjectState("after configuration ",project));
     }
     //MNGECLIPSE-904 remove tests folder links for utility jars
-    //TODO handle modules in a parent pom (the following doesn't work)
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     //Remove "library unavailable at runtime" warning.
@@ -179,6 +179,8 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     if (!manifestAlreadyExists && manifest.exists()) {
       manifest.delete(true, monitor);
     }
+
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
   }
 
   /**
@@ -197,8 +199,8 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
-    IProjectFacetVersion javaFv = JavaFacetUtils.compilerLevelToFacet(JavaFacetUtils.getCompilerLevel(project));
-    if(!facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET)) {
+    IProjectFacetVersion javaFv = JavaFacet.FACET.getVersion(JavaFacetUtil.getCompilerLevel(project));
+    if(!facetedProject.hasProjectFacet(JavaFacet.FACET)) {
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, javaFv, null));
     } else if(!facetedProject.hasProjectFacet(javaFv)) {
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, javaFv, null));
