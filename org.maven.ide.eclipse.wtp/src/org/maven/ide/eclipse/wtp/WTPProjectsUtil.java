@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -328,4 +329,27 @@ public class WTPProjectsUtil {
     selectedRefs.toArray(selectedReferences);
     return selectedReferences;
   }
+
+  /**
+   * Remove the WTP classpath containers that might conflicts with the Maven Library 
+   * classpath container 
+   * @param project
+   * @throws JavaModelException
+   */
+  public static void removeWTPClasspathContainer(IProject project) throws JavaModelException {
+    IJavaProject javaProject = JavaCore.create(project);
+    if(javaProject != null) {
+      // remove classpatch container from JavaProject
+      ArrayList<IClasspathEntry> newEntries = new ArrayList<IClasspathEntry>();
+      for(IClasspathEntry entry : javaProject.getRawClasspath()) {
+    	String path = entry.getPath().toString();
+        if(!"org.eclipse.jst.j2ee.internal.module.container".equals(path)
+        	&& !"org.eclipse.jst.j2ee.internal.web.container".equals(path)) {
+	          newEntries.add(entry);
+        }
+      }
+      javaProject.setRawClasspath(newEntries.toArray(new IClasspathEntry[newEntries.size()]), null);
+    }
+  }
+  
 }

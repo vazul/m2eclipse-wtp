@@ -99,6 +99,8 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     //Remove "library unavailable at runtime" warning.
     setNonDependencyAttributeToContainer(project, monitor);
+    
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
 }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)

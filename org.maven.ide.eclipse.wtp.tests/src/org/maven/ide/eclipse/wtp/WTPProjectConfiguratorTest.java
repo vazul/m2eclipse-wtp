@@ -110,7 +110,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     waitForJobsToComplete();
     IVirtualComponent component = ComponentCore.createComponent(projects[2]);
     IVirtualReference[] references = component.getReferences();
-    assertEquals(2, references.length);
+    assertEquals(toString(references),2, references.length);
     assertEquals(projects[0], references[1].getReferencedComponent().getProject());
     assertEquals(projects[1], references[0].getReferencedComponent().getProject());
   }
@@ -643,8 +643,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     //check that junit is in the maven classpath container instead
     IClasspathEntry[] mavenContainerEntries = getMavenContainerEntries(fullskinnywar);
-    assertEquals(1, mavenContainerEntries.length);
-    assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
+    assertEquals(5, mavenContainerEntries.length);
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
     
     ////////////
     //check the mixedskinny war project
@@ -684,11 +684,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     //...but not junit, which is a test dependency
     assertFalse(classpath.contains("junit-3.8.1.jar"));
     
-    //check that junit and commons-collections is in the maven classpath container instead
+    //check that junit and commons-collections are in the maven classpath container instead
     mavenContainerEntries = getMavenContainerEntries(mixedskinnywar);
-    assertEquals(2, mavenContainerEntries.length);
-    assertEquals("commons-collections-2.0.jar", mavenContainerEntries[0].getPath().lastSegment());
-    assertEquals("junit-3.8.1.jar", mavenContainerEntries[1].getPath().lastSegment());
+    assertEquals(5, mavenContainerEntries.length);
+    assertEquals("commons-collections-2.0.jar", mavenContainerEntries[3].getPath().lastSegment());
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
   }
 
   private Manifest loadManifest(IFile war1ManifestFile) throws CoreException, IOException {
@@ -1074,20 +1074,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject  = JavaCore.create(web); 
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
     }
     {
       IJavaProject ejbProject  = JavaCore.create(ejb); 
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+     //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
     }
     {
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
@@ -1102,16 +1102,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject  = JavaCore.create(web); 
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
 
-      IClasspathEntry[] entries = getWebLibClasspathContainer(webProject).getClasspathEntries();
-      assertEquals(Arrays.toString(entries), 1, entries.length);
-      assertEquals(IClasspathEntry.CPE_PROJECT, entries[0].getEntryKind());
-      assertEquals("MNGECLIPSE-1878-core", entries[0].getPath().lastSegment());
+      assertNull(getWebLibClasspathContainer(webProject));
     }
 
     configurationManager.updateProjectConfiguration(ejb, monitor);
@@ -1120,12 +1117,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject ejbProject  = JavaCore.create(ejb); 
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 5, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/resources", rawClasspath[1].getPath().toString());//TODO Resources folder appear after config update (WTP added MANIFEST.MF)
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
     }
     
   }
@@ -1416,8 +1413,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     //check that junit is in the maven classpath container instead
     IClasspathEntry[] mavenContainerEntries = getMavenContainerEntries(fullskinnywar);
-    assertEquals(1, mavenContainerEntries.length);
-    assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
+    assertEquals(6, mavenContainerEntries.length);
+    assertEquals("utility1", mavenContainerEntries[0].getPath().lastSegment());
+    assertEquals("ejb", mavenContainerEntries[1].getPath().lastSegment());
+    assertEquals("commons-lang-2.4.jar", mavenContainerEntries[2].getPath().lastSegment());
+    assertEquals("commons-collections-2.0.jar", mavenContainerEntries[3].getPath().lastSegment());
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
+    assertEquals("utility2", mavenContainerEntries[5].getPath().lastSegment());
   }
 
   @Test

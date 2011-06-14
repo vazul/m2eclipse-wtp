@@ -191,6 +191,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     {
       firstInexistentfolder.delete(true, monitor);
     }
+    
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
   }
 
 
@@ -239,26 +241,22 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         preConfigureDependencyProject(dependency, monitor);
         MavenProject depMavenProject =  dependency.getMavenProject(monitor);
   
-  		  IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+  		IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
   		      
         String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
         Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
         String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
         
-        //in a skinny war the dependency modules are referenced by manifest classpath
-        //see also <code>configureClasspath</code> the dependeny project is handled in the skinny case
-        if(opts.isSkinnyWar() && opts.isReferenceFromEar(deployedName)) {
-          continue;
-        }
-  
-    		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-    		if (!artifact.isOptional()) {
-    		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-    		  IPath path = new Path("/WEB-INF/lib");
-          reference.setArchiveName(deployedName);
-    		  reference.setRuntimePath(path);
-    		  references.add(reference);
-    		}
+        boolean isDeployed = !artifact.isOptional() && opts.isPackaged(deployedName);
+          
+		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+		if (isDeployed) {
+		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+		  IPath path = new Path("/WEB-INF/lib");
+		  reference.setArchiveName(deployedName);
+		  reference.setRuntimePath(path);
+		  references.add(reference);
+		}
       } catch(RuntimeException ex) {
         //Should probably be NPEs at this point
         String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
@@ -328,9 +326,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
 
-    IJavaProject javaProject = JavaCore.create(project);
-    IClasspathEntry[] earContainerEntries = ProjectUtils.getEarContainerEntries(javaProject);
-    
     /*
      * Need to take care of three separate cases
      * 
@@ -351,46 +346,23 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
-      boolean deployableScope = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope));
-      //Remove dependent project from the Maven Library, as it's supposed to be brought by the Web Library
-      if(IClasspathEntry.CPE_PROJECT == entry.getEntryKind() &&  deployableScope) {
-        //get deployed name for project dependencies
-        //TODO can this be done somehow more elegantly?
-        IProject p = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(entry.getPath());
-        
-        IVirtualComponent component = ComponentCore.createComponent(p);
-        //component will be null if the underlying project hasn't been configured properly
-        if(component == null){
-          continue;
-        }
-        if (!descriptor.isOptionalDependency()) {
-          // remove mandatory project dependency from classpath
-          iter.remove();
-          continue;
-        }
-      }
-      
       String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
-      boolean packaged  = opts.isPackaged(deployedName);
-      boolean usedInEar = !packaged && deployableScope;//&& isUsedInEar(earContainerEntries, deployedName);
-
-      if (usedInEar) {
-        // remove mandatory project dependency from classpath
-        iter.remove();
-        continue;
-      }//else : optional dependency not used in ear -> need to trick ClasspathAttribute with NONDEPENDENCY_ATTRIBUTE 
     
-      // add non-dependency attribute
-      // Check the scope & set WTP non-dependency as appropriate
-      // Optional artifact shouldn't be deployed
-      if((Artifact.SCOPE_PROVIDED.equals(scope) || Artifact.SCOPE_TEST.equals(scope)
-          || Artifact.SCOPE_SYSTEM.equals(scope) || descriptor.isOptionalDependency()) || !packaged) {
+      boolean isDeployed = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope)) 
+    		  				&& !descriptor.isOptionalDependency() 
+    		  				&& opts.isPackaged(deployedName)
+    		  				&& !isWorkspaceProject(artifact);
+      
+      // add non-dependency attribute if this classpathentry is not meant to be deployed
+      // or if it's a workspace project (projects already have a reference created in configure())
+      if(!isDeployed) {
         descriptor.setClasspathAttribute(NONDEPENDENCY_ATTRIBUTE.getName(), NONDEPENDENCY_ATTRIBUTE.getValue());
       }
     
       // collect duplicate file names 
-      if (!names.add(entry.getPath().lastSegment())) {
-        dups.add(entry.getPath().lastSegment());
+      String fileName = entry.getPath().lastSegment(); 
+      if (!names.add(fileName)) {
+        dups.add(fileName);
       }
     }
 
@@ -421,23 +393,15 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
   }
 
-  /**
-   * @param earContainerEntries
-   * @param deployedName
-   * @return
-   */
-  private boolean isUsedInEar(IClasspathEntry[] earContainerEntries, String deployedName) {
-    if (earContainerEntries == null || earContainerEntries.length == 0)
-    return false;
-    
-    for(IClasspathEntry entry : earContainerEntries) {
-      if (deployedName.equals(entry.getPath().lastSegment())){
-        return true;
-      }
-    }
-    return false;
+  private boolean isWorkspaceProject(Artifact artifact) {
+	IMavenProjectFacade facade = projectManager.getMavenProject(artifact.getGroupId(), 
+																	artifact.getArtifactId(),
+																	artifact.getVersion());
+		      
+	return facade != null 
+			&& facade.getFullPath(artifact.getFile()) != null;
+	
   }
-
 
   private static boolean isDifferent(File src, File dst) {
     if (!dst.exists()) {
