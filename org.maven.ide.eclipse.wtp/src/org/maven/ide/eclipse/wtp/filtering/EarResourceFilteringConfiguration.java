@@ -10,6 +10,7 @@ package org.maven.ide.eclipse.wtp.filtering;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.project.MavenProject;
@@ -63,6 +64,21 @@ public class EarResourceFilteringConfiguration extends AbstractResourceFiltering
     List<String> filters = new ArrayList<String>(mavenProjectFacade.getMavenProject().getFilters());
     filters.addAll(pluginConfiguration.getEarFilters());
     return filters;
+  }
+
+  public String getEscapeString() {
+    return pluginConfiguration.getEscapeString();
+  }
+
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.wtp.filtering.ResourceFilteringConfiguration#getNonfilteredExtensions()
+   */
+  public List<Xpp3Dom> getNonfilteredExtensions() {
+    Xpp3Dom[] domext = pluginConfiguration.getNonfilteredExtensions();
+    if(domext == null || domext.length == 0){
+      return Collections.emptyList();
+    }
+    return Arrays.asList(domext);
   }
 
   

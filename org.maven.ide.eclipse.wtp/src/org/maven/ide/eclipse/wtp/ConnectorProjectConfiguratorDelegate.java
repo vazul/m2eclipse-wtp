@@ -16,6 +16,8 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -24,7 +26,6 @@ import org.eclipse.jst.j2ee.jca.project.facet.ConnectorFacetInstallDataModelProv
 import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelProperties;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
-import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
@@ -70,9 +71,20 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
 
     RarPluginConfiguration config = new RarPluginConfiguration(mavenProject);
     // WTP doesn't allow facet versions changes for JEE facets 
+    
+    IFile manifest = null;
+    IFolder firstInexistentfolder = null;
+    boolean manifestAlreadyExists =false;
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.JCA_FACET)) {
       // Configuring content directory, used by WTP to create META-INF/manifest.mf, ra.xml
       String contentDir = config.getRarContentDirectory(project);
+      IFolder contentFolder = project.getFolder(contentDir);
+      manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
+      manifestAlreadyExists =manifest.exists(); 
+      if (!manifestAlreadyExists) {
+        firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
+      }   
+
       
       IDataModel rarModelCfg = DataModelFactory.createDataModel(new ConnectorFacetInstallDataModelProvider());
       rarModelCfg.setProperty(IConnectorFacetInstallDataModelProperties.CONFIG_FOLDER, contentDir);
@@ -102,6 +114,17 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     
     //Remove "library unavailable at runtime" warning. TODO is it relevant for connector projects?
     setNonDependencyAttributeToContainer(project, monitor);
+    
+    if (!manifestAlreadyExists && manifest != null && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+    if (firstInexistentfolder != null && firstInexistentfolder.exists() && firstInexistentfolder.members().length == 0 )
+    {
+      firstInexistentfolder.delete(true, monitor);
+    }
+  
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
+    
   }
 
   private void removeSourceLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor, String folder) throws CoreException {
@@ -115,15 +138,6 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
           jsrc.removeLink(location, 0, monitor);
         }
       }
-  }
-
-  /**
-   * @see org.maven.ide.eclipse.wtp.IProjectConfiguratorDelegate#configureClasspath(org.eclipse.core.resources.IProject, org.apache.maven.project.MavenProject, org.maven.ide.eclipse.jdt.IClasspathDescriptor, org.eclipse.core.runtime.IProgressMonitor)
-   */
-  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
-      IProgressMonitor monitor) throws CoreException {
-    // Nothing to do
-    
   }
 
   /**

@@ -2,7 +2,7 @@
 <lifecycleMappingMetadata>
   <lifecycleMappings>
 
-    <!--  Tycho packaging types -->
+    <!--  javaee packaging types -->
     <lifecycleMapping>
       <packagingType>war</packagingType>
       <lifecycleMappingId>org.maven.ide.eclipse.wtp.WarLifecycleMapping</lifecycleMappingId>
@@ -22,6 +22,21 @@
             </configurator>
           </action>
         </pluginExecution>
+        <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <versionRange>[1.0,)</versionRange>
+            <goals>
+              <goal>war</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+            <configurator>
+              <id>org.maven.ide.eclipse.configuration.wtp.warmanifest.configurator</id>
+            </configurator>
+          </action>
+        </pluginExecution>           
 		<pluginExecution>
           <pluginExecutionFilter>
             <groupId>org.apache.maven.plugins</groupId>
@@ -58,6 +73,21 @@
             </configurator>
           </action>
         </pluginExecution>
+      <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-ejb-plugin</artifactId>
+            <versionRange>[1.0,)</versionRange>
+            <goals>
+              <goal>ejb</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+            <configurator>
+              <id>org.maven.ide.eclipse.configuration.wtp.ejbmanifest.configurator</id>
+            </configurator>
+          </action>
+        </pluginExecution>        
       </pluginExecutions>
     </lifecycleMapping>
     <lifecycleMapping>
@@ -76,6 +106,21 @@
           <action>
             <configurator>
               <id>org.maven.ide.eclipse.configuration.wtp.configurator</id>
+            </configurator>
+          </action>
+        </pluginExecution>
+        <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-ear-plugin</artifactId>
+            <versionRange>[1.0,)</versionRange>
+            <goals>
+              <goal>ear</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+            <configurator>
+              <id>org.maven.ide.eclipse.configuration.wtp.earmanifest.configurator</id>
             </configurator>
           </action>
         </pluginExecution>
@@ -100,8 +145,42 @@
             </configurator>
           </action>
         </pluginExecution>
+        <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-rar-plugin</artifactId>
+            <versionRange>[1.0,)</versionRange>
+            <goals>
+              <goal>rar</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+            <configurator>
+              <id>org.maven.ide.eclipse.configuration.wtp.rarmanifest.configurator</id>
+            </configurator>
+          </action>
+        </pluginExecution>        
       </pluginExecutions>
     </lifecycleMapping>
   </lifecycleMappings>
+  
+  
+       <pluginExecutions>
+        <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <versionRange>[1.0,)</versionRange>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+            <configurator>
+              <id>org.maven.ide.eclipse.configuration.wtp.jarmanifest.configurator</id>
+            </configurator>
+          </action>
+        </pluginExecution>
+      </pluginExecutions>
 
 </lifecycleMappingMetadata>

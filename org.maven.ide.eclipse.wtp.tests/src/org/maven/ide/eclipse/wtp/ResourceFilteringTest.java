@@ -15,14 +15,17 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.junit.Test;
 
-public class WebResourceFilteringTest extends AbstractWTPTestCase {
+@SuppressWarnings("restriction")
+public class ResourceFilteringTest extends AbstractWTPTestCase {
   
   private static String FILTERED_FOLDER_NAME = "target/" + MavenWtpConstants.M2E_WTP_FOLDER+ "/" + MavenWtpConstants.WEB_RESOURCES_FOLDER; 
+  private static String EAR_FILTERED_FOLDER_NAME = "target/" + MavenWtpConstants.M2E_WTP_FOLDER+ "/" + MavenWtpConstants.EAR_RESOURCES_FOLDER; 
   
   @Test
   public void testMECLIPSE22_webfiltering() throws Exception {
@@ -139,13 +142,12 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
     //assertHasMarker("org.maven.ide.eclipse.maven2Problem:Cannot find setter, adder nor field in org.apache.maven.plugin.resources.Resource for 'filter'", markers);
     
     IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
-    assertFalse("Filtered folder shouldn't exist", filteredFolder.exists());
+    assertTrue("Filtered folder should always be created", filteredFolder.exists());
        
     //Let's change the active profile to see if the values are updated
     updateProject(web, "good.pom.xml");    
     
     assertNoErrors(web);
-    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
     assertTrue("Files should have been filtered",filteredFolder.members().length > 0);
   }
 
@@ -175,6 +177,115 @@ public class WebResourceFilteringTest extends AbstractWTPTestCase {
 
     IFile ignored = filteredFolder.getFile("ignoreme.txt");
     assertFalse("ignoreme.txt should be excluded",ignored.exists());
+  }
+  
+  
+  @Test
+  public void testMECLIPSE124_earfiltering() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-124/", 
+        new String[]{"pom.xml", "ear/pom.xml", "ejb/pom.xml"},
+        new ResolverConfiguration());
+    waitForJobsToComplete();
+    
+    IProject ear = projects[1];
+    ear.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(ear);
+    
+    IFolder earResourcesFolder = ear.getFolder(EAR_FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", earResourcesFolder.exists());
+
+    IFile jbossServiceFile = earResourcesFolder.getFile("META-INF/jboss-service.xml");
+    assertTrue("jboss-service.xml doesn't exist", jbossServiceFile.exists());
+
+    String jbossService = getAsString(jbossServiceFile);
+    String expectedAttribute = "<attribute name=\"CustomAttribute\">MBean Attribute Value</attribute>";
+    assertTrue("File was not filtered "+jbossService, jbossService.contains(expectedAttribute));
+  }
+
+
+  @Test
+  public void testMECLIPSE124_earFilterFile() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-124/", 
+        new String[]{"pom.xml", "ear-filters/pom.xml", "ejb/pom.xml"},
+        new ResolverConfiguration());
+    waitForJobsToComplete();
+    
+    IProject ear = projects[1];
+    ear.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(ear);
+    
+    IFolder earResourcesFolder = ear.getFolder(EAR_FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", earResourcesFolder.exists());
+
+    IFile jbossServiceFile = earResourcesFolder.getFile("META-INF/jboss-service.xml");
+    assertTrue("jboss-service.xml doesn't exist", jbossServiceFile.exists());
+
+    String jbossService = getAsString(jbossServiceFile);
+    String expectedAttribute = "<attribute name=\"CustomAttribute\">MBean Attribute Value from config.properties</attribute>";
+    assertTrue("File was not filtered "+jbossService, jbossService.contains(expectedAttribute));
+    
+  }
+
+  @Test
+  public void testMECLIPSE124_advancedEarFiltering() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-124/", 
+        new String[]{"pom.xml", "advanced-ear-filters/pom.xml", "ejb/pom.xml"},
+        new ResolverConfiguration());
+    waitForJobsToComplete();
+    
+    IProject ear = projects[1];
+    ear.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(ear);
+    
+    IFolder earResourcesFolder = ear.getFolder(EAR_FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", earResourcesFolder.exists());
+
+    IFile jbossServiceFile = earResourcesFolder.getFile("META-INF/jboss-service.xml");
+    assertTrue("jboss-service.xml doesn't exist", jbossServiceFile.exists());
+
+    String jbossService = getAsString(jbossServiceFile);
+    String expectedAttribute = "<attribute name=\"CustomAttribute\">MBean Attribute Value from config.properties</attribute>";
+    assertTrue("File was not filtered "+jbossService, jbossService.contains(expectedAttribute));
+  
+    String expectedNonFilteredAttribute = "<attribute name=\"id\">${project.artifactId}</attribute>";
+    assertTrue("escapeString was ignored "+jbossService, jbossService.contains(expectedNonFilteredAttribute));
+
+    IFile propertiesFile = earResourcesFolder.getFile("META-INF/ignored.properties");
+    assertTrue("ignored.properties should exist", propertiesFile.exists());
+    
+    String ignored = getAsString(propertiesFile);
+    assertTrue("ignored.properties  was filtered "+ignored, ignored.contains("attribute=${my.custom.mbean.attribute.value}"));
+  }
+
+  
+  @Test
+  public void testResourcesOutsideProject() throws Exception {
+    IProject[] projects = importProjects("projects/WebResourceFiltering/top/", 
+                  new String[]{"pom.xml", "mid/pom.xml", "mid/web/pom.xml"}, 
+                  new ResolverConfiguration());
+    
+    IProject web = projects[2];
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    IFile indexHtml = filteredFolder.getFile("index.html");
+    assertTrue("index.html is missing",indexHtml.exists());
+    String index = getAsString(indexHtml);
+    assertTrue("${artifactId} is missing", index.contains("${artifactId}"));
+    
+    //Let's activate filtering, see if the values are updated
+    updateProject(web, "pom2.xml");    
+    
+    index = getAsString(indexHtml);
+    assertTrue("${artifactId} has not been interpolated", index.contains("web"));
+    
+    
   }
   
   /**

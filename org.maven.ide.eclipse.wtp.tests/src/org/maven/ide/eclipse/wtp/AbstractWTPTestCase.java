@@ -42,7 +42,7 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 
-
+@SuppressWarnings("restriction")
 public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
 
   protected static final IProjectFacetVersion DEFAULT_WEB_VERSION = WebFacetUtils.WEB_FACET.getVersion("2.5");
@@ -195,4 +195,11 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     updateProject(project, null, -1);
   }
   
+  protected void assertContains(String findMe, String holder) {
+    assertTrue("'" +findMe + "' is missing from : \n" + holder, holder.contains(findMe));
+  }
+  
+  protected void assertNotContains(String findMe, String holder) {
+    assertFalse("'" +findMe + "' was found in : \n" + holder, holder.contains(findMe));
+  }
 }

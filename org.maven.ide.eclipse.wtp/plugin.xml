@@ -42,8 +42,45 @@
           class="org.maven.ide.eclipse.wtp.OverlayConfigurator"
           name="Overlay" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"/>
-    </extension>   
-   
+    </extension>
+	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.jarmanifest.configurator"
+          class="org.maven.ide.eclipse.wtp.manifest.JarManifestConfigurator"
+          name="JarManifestConfigurator" 
+          />
+    </extension>          
+	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.warmanifest.configurator"
+          class="org.maven.ide.eclipse.wtp.manifest.WarManifestConfigurator"
+          name="WarManifestConfigurator" 
+          secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
+          />
+    </extension>  
+   	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.ejbmanifest.configurator"
+          class="org.maven.ide.eclipse.wtp.manifest.EjbManifestConfigurator"
+          name="EjbManifestConfigurator" 
+          secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
+          />
+    </extension> 
+	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.earmanifest.configurator"
+          class="org.maven.ide.eclipse.wtp.manifest.EarManifestConfigurator"
+          name="EarManifestConfigurator" 
+          />
+    </extension>
+	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.rarmanifest.configurator"
+          class="org.maven.ide.eclipse.wtp.manifest.RarManifestConfigurator"
+          name="RarManifestConfigurator" 
+          secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
+          />
+    </extension>               
    <!-- A workaround to allow to uninstall WTP facets -->   
    <extension point="org.eclipse.wst.common.project.facet.core.facets">
       <action type="uninstall" facet="jst.ear" version="[1.2-6.0]">
@@ -68,7 +105,7 @@
       <navigatorContent id="org.maven.ide.eclipse.wtp.navigatorContent"
             contentProvider="org.maven.ide.eclipse.wtp.internal.WTPResourcesContentProvider"
             labelProvider="org.maven.ide.eclipse.wtp.internal.WTPResourcesLabelProvider"
-            name="Web Resources"
+            name="Deployed Resources"
             icon="icons/web-resources.gif"
             activeByDefault="true"
             priority="normal">

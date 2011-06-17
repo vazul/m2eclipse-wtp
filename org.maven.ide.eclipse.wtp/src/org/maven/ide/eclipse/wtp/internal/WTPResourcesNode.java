@@ -54,13 +54,14 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
   // IWorkbenchAdapter
   
   public String getLabel(Object o) {
-    IContainer[] folders = getRootFolders();
-    StringBuilder label = new StringBuilder(getLabel());
-    if(folders.length == 1) {
-      IContainer c = folders[0];
-      label.append(" : ").append(c.getFullPath().removeFirstSegments(1));
-    }
-    return label.toString();
+//    IContainer[] folders = getRootFolders();
+//    StringBuilder label = new StringBuilder(getLabel());
+//    if(folders.length == 1) {
+//      IContainer c = folders[0];
+//      label.append(" : ").append(c.getFullPath().removeFirstSegments(1));
+//    }
+//    return label.toString();
+    return getLabel();
   }
 
   public ImageDescriptor getImageDescriptor(Object object) {
@@ -93,18 +94,18 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
   }
   
   public String getLabel() {
-    try {
-      IFacetedProject facetedProject = ProjectFacetsManager.create(project);
-      if (facetedProject.hasProjectFacet(IJ2EEFacetConstants.DYNAMIC_WEB_FACET)) {
-        return "Web Resources";
-      }
-      if (facetedProject.hasProjectFacet(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_FACET)) {
-        return "Application Resources";
-      }
-    } catch(CoreException ex) {
-      log.error("Cannot retrieve the project facet",ex);
-    }    
-    return "Resources";
+//    try {
+//      IFacetedProject facetedProject = ProjectFacetsManager.create(project);
+//      if (facetedProject.hasProjectFacet(IJ2EEFacetConstants.DYNAMIC_WEB_FACET)) {
+//        return "Web Resources";
+//      }
+//      if (facetedProject.hasProjectFacet(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_FACET)) {
+//        return "Application Resources";
+//      }
+//    } catch(CoreException ex) {
+//      log.error("Cannot retrieve the project facet",ex);
+//    }    
+    return "Deployed Resources";
   }
 
 }

@@ -64,19 +64,21 @@ import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
  *
  * @author igor
  */
+@SuppressWarnings("restriction")
 public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
   @Test
   public void testSimple01_import() throws Exception {
     IProject project = importProject("projects/simple/p01/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
     assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
 
     IResource[] underlyingResources = getUnderlyingResources(project);
-    assertEquals(1, underlyingResources.length);
-    assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[0]);
+    assertEquals(2, underlyingResources.length);
+    assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[1]);
 
     assertFalse(project.exists(new Path("/src/main/webapp/WEB-INF/lib")));
 }
@@ -108,7 +110,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     waitForJobsToComplete();
     IVirtualComponent component = ComponentCore.createComponent(projects[2]);
     IVirtualReference[] references = component.getReferences();
-    assertEquals(2, references.length);
+    assertEquals(toString(references),2, references.length);
     assertEquals(projects[0], references[1].getReferencedComponent().getProject());
     assertEquals(projects[1], references[0].getReferencedComponent().getProject());
   }
@@ -139,7 +141,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNoErrors(war);
     assertNoErrors(runtimeJar);
     IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
-    assertEquals(3, warComponent.getReferences().length);
+    IVirtualReference[] references = warComponent.getReferences();
+    assertEquals("Unexpected number of references found :"+toString(references),3, references.length);
   }
 
   @Test
@@ -158,30 +161,30 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testNonDefaultWarSourceDirectory() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-627/TestWar/pom.xml", new ResolverConfiguration());
-    
+    waitForJobsToComplete();
     IVirtualComponent component = ComponentCore.createComponent(project);
     IVirtualFolder root = component.getRootFolder();
     IResource[] underlyingResources = root.getUnderlyingResources();
-    assertEquals(1, underlyingResources.length);
-    assertEquals(project.getFolder("/webapp"), underlyingResources[0]);
+    assertEquals(2, underlyingResources.length);
+    assertEquals(project.getFolder("/webapp"), underlyingResources[1]);
   }
 
 
   @Test
   public void testMNGECLIPSE1600_absoluteDirectories() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-1600/", new String[] {"test/pom.xml", "testEAR/pom.xml"}, new ResolverConfiguration());
-    
+    waitForJobsToComplete();
     IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
     IVirtualFolder rootwar = warComponent.getRootFolder();
     IResource[] warResources = rootwar.getUnderlyingResources();
-    assertEquals(1, warResources.length);
-    assertEquals(projects[0].getFolder("/WebContent"), warResources[0]);
+    assertEquals(2, warResources.length);
+    assertEquals(projects[0].getFolder("/WebContent"), warResources[1]);
 
     IVirtualComponent earComponent = ComponentCore.createComponent(projects[1]);
     IVirtualFolder rootEar = earComponent.getRootFolder();
     IResource[] earResources = rootEar.getUnderlyingResources();
-    assertEquals(1, earResources.length);
-    assertEquals(projects[1].getFolder("/EarContent"), earResources[0]);
+    assertEquals(2, earResources.length);
+    assertEquals(projects[1].getFolder("/EarContent"), earResources[1]);
   }
 
   
@@ -640,8 +643,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     //check that junit is in the maven classpath container instead
     IClasspathEntry[] mavenContainerEntries = getMavenContainerEntries(fullskinnywar);
-    assertEquals(1, mavenContainerEntries.length);
-    assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
+    assertEquals(5, mavenContainerEntries.length);
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
     
     ////////////
     //check the mixedskinny war project
@@ -672,17 +675,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     //check that manifest classpath only contain utility1 and commons-lang
     classpath = mf2.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
     assertTrue(classpath.contains(utilityRef1.getArchiveName()));
-    assertFalse(classpath.contains(utilityRef2.getArchiveName()));
-    assertTrue(classpath.contains("commons-lang-2.4.jar"));
-    assertFalse(classpath.contains("commons-collections-2.0.jar"));
+    assertTrue(classpath.contains(utilityRef2.getArchiveName()));
+    //assertFalse(classpath.contains(utilityRef2.getArchiveName())); 
+    assertTrue(classpath.contains("commons-lang-2.4.jar"));//Maven manifest contains all entries!!!
+    //assertFalse(classpath.contains("commons-collections-2.0.jar"));
+    assertTrue(classpath.contains("commons-collections-2.0.jar"));//Maven manifest contains all entries!!!
+    
     //...but not junit, which is a test dependency
     assertFalse(classpath.contains("junit-3.8.1.jar"));
     
-    //check that junit and commons-collections is in the maven classpath container instead
+    //check that junit and commons-collections are in the maven classpath container instead
     mavenContainerEntries = getMavenContainerEntries(mixedskinnywar);
-    assertEquals(2, mavenContainerEntries.length);
-    assertEquals("commons-collections-2.0.jar", mavenContainerEntries[0].getPath().lastSegment());
-    assertEquals("junit-3.8.1.jar", mavenContainerEntries[1].getPath().lastSegment());
+    assertEquals(5, mavenContainerEntries.length);
+    assertEquals("commons-collections-2.0.jar", mavenContainerEntries[3].getPath().lastSegment());
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
   }
 
   private Manifest loadManifest(IFile war1ManifestFile) throws CoreException, IOException {
@@ -1068,20 +1074,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject  = JavaCore.create(web); 
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
     }
     {
       IJavaProject ejbProject  = JavaCore.create(ejb); 
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+     //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
     }
     {
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
@@ -1096,16 +1102,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject  = JavaCore.create(web); 
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
 
-      IClasspathEntry[] entries = getWebLibClasspathContainer(webProject).getClasspathEntries();
-      assertEquals(Arrays.toString(entries), 1, entries.length);
-      assertEquals(IClasspathEntry.CPE_PROJECT, entries[0].getEntryKind());
-      assertEquals("MNGECLIPSE-1878-core", entries[0].getPath().lastSegment());
+      assertNull(getWebLibClasspathContainer(webProject));
     }
 
     configurationManager.updateProjectConfiguration(ejb, monitor);
@@ -1114,12 +1117,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject ejbProject  = JavaCore.create(ejb); 
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 5, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/resources", rawClasspath[1].getPath().toString());//TODO Resources folder appear after config update (WTP added MANIFEST.MF)
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
+      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
     }
     
   }
@@ -1296,6 +1299,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE2357_customWebXml() throws Exception {
     IProject web = importProject("projects/MNGECLIPSE-2357/pom.xml", new ResolverConfiguration());
+    waitForJobsToComplete();
     assertEquals("MNGECLIPSE-2357",J2EEProjectUtilities.getServerContextRoot(web));
     
     IFacetedProject facetedProject = ProjectFacetsManager.create(web);
@@ -1307,8 +1311,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualComponent webComp = ComponentCore.createComponent(web);
     IVirtualFolder rootWeb = webComp.getRootFolder();
     IResource[] webResources = rootWeb.getUnderlyingResources();
-    assertEquals(1, webResources.length);
-    assertEquals(web.getFolder("/src/main/webapp"), webResources[0]);
+    assertEquals(2, webResources.length);
+    assertEquals(web.getFolder("/src/main/webapp"), webResources[1]);
     
     IVirtualFile virtualWebXml = rootWeb.getFile("WEB-INF/web.xml");
     assertTrue(virtualWebXml.exists());
@@ -1331,8 +1335,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNoErrors(web);
     
     webResources = rootWeb.getUnderlyingResources();
-    assertEquals(1, webResources.length);
-    assertEquals(web.getFolder("/src/main/webapp"), webResources[0]);
+    assertEquals(2, webResources.length);
+    assertEquals(web.getFolder("/src/main/webapp"), webResources[1]);
     
     webXmlFiles = virtualWebXml.getUnderlyingFiles();
     assertEquals("found "+toString(webXmlFiles),  1, webXmlFiles.length);
@@ -1384,10 +1388,10 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IVirtualReference[] warRefs = skinnyWarComp.getReferences();
     assertEquals(toString(warRefs),5, warRefs.length);
     
-    assertEquals(utility1, warRefs[0].getReferencedComponent().getProject());
-    assertEquals("/", warRefs[0].getRuntimePath().toString());
-    assertEquals(ejb, warRefs[1].getReferencedComponent().getProject());
-    assertEquals("/", warRefs[1].getRuntimePath().toString());    
+    assertEquals(ejb, warRefs[0].getReferencedComponent().getProject());
+    assertEquals("/", warRefs[0].getRuntimePath().toString());    
+    assertEquals(utility1, warRefs[1].getReferencedComponent().getProject());
+    assertEquals("/", warRefs[1].getRuntimePath().toString());
     assertTrue(warRefs[2].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
     assertEquals("/", warRefs[2].getRuntimePath().toString());  
     assertTrue(warRefs[3].getReferencedComponent().getDeployedName().endsWith("commons-collections-2.0.jar"));  
@@ -1399,9 +1403,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
     //check that manifest classpath contains all dependencies
     String classpath = mf1.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+    assertTrue(classpath.startsWith(ejbRef.getArchiveName()));
     assertTrue(classpath.contains("lib/"+utilityRef1.getArchiveName()));
-    assertTrue(classpath.contains(ejbRef.getArchiveName()));
-    assertFalse(classpath.contains("lib/"+ejbRef.getArchiveName()));
+    //assertFalse(classpath.contains("lib/"+ejbRef.getArchiveName()));
     assertTrue(classpath.contains("lib/commons-lang-2.4.jar"));
     assertTrue(classpath.contains("lib/commons-collections-2.0.jar"));
     //...but not junit, which is a test dependency
@@ -1409,8 +1413,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     //check that junit is in the maven classpath container instead
     IClasspathEntry[] mavenContainerEntries = getMavenContainerEntries(fullskinnywar);
-    assertEquals(1, mavenContainerEntries.length);
-    assertEquals("junit-3.8.1.jar", mavenContainerEntries[0].getPath().lastSegment());
+    assertEquals(6, mavenContainerEntries.length);
+    assertEquals("utility1", mavenContainerEntries[0].getPath().lastSegment());
+    assertEquals("ejb", mavenContainerEntries[1].getPath().lastSegment());
+    assertEquals("commons-lang-2.4.jar", mavenContainerEntries[2].getPath().lastSegment());
+    assertEquals("commons-collections-2.0.jar", mavenContainerEntries[3].getPath().lastSegment());
+    assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
+    assertEquals("utility2", mavenContainerEntries[5].getPath().lastSegment());
   }
 
   @Test
@@ -1512,7 +1521,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(warRef);
     assertEquals("war-1.0-SNAPSHOT.war",warRef.getArchiveName());
 
-    IVirtualComponent warComp = warRef.getReferencedComponent();
+    IVirtualComponent warComp = ComponentCore.createComponent(war);
     IVirtualReference[] fullSkinnyReferences = warComp.getReferences();
     assertEquals(1, fullSkinnyReferences.length);
     assertTrue(fullSkinnyReferences[0].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  

@@ -27,7 +27,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.junit.Test;
 
-
+@SuppressWarnings("restriction")
 public class WTPProjectImportTest extends AbstractWTPTestCase {
 
   @Test
@@ -46,7 +46,7 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
       assertEquals(0, classpathEntries.length);
 
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-type/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
@@ -65,7 +65,7 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
       assertEquals("junit-3.8.1.jar", classpathEntries[2].getPath().lastSegment());
 
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(4, rawClasspath.length);
+      assertEquals(3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-app/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
@@ -78,11 +78,13 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
       IJavaProject javaProject = JavaCore.create(projects[3]);
       IClasspathEntry[] classpathEntries = BuildPathManager.getMaven2ClasspathContainer(javaProject)
           .getClasspathEntries();
-      assertEquals(1, classpathEntries.length);
-      assertEquals("log4j-1.2.13.jar", classpathEntries[0].getPath().lastSegment());
+      assertEquals(3, classpathEntries.length);
+      assertEquals("MNGECLIPSE-20-app", classpathEntries[0].getPath().lastSegment());
+      assertEquals("log4j-1.2.13.jar", classpathEntries[1].getPath().lastSegment());
+      assertEquals("MNGECLIPSE-20-type", classpathEntries[2].getPath().lastSegment());
 
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.asList(rawClasspath).toString(), 5, rawClasspath.length);
+      assertEquals(Arrays.asList(rawClasspath).toString(), 3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-web/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
@@ -101,12 +103,11 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
       assertEquals("MNGECLIPSE-20-type", classpathEntries[2].getPath().lastSegment());
 
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.asList(rawClasspath).toString(), 5, rawClasspath.length);
+      assertEquals(Arrays.asList(rawClasspath).toString(), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals("/MNGECLIPSE-20-ejb/src/main/resources", rawClasspath[1].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());//Added w/ MNGECLIPSE-688
       
       IMarker[] markers = projects[4].findMarkers(null, true, IResource.DEPTH_INFINITE);
       assertEquals(toString(markers), 0, markers.length);
@@ -197,12 +198,10 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
       assertEquals("MNGECLIPSE-20-type-0.0.1-SNAPSHOT.jar", classpathEntries[1].getPath().lastSegment());
 
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 5, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-web/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[3].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
 
       // IMarker[] markers = projects[3].findMarkers(null, true, IResource.DEPTH_INFINITE);
       List<IMarker> markers = findErrorMarkers(projects[3]);
@@ -219,13 +218,12 @@ public class WTPProjectImportTest extends AbstractWTPTestCase {
       assertEquals("MNGECLIPSE-20-type-0.0.1-SNAPSHOT.jar", classpathEntries[1].getPath().lastSegment());
 
       IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-      assertEquals(Arrays.asList(rawClasspath).toString(), 5, rawClasspath.length);
+      assertEquals(Arrays.asList(rawClasspath).toString(), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-20-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals("/MNGECLIPSE-20-ejb/src/main/resources", rawClasspath[1].getPath().toString());
       assertEquals("/MNGECLIPSE-20-ejb/target/classes", rawClasspath[1].getOutputLocation().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
-      assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
 
       // IMarker[] markers = projects[4].findMarkers(null, true, IResource.DEPTH_INFINITE);
       List<IMarker> markers = findErrorMarkers(projects[4]);

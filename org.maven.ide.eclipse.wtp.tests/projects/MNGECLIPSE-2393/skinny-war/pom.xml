@@ -60,6 +60,9 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 						</manifest>
+						<manifestEntries>
+						<Class-Path>ejb-0.0.1-SNAPSHOT.jar</Class-Path>
+						</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>

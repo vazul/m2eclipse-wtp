@@ -21,6 +21,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathContainer;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 
 /**
  * ProjectUtils
@@ -111,4 +116,21 @@ public class ProjectUtils {
       project.setDescription(description, monitor);
     }
   }
+  
+  public static IClasspathEntry[] getEarContainerEntries(IJavaProject javaProject) {
+    IClasspathEntry[] entries = null;
+    if(javaProject != null) {
+      try {
+        IClasspathContainer earContainer = 
+            JavaCore.getClasspathContainer(new Path("org.eclipse.jst.j2ee.internal.module.container"), javaProject);
+        if (earContainer != null) {
+          entries = earContainer.getClasspathEntries();
+        }
+      } catch(JavaModelException ex) {
+        //Ignore
+      }
+    }
+    return entries;
+  }
+  
 }

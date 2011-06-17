@@ -39,6 +39,8 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
+import org.eclipse.m2e.core.internal.builder.AbstractEclipseBuildContext;
+import org.eclipse.m2e.core.internal.builder.AbstractEclipseBuildContext.Message;
 import org.eclipse.m2e.core.internal.builder.EclipseBuildContext;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
@@ -89,14 +91,14 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
         log.info("Changed resources require a complete clean of filtered resources of {}",project.getName());
         Map<String, Object> contextState = new HashMap<String, Object>();
         project.setSessionProperty(BUILD_CONTEXT_KEY, contextState);
-        //String id = ((AbstractEclipseBuildContext)super.getBuildContext()).getCurrentBuildParticipantId();
+        //String id = "" + "-" + getClass().getName();
         forceCopyBuildContext = new EclipseBuildContext(project, contextState);
-        //forceCopyBuildContext.setCurrentBuildParticipantId(id);
+        forceCopyBuildContext.setCurrentBuildParticipantId(getBuildParticipantId());
         ThreadBuildContext.setThreadBuildContext(forceCopyBuildContext);
       }
       if (forceCopyBuildContext != null || hasResourcesChanged(facade, delta, resources)) {
         log.info("Executing resource filtering for {}",project.getName());
-        executeCopyResources(facade, filters, targetFolder, resources, monitor);
+        executeCopyResources(facade, configuration, targetFolder, resources, monitor);
         //FIXME deal with absolute paths
         IFolder destFolder = project.getFolder(targetFolder);
         if (destFolder.exists()){
@@ -108,6 +110,27 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     }
 
     return null;
+  }
+
+  /**
+   * Super bad hack to retrieve the buildParticipantId that is not exposed by AbstractEclipseBuildContext
+   */
+  private String getBuildParticipantId() {
+    BuildContext originalContext = super.getBuildContext();
+    String id = "org.apache.maven.plugins:maven-resources:copy-resources:::-"+getClass().getName(); 
+    if (originalContext != null && (originalContext instanceof AbstractEclipseBuildContext)) {
+      //That hack allows us to avoid doing some introspection
+      AbstractEclipseBuildContext eclipseContext = ((AbstractEclipseBuildContext)originalContext); 
+      Map<String, List<Message>> map = eclipseContext.getMessages();
+      if (map == null || map.isEmpty()) {
+        eclipseContext.addMessage(null, 0, 0, "dummy", 0, null);
+        id = map.keySet().iterator().next();
+        map.clear();
+      } else {
+        id = map.keySet().iterator().next();
+      }
+    }
+    return id;
   }
 
   protected BuildContext getBuildContext() {
@@ -169,7 +192,6 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       if (parent != null) {
         parent.refreshLocal(IResource.DEPTH_INFINITE, monitor ); 
       }
-      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor); 
     }    
   }
 
@@ -225,11 +247,11 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
   }
   
 
-  private void executeCopyResources(IMavenProjectFacade facade, List<String> filters, IPath targetFolder, List<Xpp3Dom> resources, IProgressMonitor monitor) throws CoreException {
+  private void executeCopyResources(IMavenProjectFacade facade,  ResourceFilteringConfiguration filteringConfiguration, IPath targetFolder, List<Xpp3Dom> resources, IProgressMonitor monitor) throws CoreException {
 
     //Create a maven request + session
     ResolverConfiguration resolverConfig = facade.getResolverConfiguration();
-    
+    List<String> filters = filteringConfiguration.getFilters();
     IMavenProjectRegistry projectManager = MavenPlugin.getMavenProjectRegistry();
     MavenExecutionRequest request = projectManager.createExecutionRequest(facade.getPom(), resolverConfig, monitor);
     request.setRecursive(false);
@@ -259,6 +281,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       //Set output directory to the m2eclipse-wtp webresources directory
       setValue(configuration, "outputDirectory", targetFolder.toPortableString());
       
+      setValue(configuration, "escapeString", filteringConfiguration.getEscapeString());
+
+      setNonfilteredExtensions(configuration, filteringConfiguration.getNonfilteredExtensions());
+
       //Setup filters
       setupFilters(configuration, filters);
 
@@ -287,6 +313,27 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     } finally {
       //Restore original configuration
       copyFilteredResourcesMojo.setConfiguration(originalConfig);      
+    }
+  }
+
+  /**
+   * @param configuration
+   * @param extensions
+   */
+  private void setNonfilteredExtensions(Xpp3Dom configuration, List<Xpp3Dom> extensions) {
+    if (extensions == null || extensions.isEmpty()) {
+      return;
+    }
+    Xpp3Dom nonFilteredFileExtensionsNode = configuration.getChild("nonFilteredFileExtensions");
+    if (nonFilteredFileExtensionsNode == null) {
+      nonFilteredFileExtensionsNode = new Xpp3Dom("nonFilteredFileExtensions");
+      configuration.addChild(nonFilteredFileExtensionsNode);
+    } else {
+      DomUtils.removeChildren(nonFilteredFileExtensionsNode);
+    }
+    
+    for (Xpp3Dom ext : extensions) {
+      nonFilteredFileExtensionsNode.addChild(ext);
     }
   }
 

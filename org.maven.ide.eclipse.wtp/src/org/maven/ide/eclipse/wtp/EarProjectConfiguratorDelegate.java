@@ -18,8 +18,10 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,7 +35,6 @@ import org.eclipse.jst.j2ee.model.IEARModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.application.Application;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
-import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
@@ -84,11 +85,14 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     String contentDir = config.getEarContentDirectory(project);
   
     IFolder firstInexistentfolder = null;
-    IFolder metaInfFolder = project.getFolder(contentDir).getFolder("META-INF");
-    if (!metaInfFolder.exists()) {
-      firstInexistentfolder = findFirstInexistentFolder(project, metaInfFolder.getProjectRelativePath());
+    IFolder contentFolder = project.getFolder(contentDir);
+    IFile manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
+    boolean manifestAlreadyExists =manifest.exists(); 
+    if (!manifestAlreadyExists) {
+      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
     }   
-
+    
+    
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
       IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
 
@@ -108,10 +112,13 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
     fixMissingModuleCoreNature(project, monitor);
     
-
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
 
+    if (!manifestAlreadyExists && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+    
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
     if (useBuildDirectory && earComponent != null) {
       IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
@@ -126,8 +133,13 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       {
         firstInexistentfolder.delete(true, monitor);
       }
+      
+      project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     }
 
+
+
+    
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);
@@ -136,19 +148,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
   }
 
-  private IFolder findFirstInexistentFolder(IProject project, IPath targetPath) {
-    StringBuilder path = new StringBuilder();
-    for (String segment : targetPath.segments()) {
-      path.append(IPath.SEPARATOR);
-      path.append(segment);
-      IFolder curFolder = project.getFolder(path.toString());
-      if (!curFolder.exists()) {
-        return curFolder;
-      }
-    }
-    return null;
-  }
-  
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
@@ -241,10 +240,5 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String artifactPath = ArtifactHelper.getM2REPOVarPath(artifact);
       IVirtualComponent depComponent = ComponentCore.createArchiveComponent(earComponent.getProject(), artifactPath);
       return depComponent;
-  }
-  
-  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
-      IProgressMonitor monitor) throws CoreException {
-    // do nothing
   }
 }

@@ -26,4 +26,14 @@ public interface ResourceFilteringConfiguration {
   List<Xpp3Dom> getResources();
   
   List<String> getFilters();
+
+  /**
+   * @return
+   */
+  String getEscapeString();
+
+  /**
+   * @return
+   */
+  List<Xpp3Dom> getNonfilteredExtensions();
 }

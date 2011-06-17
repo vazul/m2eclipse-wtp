@@ -13,12 +13,13 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jst.j2ee.ejb.project.operations.IEjbFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.ejb.project.operations.EjbFacetInstallDataModelProvider;
-import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -55,11 +56,20 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     Set<Action> actions = new LinkedHashSet<Action>();
     installJavaFacet(actions, project, facetedProject);
 
+    IFile manifest = null;
+    IFolder firstInexistentfolder = null;
+    boolean manifestAlreadyExists =false;
     // WTP doesn't allow facet versions changes for JEE facets 
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EJB_FACET)) {
       // Configuring content directory, used by WTP to create META-INF/manifest.mf, ejb-jar.xml
       EjbPluginConfiguration config = new EjbPluginConfiguration(mavenProject);
       String contentDir = config.getEjbContentDirectory(project);
+      IFolder contentFolder = project.getFolder(contentDir);
+      manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
+      manifestAlreadyExists =manifest.exists(); 
+      if (!manifestAlreadyExists) {
+        firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
+      }   
       
       IDataModel ejbModelCfg = DataModelFactory.createDataModel(new EjbFacetInstallDataModelProvider());
       ejbModelCfg.setProperty(IEjbFacetInstallDataModelProperties.CONFIG_FOLDER, contentDir);
@@ -76,20 +86,25 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
     fixMissingModuleCoreNature(project, monitor);
     
-    removeTestFolderLinks(project, mavenProject, monitor, "/"); //XXX Doesn't work in certain -unidentified yet- circumstances!!!
+    removeTestFolderLinks(project, mavenProject, monitor, "/");
 
+    if (!manifestAlreadyExists && manifest != null && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+    if (firstInexistentfolder != null && firstInexistentfolder.exists() && firstInexistentfolder.members().length == 0 )
+    {
+      firstInexistentfolder.delete(true, monitor);
+    }
+
+    
     //Remove "library unavailable at runtime" warning.
     setNonDependencyAttributeToContainer(project, monitor);
+    
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
 }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     // TODO check if there's anything to do!
   }
-
-  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
-      IProgressMonitor monitor) throws CoreException {
-    // do nothing
-  }
-
 }

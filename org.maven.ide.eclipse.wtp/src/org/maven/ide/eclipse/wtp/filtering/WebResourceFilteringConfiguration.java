@@ -58,5 +58,19 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
     return filters;
   }
 
+  public String getEscapeString() {
+    return pluginConfiguration.getEscapeString();
+  }
+
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.wtp.filtering.ResourceFilteringConfiguration#getNonfilteredExtensions()
+   */
+  public List<Xpp3Dom> getNonfilteredExtensions() {
+    Xpp3Dom[] domext = pluginConfiguration.getNonfilteredExtensions();
+    if(domext == null || domext.length == 0){
+      return Collections.emptyList();
+    }
+    return Arrays.asList(domext);
+  }
   
 }

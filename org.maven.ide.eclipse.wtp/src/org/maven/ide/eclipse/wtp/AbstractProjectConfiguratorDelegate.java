@@ -17,6 +17,9 @@ import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -29,7 +32,8 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jst.common.project.facet.JavaFacetUtils;
+import org.eclipse.jst.common.project.facet.core.JavaFacet;
+import org.eclipse.jst.common.project.facet.core.internal.JavaFacetUtil;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.internal.IMavenConstants;
@@ -38,6 +42,7 @@ import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
+import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
@@ -114,6 +119,27 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     if (isDebugEnabled) {
       DebugUtilities.debug(DebugUtilities.dumpProjectState("Before configuration ",project));
     }
+    
+    //MECLIPSEWTP-66 delete extra MANIFEST.MF
+    // 1 - predict where the MANIFEST.MF will be created
+    IFolder firstInexistentfolder = null;
+    IPath[] sourceRoots = MavenProjectUtils.getSourceLocations(project, mavenProject.getCompileSourceRoots());
+    IPath sourceFolder = null;
+    if ((sourceRoots == null || sourceRoots.length == 0) || !project.getFolder(sourceRoots[0]).exists()) {
+      sourceRoots = MavenProjectUtils.getResourceLocations(project, mavenProject.getResources());
+    }
+    if ((sourceRoots != null && sourceRoots.length > 0 && project.getFolder(sourceRoots[0]).exists())) {
+      sourceFolder = sourceRoots[0];
+    }
+    IContainer contentFolder = sourceFolder == null? project : project.getFolder(sourceFolder);
+    IFile manifest = contentFolder.getFile(new Path("META-INF/MANIFEST.MF"));
+
+    // 2 - check if the manifest already exists, and its parent folder
+    boolean manifestAlreadyExists =manifest.exists(); 
+    if (!manifestAlreadyExists) {
+      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
+    }
+    
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
     Set<Action> actions = new LinkedHashSet<Action>();
     installJavaFacet(actions, project, facetedProject);
@@ -135,7 +161,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       DebugUtilities.debug(DebugUtilities.dumpProjectState("after configuration ",project));
     }
     //MNGECLIPSE-904 remove tests folder links for utility jars
-    //TODO handle modules in a parent pom (the following doesn't work)
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     //Remove "library unavailable at runtime" warning.
@@ -144,6 +169,17 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
 
     setNonDependencyAttributeToContainer(project, monitor);
+    
+    //MECLIPSEWTP-66 delete extra MANIFEST.MF
+    // 3 - Remove extra manifest if necessary and its the parent hierarchy 
+    if (firstInexistentfolder != null && firstInexistentfolder.exists()) {
+      firstInexistentfolder.delete(true, monitor);
+    }
+    if (!manifestAlreadyExists && manifest.exists()) {
+      manifest.delete(true, monitor);
+    }
+
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
   }
 
   /**
@@ -162,8 +198,8 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
-    IProjectFacetVersion javaFv = JavaFacetUtils.compilerLevelToFacet(JavaFacetUtils.getCompilerLevel(project));
-    if(!facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET)) {
+    IProjectFacetVersion javaFv = JavaFacet.FACET.getVersion(JavaFacetUtil.getCompilerLevel(project));
+    if(!facetedProject.hasProjectFacet(JavaFacet.FACET)) {
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, javaFv, null));
     } else if(!facetedProject.hasProjectFacet(javaFv)) {
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, javaFv, null));
@@ -214,9 +250,9 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
         cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
         break;
       }
-}
-javaProject.setRawClasspath(cp, monitor);
-}
+    }
+    javaProject.setRawClasspath(cp, monitor);
+  }
 
   /**
    * @param dependencyMavenProjectFacade
@@ -297,4 +333,22 @@ javaProject.setRawClasspath(cp, monitor);
       return WTPProjectsUtil.hasChanged(existingRefs, refArray);
   }
 
+  protected IFolder findFirstInexistentFolder(IProject project, IContainer keptFolder, IFile file) {
+    StringBuilder path = new StringBuilder();
+    for (String segment : file.getParent().getProjectRelativePath().segments()) {
+      path.append(IPath.SEPARATOR);
+      path.append(segment);
+      IFolder curFolder = project.getFolder(path.toString());
+      if (!curFolder.exists() && 
+          !curFolder.getProjectRelativePath().isPrefixOf(keptFolder.getProjectRelativePath())) {
+        return curFolder;
+      }
+    }
+    return null;
+  }
+  
+  public void configureClasspath(IProject project, MavenProject mavenProject, IClasspathDescriptor classpath,
+      IProgressMonitor monitor) throws CoreException {
+    // do nothing
+  }
 }
