@@ -115,10 +115,15 @@ public class ResourceListVirtualFolder extends VirtualFolder implements IFiltere
 	}
 
 	protected void handleResource(IResource resource, HashMap<String, IVirtualResource> map, int memberFlags) throws CoreException {
-		if( filter != null && !filter.accepts(resource))
+		if (resource == null) {
+			return;
+		}
+		boolean isFile =  resource instanceof IFile;
+		String path = resource.getLocation().toPortableString();
+		if( filter != null && !filter.accepts(path, isFile))
 			return;
 		
-		if( resource instanceof IFile ) {
+		if( isFile) {
 			if( !map.containsKey(resource.getName()) ) {
 				IVirtualFile virtFile = new VirtualFile(getProject(), 
 						getRuntimePath().append(((IFile)resource).getName()), (IFile)resource);

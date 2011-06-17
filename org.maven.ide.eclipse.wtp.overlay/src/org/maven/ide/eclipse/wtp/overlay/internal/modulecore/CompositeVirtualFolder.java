@@ -89,9 +89,6 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 	}
 
 	private IVirtualResource convert(IFlatResource flatResource) {
-		if (filter != null && !filter.accepts(flatResource)) {
-			return null;
-		}
 		IVirtualResource virtualResource = null;
 		if (flatResource instanceof IFlatFolder) {
 			virtualResource = convertFolder((IFlatFolder) flatResource);
@@ -125,16 +122,26 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 	private IVirtualFile convertFile(IFlatFile flatFile) {
 		IFile f = (IFile)flatFile.getAdapter(IFile.class);
 		VirtualFile vf = null;
+		String filePath  = null;
 		if (f == null) {
 			//Not a workspace file, we assume it's an external reference
 			File underlyingFile = (File)flatFile.getAdapter(File.class);
 			if (underlyingFile != null && underlyingFile.exists()) {
-				references.add(createReference(underlyingFile, flatFile.getModuleRelativePath()));
+				//TODO test inclusion/exclusion before doing anything
+				filePath = flatFile.getModuleRelativePath().toPortableString() + Path.SEPARATOR + underlyingFile.getName();
+				if (filter == null || filter.accepts(filePath, true)) {
+					IVirtualReference reference = createReference(underlyingFile, flatFile.getModuleRelativePath());
+					references.add(reference);
+				}
 			}
 		} else {
 			vf = new VirtualFile(project, flatFile.getModuleRelativePath(), f);
+			filePath = vf.getRuntimePath().toPortableString() + Path.SEPARATOR + f.getName();
+			if (filter == null || filter.accepts(filePath, true)) {
+				return vf;
+			}
 		}
-		return vf;
+		return null;
 	}
 	
 	private IVirtualReference createReference(File underlyingFile, IPath path) {

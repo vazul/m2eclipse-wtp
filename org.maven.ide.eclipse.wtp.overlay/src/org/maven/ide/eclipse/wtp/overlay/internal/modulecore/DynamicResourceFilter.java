@@ -10,6 +10,7 @@ import org.apache.tools.ant.types.selectors.SelectorUtils;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.wst.common.componentcore.internal.flat.IFlatResource;
+import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 
 public class DynamicResourceFilter implements IResourceFilter {
 
@@ -263,18 +264,8 @@ public class DynamicResourceFilter implements IResourceFilter {
             boolean isCaseSensitive) {
     	return SelectorUtils.matchPath(pattern, str, isCaseSensitive);
     }
-    
-	public boolean accepts(IResource resource) {
-		String path = resource.getLocation().toPortableString();
-		return accepts(path);
-	}
 
-	public boolean accepts(IFlatResource resource) {
-		String path = resource.getModuleRelativePath().toPortableString()+IPath.SEPARATOR+resource.getName();
-		return accepts(path);
-	}
-
-	public boolean accepts(String path) {
+	public boolean accepts(String path, boolean isFile) {
 		if (path == null) return false;
 		boolean isIncluded = isIncluded(path) && ! isExcluded(path);
 		System.err.println(path + (isIncluded?" included":" excluded"));

@@ -87,14 +87,14 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 	/**
 	 * Return true if moduleProject references changedProject as an IOverlayComponent
 	 * @param changedProject
-	 * @param moduleProject
+	 * @param projectDeployedOnServer
 	 * @return true if moduleProject references changedProject as an IOverlayComponent
 	 */
-	private boolean isOverlaid(IProject changedProject, IProject moduleProject) {
-		if (!ModuleCoreNature.isFlexibleProject(moduleProject)) {
+	private boolean isOverlaid(IProject changedProject, IProject projectDeployedOnServer) {
+		if (!ModuleCoreNature.isFlexibleProject(projectDeployedOnServer)) {
 			return false; 
 		}
-		IVirtualComponent component = ComponentCore.createComponent(moduleProject);
+		IVirtualComponent component = ComponentCore.createComponent(projectDeployedOnServer);
 		if (component == null) {
 			return false;
 		}
@@ -106,7 +106,8 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 			IVirtualComponent vc = reference.getReferencedComponent();
 			if (vc != null 
 			    && vc instanceof IOverlayVirtualComponent 
-			    && changedProject.equals(vc.getProject())) {
+			    && changedProject.equals(vc.getProject())
+			    ) {
 				return true;
 			}
 		}

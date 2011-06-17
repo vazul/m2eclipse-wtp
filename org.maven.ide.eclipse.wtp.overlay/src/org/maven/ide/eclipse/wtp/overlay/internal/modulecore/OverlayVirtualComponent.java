@@ -61,7 +61,6 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 	}
 
 	public IVirtualFolder getRootFolder() {
-		//System.err.println("returning rootFolder "); 
 		return getRoot();
 	}
 
@@ -76,7 +75,7 @@ public class OverlayVirtualComponent extends VirtualComponent implements
 			if (component != null) {
 				//FlatVirtualComponent will build the project structure from the definition in .component
 				FlatVirtualComponent flatVirtualComponent = new FlatVirtualComponent(component, getOptions());
-				IResourceFilter filter = null;//new DynamicResourceFilter(getInclusions(), getExclusions()); 
+				IResourceFilter filter = new DynamicResourceFilter(getInclusions(), getExclusions()); 
 				cachedRoot = new CompositeVirtualFolder(flatVirtualComponent, ROOT, filter);
 			}
 		}
