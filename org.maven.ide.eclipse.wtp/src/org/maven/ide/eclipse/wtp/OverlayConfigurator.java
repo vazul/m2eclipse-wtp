@@ -66,7 +66,12 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
     }
 
     MavenProject mavenProject = facade.getMavenProject(monitor);
-    setModuleDependencies(project, mavenProject, monitor);
+    try {
+      markerManager.deleteMarkers(facade.getPom(), MavenWtpConstants.WTP_MARKER_OVERLAY_ERROR);
+      setModuleDependencies(project, mavenProject, monitor);
+    } catch(Exception ex) {
+      markerManager.addErrorMarkers(facade.getPom(), MavenWtpConstants.WTP_MARKER_OVERLAY_ERROR,ex);
+    }
     
   }
 

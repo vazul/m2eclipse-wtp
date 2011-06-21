@@ -6,14 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.tools.ant.DirectoryScanner;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.wst.common.componentcore.internal.flat.IFlatResource;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
-import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
-import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 
 public class FileSystemResourceFilter implements IResourceFilter {
 

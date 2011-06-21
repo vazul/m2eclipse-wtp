@@ -23,9 +23,12 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jst.j2ee.internal.J2EEVersionConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
 
@@ -285,8 +288,9 @@ public class WarPluginConfiguration {
 
   /**
    * @return
+   * @throws CoreException 
    */
-  public List<Overlay> getOverlays() {
+  public List<Overlay> getOverlays() throws CoreException {
     Overlay currentProjectOverlay = Overlay.createInstance();
     currentProjectOverlay.setArtifact(mavenProject.getArtifact());
     OverlayManager overlayManager = null;
@@ -294,19 +298,26 @@ public class WarPluginConfiguration {
     try {
       overlayManager = new OverlayManager(getConfiguredOverlays(), 
                                                          mavenProject, 
-                                                         "**/**",//TODO cf global inclusions
-                                                         "META-INF/MANIFEST.MF",//TODO cf global exclusions 
+                                                         getDependentWarIncludes(),
+                                                         getDependentWarExcludes(), 
                                                          currentProjectOverlay);
       overlays = overlayManager.getOverlays();
     } catch(InvalidOverlayConfigurationException ex) {
-      // TODO Handle error with markers
-      System.err.println(ex);
-      overlays = Collections.emptyList();
+      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, ex.getMessage(),ex));
     }
     
     return overlays;
   }
+  
+  public String getDependentWarIncludes() {
+    return DomUtils.getChildValue(getConfiguration(), "dependentWarIncludes", "**/**");
+  }
 
+  public String getDependentWarExcludes() {
+    return DomUtils.getChildValue(getConfiguration(), "dependentWarExcludes", "META-INF/MANIFEST.MF");
+  }
+
+  
   public List<Overlay> getConfiguredOverlays() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
@@ -341,10 +352,14 @@ public class WarPluginConfiguration {
     overlay.setArtifactId(artifactId);
     overlay.setGroupId(groupId);
     overlay.setClassifier(classifier);
-    if (!StringUtils.nullOrEmpty(exclusions)) {
+    if (StringUtils.nullOrEmpty(exclusions)) {
+      overlay.setExcludes(getDependentWarExcludes());
+    } else {
       overlay.setExcludes(exclusions);
     }
-    if (!StringUtils.nullOrEmpty(inclusions)) {
+    if (StringUtils.nullOrEmpty(inclusions)) {
+      overlay.setIncludes(getDependentWarIncludes());
+    } else {
       overlay.setIncludes(inclusions);
     }
     overlay.setFiltered(filtered);

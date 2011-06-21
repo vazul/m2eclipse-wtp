@@ -7,10 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.tools.ant.types.selectors.SelectorUtils;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.wst.common.componentcore.internal.flat.IFlatResource;
-import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 
 public class DynamicResourceFilter implements IResourceFilter {
 
