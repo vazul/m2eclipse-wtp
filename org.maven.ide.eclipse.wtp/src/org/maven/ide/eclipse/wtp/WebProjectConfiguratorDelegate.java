@@ -218,6 +218,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if(component == null){
       return;
     }
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    fixMissingModuleCoreNature(project, monitor);
+    
     DebugUtilities.debug("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
@@ -239,7 +242,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         preConfigureDependencyProject(dependency, monitor);
         MavenProject depMavenProject =  dependency.getMavenProject(monitor);
   
-  		IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
+        IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
   		      
         String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
         Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
@@ -247,14 +250,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         
         boolean isDeployed = !artifact.isOptional() && opts.isPackaged(deployedName);
           
-		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-		if (isDeployed) {
-		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-		  IPath path = new Path("/WEB-INF/lib");
-		  reference.setArchiveName(deployedName);
-		  reference.setRuntimePath(path);
-		  references.add(reference);
-		}
+    		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+    		if (isDeployed) {
+    		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+    		  IPath path = new Path("/WEB-INF/lib");
+    		  reference.setArchiveName(deployedName);
+    		  reference.setRuntimePath(path);
+    		  references.add(reference);
+    		}
       } catch(RuntimeException ex) {
         //Should probably be NPEs at this point
         String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
