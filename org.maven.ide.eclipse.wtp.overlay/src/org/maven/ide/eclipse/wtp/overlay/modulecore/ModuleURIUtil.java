@@ -13,9 +13,9 @@ public class ModuleURIUtil {
 			return Collections.emptyMap();
 		}
 		Map<String, String> parameters = new HashMap<String, String>();
-		int start = uri.indexOf(URI_SEPARATOR); 
+		int start = uri.indexOf("?"); 
 		if (start > -1) {
-			uri = uri.substring(start);
+			uri = uri.substring(start+1);
 			String[] entries = uri.split(URI_SEPARATOR);
 			for (String entry : entries) {
 				if ("".equals(entry)) {
@@ -34,19 +34,20 @@ public class ModuleURIUtil {
 		if (parameters == null || parameters.isEmpty()) {
 			return uri;
 		}
-		StringBuilder sb = new StringBuilder(uri); 
+		StringBuilder sb = new StringBuilder(uri);
+		sb.append("?");
 		for (Map.Entry<String, String> entry : parameters.entrySet()) {
-			sb.append(URI_SEPARATOR)
-			   .append(entry.getKey())
+			   sb.append(entry.getKey())
 			   .append("=")
-			   .append(entry.getValue());
+			   .append(entry.getValue())
+			   .append(URI_SEPARATOR);
 		}
-		return sb.toString();
+		return sb.substring(0, sb.length()-1);
 	}
 	
 	public static String extractModuleName(String uri) {
-		if (uri != null && uri.indexOf(URI_SEPARATOR) > 0) {
-			return uri.substring(0,uri.indexOf(URI_SEPARATOR));
+		if (uri != null && uri.indexOf("?") > 0) {
+			return uri.substring(0,uri.indexOf("?"));
 		}
 		return uri;
 	}

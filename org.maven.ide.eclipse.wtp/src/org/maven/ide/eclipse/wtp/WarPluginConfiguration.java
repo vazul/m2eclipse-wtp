@@ -340,8 +340,8 @@ public class WarPluginConfiguration {
   private Overlay parseOverlay(Xpp3Dom overlayNode) {
     String artifactId = DomUtils.getChildValue(overlayNode, "artifactId");
     String groupId = DomUtils.getChildValue(overlayNode, "groupId");
-    String exclusions = DomUtils.getChildValue(overlayNode, "exclusions");
-    String inclusions = DomUtils.getChildValue(overlayNode, "inclusions");
+    String[] exclusions = getChildrenAsStringArray(overlayNode.getChild("excludes"), "exclude");
+    String[] inclusions = getChildrenAsStringArray(overlayNode.getChild("includes"), "include");
     String classifier = DomUtils.getChildValue(overlayNode, "classifier");
     boolean filtered = DomUtils.getBooleanChildValue(overlayNode, "filtered");
     boolean skip = DomUtils.getBooleanChildValue(overlayNode, "skip");
@@ -352,12 +352,12 @@ public class WarPluginConfiguration {
     overlay.setArtifactId(artifactId);
     overlay.setGroupId(groupId);
     overlay.setClassifier(classifier);
-    if (StringUtils.nullOrEmpty(exclusions)) {
+    if (exclusions== null || exclusions.length ==0) {
       overlay.setExcludes(getDependentWarExcludes());
     } else {
       overlay.setExcludes(exclusions);
     }
-    if (StringUtils.nullOrEmpty(inclusions)) {
+    if (inclusions== null || inclusions.length ==0) {
       overlay.setIncludes(getDependentWarIncludes());
     } else {
       overlay.setIncludes(inclusions);
@@ -368,6 +368,25 @@ public class WarPluginConfiguration {
     overlay.setType(type);
     
     return overlay;
+  }
+
+  /**
+   * @param overlayNode
+   * @return
+   */
+  private String[] getChildrenAsStringArray(Xpp3Dom root, String childName) {
+    String[] values = null;
+    if (root != null) {
+      Xpp3Dom[] children = root.getChildren(childName); 
+      if (children != null) {
+        values = new String[children.length];
+        int i = 0;
+        for (Xpp3Dom child : children) {
+          values[i++] = child.getValue();
+        }
+      }
+    }
+    return values;
   }
 
   public String getEscapeString() {

@@ -92,7 +92,7 @@ public class FileSystemResourceFilter implements IResourceFilter {
 			} else {
 				res = includedFolders.contains(name) && !excludedFolders.contains(name);
 			}
-			if (!res) System.err.println(name + (res?" included": " excluded"));
+			//if (!res) System.err.println(name + (res?" included": " excluded"));
 			return res;
 		}
 	}

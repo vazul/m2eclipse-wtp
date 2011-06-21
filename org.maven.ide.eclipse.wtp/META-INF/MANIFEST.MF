@@ -32,7 +32,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jst.j2ee.jca,
  org.slf4j.api;bundle-version="1.5.11",
  org.eclipse.ui.ide,
- org.maven.ide.eclipse.wtp.overlay,
+ org.maven.ide.eclipse.wtp.overlay;visibility:=reexport,
  org.eclipse.wst.server.core
 Bundle-Vendor: Sonatype, Inc.
 Export-Package: org.maven.ide.eclipse.wtp;

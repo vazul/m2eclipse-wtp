@@ -62,6 +62,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
+import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 
 
@@ -153,7 +154,6 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     IFolder output = root.getFolder(getManifestdir(newFacade).append("META-INF"));
     IFile manifest = output.getFile("MANIFEST.MF");
 
-    //System.err.println("checking for manifest "+project);
     if(forceGeneration || needsNewManifest(manifest, oldFacade, newFacade, monitor)) {
       generateManifest(newFacade, manifest, monitor);
     }
@@ -271,38 +271,41 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
   public void generateManifest(IMavenProjectFacade mavenFacade, IFile manifest, IProgressMonitor monitor)
       throws CoreException {
 
-    //Find the mojoExecution
-    MavenSession session = getMavenSession(mavenFacade, monitor);
     MavenProject mavenProject = mavenFacade.getMavenProject();
-    MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, mavenProject,
-        Collections.singletonList("package"), true, monitor);
-    MojoExecution mojoExecution = getExecution(executionPlan, getExecutionKey());
-    if(mojoExecution == null) {
-      return;
-    }
-
-    //Get the target manifest file
-    IFolder destinationFolder = (IFolder) manifest.getParent();
-    File manifestDir = new File(destinationFolder.getRawLocation().toOSString());
-    if(!manifestDir.exists()) {
-      manifestDir.mkdirs();
-    }
-    
     Set<Artifact> originalArtifacts = mavenProject.getArtifacts();
 
     try {
-      //Fix the project artifacts before calling the manifest generation
+      markerManager.deleteMarkers(mavenFacade.getPom(), MavenWtpConstants.WTP_MARKER_MANIFEST_ERROR);
+    
+      //Find the mojoExecution
+      MavenSession session = getMavenSession(mavenFacade, monitor);
+      MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, mavenProject,
+          Collections.singletonList("package"), true, monitor);
+      MojoExecution mojoExecution = getExecution(executionPlan, getExecutionKey());
+      if(mojoExecution == null) {
+        return;
+      }
+  
+      //Get the target manifest file
+      IFolder destinationFolder = (IFolder) manifest.getParent();
+      File metaInfDir = new File(destinationFolder.getRawLocation().toOSString());
+      if(!metaInfDir.exists()) {
+        metaInfDir.mkdirs();
+      }
+      //Workspace project artifacts don't have a valid getFile(), so won't appear in the manifest
+      //So we need to workaround the issue by creating  fake files for such artifacts
       mavenProject.setArtifacts(fixArtifactFileNames(mavenFacade));
-
+  
       //Invoke the manifest generation API via reflection
       reflectManifestGeneration(mavenProject, mojoExecution, session, new File(manifest.getLocation().toOSString()));
       J2EEComponentClasspathUpdater.getInstance().queueUpdate(mavenFacade.getProject());
       //refresh the target folder
       destinationFolder.refreshLocal(IResource.DEPTH_ONE, null);
-    } catch(Throwable ex) {
-      //TODO add marker
-      ex.printStackTrace();
+      
+    } catch(Exception ex) {
+      markerManager.addErrorMarkers(mavenFacade.getPom(), MavenWtpConstants.WTP_MARKER_MANIFEST_ERROR,ex);
     } finally {
+      //Restore the original artifacts, no matter what
       mavenProject.setArtifacts(originalArtifacts);
     }
 
@@ -330,6 +333,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
     Xpp3Dom originalConfig = mojoExecution.getConfiguration();
     Xpp3Dom customConfig = Xpp3DomUtils.mergeXpp3Dom(new Xpp3Dom("configuration"), originalConfig);
 
+    //Add custom manifest entries
     customizeManifest(customConfig, mavenProject);
 
     mojoExecution.setConfiguration(customConfig);
@@ -349,8 +353,6 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
       Object archiveConfiguration = archiveConfigurationField.get(mojo);
       Object mavenArchiver = getMavenArchiver(archiver, manifestFile, loader);
 
-      //Workspace project artifacts don't have a valid getFile(), so won't appear in the manifest
-      //So we need to workaround the issue by creating  fake files for such artifacts
       Method getManifest = mavenArchiver.getClass().getMethod("getManifest", MavenProject.class,
           archiveConfiguration.getClass());
 
@@ -367,7 +369,7 @@ public abstract class AbstractManifestConfigurator extends AbstractProjectConfig
       Method write = manifest.getClass().getMethod("write", PrintWriter.class);
       printWriter = new PrintWriter(WriterFactory.newWriter(manifestFile, WriterFactory.UTF_8));
       write.invoke(manifest, printWriter);
-      //System.err.println("wrote "+manifestFile);
+      
     } finally {
       if(printWriter != null) {
         printWriter.close();

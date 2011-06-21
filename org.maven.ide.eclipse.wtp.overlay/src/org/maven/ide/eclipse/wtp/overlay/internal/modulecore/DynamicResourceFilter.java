@@ -264,7 +264,7 @@ public class DynamicResourceFilter implements IResourceFilter {
 	public boolean accepts(String path, boolean isFile) {
 		if (path == null) return false;
 		boolean isIncluded = isIncluded(path) && ! isExcluded(path);
-		System.err.println(path + (isIncluded?" included":" excluded"));
+		//System.err.println(path + (isIncluded?" included":" excluded"));
 		return isIncluded;
 	}
 

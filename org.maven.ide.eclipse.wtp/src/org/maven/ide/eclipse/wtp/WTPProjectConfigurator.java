@@ -61,7 +61,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
   @Override
   public void mavenProjectChanged(MavenProjectChangedEvent event, IProgressMonitor monitor) throws CoreException {
     IMavenProjectFacade facade = event.getMavenProject();
-    if (MavenProjectChangedEvent.KIND_ADDED == event.KIND_ADDED) System.err.println(facade.getProject().getName() +" added : previous project ="+event.getOldMavenProject());
+
     if(facade != null) {
       IProject project = facade.getProject();
       if (project.getResourceAttributes().isReadOnly()){

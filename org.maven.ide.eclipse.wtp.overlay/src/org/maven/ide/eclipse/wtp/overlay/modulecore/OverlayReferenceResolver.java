@@ -62,11 +62,6 @@ public class OverlayReferenceResolver implements IReferenceResolver {
 	String url = referencedComponent.getHandle().toString();
 	Map<String, String> parameters = ModuleURIUtil.parseUri(url);
 	
-//	parameters.put(UNPACK_FOLDER, "target/m2e-wtp/overlays");
-//	parameters.put(INCLUDES, "**/**");
-//	parameters.put(EXCLUDES, "META-INF/MANIFEST.MF;**/hudson.png");
-	
-	
 	String moduleName = ModuleURIUtil.extractModuleName(url);
 	if (moduleName == null || moduleName.trim().length() == 0) {
 		throw new IllegalArgumentException("module name can not be inferred from "+url);

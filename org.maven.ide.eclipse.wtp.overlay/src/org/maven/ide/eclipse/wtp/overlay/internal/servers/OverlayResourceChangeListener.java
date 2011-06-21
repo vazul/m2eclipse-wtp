@@ -16,7 +16,9 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.ServerCore;
+import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.internal.Server;
+import org.eclipse.wst.server.core.model.ModuleDelegate;
 import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
 
 public class OverlayResourceChangeListener implements IResourceChangeListener {
@@ -51,7 +53,7 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 				IProject moduleProject = module.getProject();
 				for (IProject changedProject : changedProjects) {
 					if (isOverlaid(changedProject, moduleProject)) {
-						System.err.println(moduleProject.getName() + " overlays " +changedProject.getName());
+						//System.err.println(moduleProject.getName() + " overlays " +changedProject.getName());
 						republishableServers.add(server);
 						break modules;
 					}
@@ -61,7 +63,7 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 		
 		for(IServer server : republishableServers) {
 			if (server instanceof Server) {
-				System.err.println("Clearing "+server.getName() + "'s module cache");
+				//System.err.println("Clearing "+server.getName() + "'s module cache");
 				synchronized (server) {
 					((Server)server).clearModuleCache();
 				}

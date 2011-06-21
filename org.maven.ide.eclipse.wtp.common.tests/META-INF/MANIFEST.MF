@@ -16,7 +16,7 @@ Require-Bundle: org.junit,
  org.eclipse.jdt.core,
  org.eclipse.jst.j2ee.core,
  org.eclipse.emf.ecore,
- org.eclipse.wst.server.core;bundle-version="1.1.206"
+ org.eclipse.wst.server.core;visibility:=reexport
 Bundle-ClassPath: jars/commons-io-2.0.1.jar,
  .
 Export-Package: org.maven.ide.eclipse.wtp.common.tests
