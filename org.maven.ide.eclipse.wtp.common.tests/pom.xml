@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.maven.ide.eclipse.wtp</groupId>
 		<artifactId>org.maven.ide.eclipse.wtp.parent</artifactId>
-		<version>0.13.0-SNAPSHOT</version>
+		<version>0.13.0.20110621-1745</version>
 	</parent>
 
 	<artifactId>org.maven.ide.eclipse.wtp.common.tests</artifactId>
