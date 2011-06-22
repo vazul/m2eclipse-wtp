@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Maven Integration for Eclipse WTP
 Bundle-SymbolicName: org.maven.ide.eclipse.wtp;singleton:=true
-Bundle-Version: 0.13.1.qualifier
+Bundle-Version: 0.13.0.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
 Require-Bundle: org.eclipse.core.runtime,
@@ -33,7 +33,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.slf4j.api;bundle-version="1.5.11",
  org.eclipse.ui.ide,
  org.maven.ide.eclipse.wtp.overlay;visibility:=reexport,
- org.eclipse.wst.server.core
+ org.eclipse.wst.server.core,
+ org.sonatype.m2e.mavenarchiver.pomproperties;bundle-version="[0.13.0,1.0)"
 Bundle-Vendor: Sonatype, Inc.
 Export-Package: org.maven.ide.eclipse.wtp;
   uses:="org.eclipse.core.runtime,
