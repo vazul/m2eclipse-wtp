@@ -10,7 +10,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.eclipse.core.internal.utils.FileUtil;
+import org.apache.tools.ant.util.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
@@ -72,8 +72,8 @@ public class CompressionUtil {
 						os.write(buffer, 0, len);
 					}
 				} finally {
-					FileUtil.safeClose(is);
-					FileUtil.safeClose(os);
+					FileUtils.close(is);
+					FileUtils.close(os);
 				}
 			}
 

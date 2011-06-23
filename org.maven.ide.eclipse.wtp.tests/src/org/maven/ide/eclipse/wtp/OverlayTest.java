@@ -1,6 +1,5 @@
 package org.maven.ide.eclipse.wtp;
 
-import java.io.File;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
