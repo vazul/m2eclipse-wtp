@@ -12,7 +12,7 @@
   <parent>
     <groupId>org.maven.ide.eclipse.wtp</groupId>
     <artifactId>org.maven.ide.eclipse.wtp.parent</artifactId>
-    <version>0.13.0.20110622-2130</version>
+    <version>0.13.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.maven.ide.eclipse.wtp.feature</artifactId>
@@ -94,7 +94,7 @@
 
                   <serverId>forge-releases</serverId>
                   <repositoryUrl>${m2e.site-compressed}</repositoryUrl>
-                  <repositoryPath>m2eclipse-wtp/${unqualifiedVersion}/S/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
+                  <repositoryPath>m2eclipse-wtp/${unqualifiedVersion}/N/${unqualifiedVersion}.${buildQualifier}</repositoryPath>
                 </configuration>
               </execution>
             </executions>

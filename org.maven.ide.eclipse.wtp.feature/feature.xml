@@ -2,7 +2,7 @@
 <feature
       id="org.maven.ide.eclipse.wtp.feature"
       label="Maven Integration for WTP (Optional)"
-      version="0.13.0.20110622-2130"
+      version="0.13.0.qualifier"
       provider-name="Sonatype, Inc."
       plugin="org.maven.ide.eclipse.wtp">
 
@@ -39,7 +39,9 @@ http://www.eclipse.org/legal/epl-v10.html
       <import feature="org.eclipse.jdt" version="3.6.0" match="greaterOrEqual"/>
       <import feature="org.eclipse.m2e.feature" version="1.0.0" match="greaterOrEqual"/>
       <import feature="org.eclipse.wst.web_ui.feature" version="3.2.0" match="greaterOrEqual"/>
+      <!--
       <import feature="org.sonatype.m2e.mavenarchiver.pomproperties.feature" version="0.13.0" match="greaterOrEqual"/>
+      -->
    </requires>
 
    <plugin

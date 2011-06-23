@@ -8,14 +8,14 @@
 <unit id="ch.qos.logback.core" version="0.9.27.v20110224-1110"/>
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<!--location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.sonatype.m2e.antlr.feature.feature.group" version="0.13.0.20110622-1538"/>
 <unit id="org.sonatype.m2e.buildhelper.feature.feature.group" version="0.13.0.20110622-1538"/>
 <unit id="org.sonatype.m2e.mavenarchiver.pomproperties.feature.feature.group" version="0.13.0.20110622-1538"/>
 <unit id="org.sonatype.m2e.modello.feature.feature.group" version="0.13.0.20110622-1538"/>
 <unit id="org.sonatype.m2e.plexus.annotations.feature.feature.group" version="0.13.0.20110622-1538"/>
 <repository location="https://repository.sonatype.org/content/sites/forge-sites/m2e-extras/0.13.0/S/0.13.0.20110622-1538/"/>
-</location>
+</location-->
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
 <unit id="org.eclipse.swtbot.eclipse.gef.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>

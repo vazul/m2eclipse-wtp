@@ -48,7 +48,6 @@
           id="org.maven.ide.eclipse.configuration.wtp.jarmanifest.configurator"
           class="org.maven.ide.eclipse.wtp.manifest.JarManifestConfigurator"
           name="JarManifestConfigurator" 
-          secondaryTo="org.sonatype.m2e.mavenarchiver.pomProperties"
           />
     </extension>          
 	<extension point="org.eclipse.m2e.core.projectConfigurators">
