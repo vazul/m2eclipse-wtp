@@ -1,20 +1,6 @@
 package org.maven.ide.eclipse.wtp.overlay.tests;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-import junit.framework.Assert;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.wst.common.componentcore.ComponentCore;
-import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
-import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.model.IModuleResource;
-import org.junit.Test;
-import org.maven.ide.eclipse.wtp.common.tests.TestServerUtil;
-import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlayVirtualArchiveComponent;
 
 public class ArchiveOverlayTest extends AbstractOverlayIntegrationTest {
 
