@@ -21,4 +21,5 @@ Require-Bundle: org.junit,
  org.eclipse.jst.j2ee.core,
  org.eclipse.emf.ecore,
  org.eclipse.m2e.maven.runtime,
- org.maven.ide.eclipse.wtp.common.tests
+ org.maven.ide.eclipse.wtp.common.tests,
+ org.eclipse.jst.common.project.facet.core

@@ -32,8 +32,6 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jst.common.project.facet.core.JavaFacet;
-import org.eclipse.jst.common.project.facet.core.internal.JavaFacetUtil;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.internal.IMavenConstants;
@@ -53,7 +51,6 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
-import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 
 
@@ -109,9 +106,11 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     return dependencies;
   }
 
-  protected void configureWtpUtil(IProject project, MavenProject mavenProject, IProgressMonitor monitor) throws CoreException {
+  protected void configureWtpUtil(IMavenProjectFacade facade, IProgressMonitor monitor) throws CoreException {
     // Adding utility facet on JEE projects is not allowed
-    if(WTPProjectsUtil.isJavaEEProject(project)) {
+    IProject project = facade.getProject();
+    MavenProject mavenProject = facade.getMavenProject();
+    if(WTPProjectsUtil.isJavaEEProject(project) || WTPProjectsUtil.isQualifiedAsWebFragment(facade)) {
       return;
     }
 
@@ -198,28 +197,12 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
-    IProjectFacetVersion javaFv = JavaFacet.FACET.getVersion(JavaFacetUtil.getCompilerLevel(project));
-    if(!facetedProject.hasProjectFacet(JavaFacet.FACET)) {
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, javaFv, null));
-    } else if(!facetedProject.hasProjectFacet(javaFv)) {
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, javaFv, null));
-    }
+    WTPProjectsUtil.installJavaFacet(actions, project, facetedProject);
   }
 
   protected void removeTestFolderLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor,
       String folder) throws CoreException {
-    IVirtualComponent component = ComponentCore.createComponent(project);
-    if (component != null){
-      IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
-      for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
-        if (location == null) continue;
-        jsrc.removeLink(location, 0, monitor);
-      }
-      for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
-        if (location == null) continue;
-        jsrc.removeLink(location, 0, monitor);
-      }
-    }
+    WTPProjectsUtil.removeTestFolderLinks(project, mavenProject, monitor, folder);
   }
 
   protected void addContainerAttribute(IProject project, IClasspathAttribute attribute, IProgressMonitor monitor)
@@ -279,7 +262,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       }
     } else {
       // XXX Probably should create a UtilProjectConfiguratorDelegate
-      configureWtpUtil(dependency, mavenDependency, monitor);
+      configureWtpUtil(dependencyMavenProjectFacade, monitor);
     }
     return dependency;
   }

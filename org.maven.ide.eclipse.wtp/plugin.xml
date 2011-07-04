@@ -80,7 +80,17 @@
           name="RarManifestConfigurator" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
           />
-    </extension>               
+    </extension>   
+    
+  	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.webfragment.configurator"
+          class="org.maven.ide.eclipse.wtp.WebFragmentProjectConfigurator"
+          name="WebFragmentConfigurator" 
+          secondaryTo="org.eclipse.m2e.jdt.javaConfigurator"
+          />
+    </extension> 
+    
    <!-- A workaround to allow to uninstall WTP facets -->   
    <extension point="org.eclipse.wst.common.project.facet.core.facets">
       <action type="uninstall" facet="jst.ear" version="[1.2-6.0]">
