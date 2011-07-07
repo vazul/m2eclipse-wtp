@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site associateSitesURL="https://raw.github.com/gist/1069148/1b6b7966537ca615e02e46da4d0800a85029f504/associate-sites-0.13.1.xml">
+   <description name="Maven Integration for WTP">
+      Maven Integration for WTP
+   </description>
+   <category name="m2eclipse-wtp"/>
+   <feature url="features/org.maven.ide.eclipse.wtp.feature_0.0.0.qualifier.jar" id="org.maven.ide.eclipse.wtp.feature" version="0.0.0">
+      <category name="m2eclipse-wtp"/>
+   </feature>
+   <category-def name="m2eclipse-wtp" label="Maven Integration for WTP"/>
+</site>

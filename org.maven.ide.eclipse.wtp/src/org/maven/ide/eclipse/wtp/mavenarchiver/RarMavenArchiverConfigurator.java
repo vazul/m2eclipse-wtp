@@ -6,20 +6,19 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.manifest;
+package org.maven.ide.eclipse.wtp.mavenarchiver;
 
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
+import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
 
 /**
- * RarManifestConfigurator
+ * RarMavenArchiverConfigurator
  *
  * @author Fred Bricon
  */
-public class RarManifestConfigurator extends JarManifestConfigurator {
+public class RarMavenArchiverConfigurator extends JarArchiverConfigurator {
 
-  /* (non-Javadoc)
-   * @see org.maven.ide.eclipse.wtp.manifest.AbstractManifestConfigurator#getExecutionKey()
-   */
+  @Override
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-rar-plugin", "", "rar", null, null);
     return key;

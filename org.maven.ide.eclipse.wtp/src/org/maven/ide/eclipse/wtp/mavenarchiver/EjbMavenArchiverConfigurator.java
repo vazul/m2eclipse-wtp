@@ -6,17 +6,19 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.manifest;
+package org.maven.ide.eclipse.wtp.mavenarchiver;
 
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
+import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
 
 /**
- * EjbManifestConfigurator
+ * EjbMavenArchiverConfigurator
  *
  * @author Fred Bricon
  */
-public class EjbManifestConfigurator extends JarManifestConfigurator {
+public class EjbMavenArchiverConfigurator extends JarArchiverConfigurator {
 
+  @Override
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-ejb-plugin", "", "ejb", null, null);
     return key;
