@@ -23,7 +23,7 @@ import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
 /**
  * EarMavenArchiverConfigurator
  */
-public class EarMavenArchiverConfigurator extends JarArchiverConfigurator {
+public class EarMavenArchiverConfigurator extends AbstractWTPArchiverConfigurator {
 
   @Override
   protected IPath getOutputDir(IMavenProjectFacade facade) {
@@ -36,16 +36,6 @@ public class EarMavenArchiverConfigurator extends JarArchiverConfigurator {
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-ear-plugin", "", "ear", null, null);
     return key;
-  }
-
-  @Override
-  protected boolean needsNewManifest(IFile manifest, IMavenProjectFacade oldFacade, IMavenProjectFacade newFacade,
-      IProgressMonitor monitor) {
-
-    if(!ModuleCoreNature.isFlexibleProject(newFacade.getProject())) {
-      return false;
-    }
-    return super.needsNewManifest(manifest, oldFacade, newFacade, monitor);
   }
 
 }

@@ -9,14 +9,13 @@
 package org.maven.ide.eclipse.wtp.mavenarchiver;
 
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
-import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
 
 /**
  * RarMavenArchiverConfigurator
  *
  * @author Fred Bricon
  */
-public class RarMavenArchiverConfigurator extends JarArchiverConfigurator {
+public class RarMavenArchiverConfigurator extends AbstractWTPArchiverConfigurator {
 
   @Override
   protected MojoExecutionKey getExecutionKey() {

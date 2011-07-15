@@ -8,32 +8,22 @@
 
 package org.maven.ide.eclipse.wtp.mavenarchiver;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jdt.core.IClasspathAttribute;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
-import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
-import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
 
 /**
  * WarMavenArchiverConfigurator
  *
  * @author Fred Bricon
  */
-public class WarMavenArchiverConfigurator extends JarArchiverConfigurator {
+public class WarMavenArchiverConfigurator extends AbstractWTPArchiverConfigurator {
 
   //private static final Logger log = LoggerFactory.getLogger(WarMavenArchiverConfigurator.class);
 
-  static final IClasspathAttribute NONDEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
-      IClasspathDependencyConstants.CLASSPATH_COMPONENT_NON_DEPENDENCY, "");
-  
   @Override
   protected IPath getOutputDir(IMavenProjectFacade facade) {
     IProject project = facade.getProject();
@@ -51,15 +41,5 @@ public class WarMavenArchiverConfigurator extends JarArchiverConfigurator {
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-war-plugin", "", "war", null, null);
     return key;
-  }
-
-  @Override
-  protected boolean needsNewManifest(IFile manifest, IMavenProjectFacade oldFacade, IMavenProjectFacade newFacade,
-      IProgressMonitor monitor) {
-
-    if (!ModuleCoreNature.isFlexibleProject(newFacade.getProject())) {
-      return false;
-    }
-    return super.needsNewManifest(manifest, oldFacade, newFacade, monitor);
   }
 }
