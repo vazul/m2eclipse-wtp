@@ -12,14 +12,14 @@
   <parent>
     <groupId>org.maven.ide.eclipse.wtp</groupId>
     <artifactId>org.maven.ide.eclipse.wtp.parent</artifactId>
-    <version>0.13.1-SNAPSHOT</version>
+    <version>0.13.1.20110718-1012</version>
   </parent>
 
   <artifactId>org.maven.ide.eclipse.wtp.feature</artifactId>
   <packaging>eclipse-feature</packaging>
 
   <name>Maven Integration for Eclipse WTP feature</name>
-  
+  <!--
   <build>
     <plugins>
       <plugin>
@@ -103,5 +103,5 @@
       </build>
     </profile>
   </profiles>
-
+  -->
 </project>
