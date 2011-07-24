@@ -30,6 +30,9 @@ public class UnpackArchiveJob extends WorkspaceJob {
 	public IStatus runInWorkspace(IProgressMonitor monitor)
 			throws CoreException {
 		try {
+			if (unpackFolder.exists()) {
+				unpackFolder.delete(true, monitor);
+			}
 			unpack(archive, unpackFolder.getLocation().toOSString(), monitor);
 		} catch (IOException e) {
 			return new Status(IStatus.ERROR, OverlayPluginActivator.PLUGIN_ID, "Error unpacking "+archive.getName(), e);
@@ -48,7 +51,6 @@ public class UnpackArchiveJob extends WorkspaceJob {
 			InterruptedException {
 		File unpackFolder = new File(unpackFolderPath);
 		CompressionUtil.unzip(archive, unpackFolder, monitor);
-		File unpackLocation = new File(unpackFolder, archive.getName());
-		unpackLocation.setLastModified(archive.lastModified());
+		unpackFolder.setLastModified(archive.lastModified());
 	}
 }
