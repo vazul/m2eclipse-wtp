@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<site associateSitesURL="http://sonatype.github.com/m2eclipse-wtp/associateSites/0.13.1/associates.xml">
+<site>
    <description name="Maven Integration for WTP">
       Maven Integration for WTP
    </description>

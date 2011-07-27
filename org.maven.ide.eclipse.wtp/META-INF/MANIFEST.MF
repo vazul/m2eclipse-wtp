@@ -35,7 +35,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.maven.ide.eclipse.wtp.overlay;visibility:=reexport,
  org.eclipse.wst.server.core,
  org.sonatype.m2e.mavenarchiver;bundle-version="0.14.0"
-Bundle-Vendor: Sonatype, Inc.
+Bundle-Vendor: JBoss by Red Hat
 Export-Package: org.maven.ide.eclipse.wtp;
   uses:="org.eclipse.core.runtime,
    org.apache.maven.artifact.resolver.filter,

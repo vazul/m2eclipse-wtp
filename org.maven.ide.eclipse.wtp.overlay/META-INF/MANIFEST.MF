@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jem.workbench,
  org.eclipse.jem.util,
  org.apache.ant
-Bundle-Vendor: Sonatype, Inc.
+Bundle-Vendor: JBoss by Red Hat
 Export-Package: org.maven.ide.eclipse.wtp.overlay.internal.modulecore,
  org.maven.ide.eclipse.wtp.overlay.modulecore
 Bundle-ActivationPolicy: lazy
