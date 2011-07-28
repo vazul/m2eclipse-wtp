@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.tools.ant.DirectoryScanner;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.maven.ide.eclipse.wtp.overlay.utilities.PathUtil;
 
 public class FileSystemResourceFilter implements IResourceFilter {
 
@@ -86,7 +87,7 @@ public class FileSystemResourceFilter implements IResourceFilter {
 			}
 			
 			boolean res;
-			
+			name = PathUtil.useSystemSeparator(name);
 			if (isFile) {
 				res = includedFiles.contains(name) && !excludedFiles.contains(name);
 			} else {
