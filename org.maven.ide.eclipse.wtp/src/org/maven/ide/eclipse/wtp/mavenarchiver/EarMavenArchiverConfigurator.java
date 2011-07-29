@@ -6,30 +6,36 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
-package org.maven.ide.eclipse.wtp.manifest;
+package org.maven.ide.eclipse.wtp.mavenarchiver;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
+import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
+
 
 /**
- * EarManifestConfigurator
- *
+ * EarMavenArchiverConfigurator
  */
-public class EarManifestConfigurator extends JarManifestConfigurator {
+public class EarMavenArchiverConfigurator extends AbstractWTPArchiverConfigurator {
 
-  protected IPath getManifestdir(IMavenProjectFacade facade) {
+  @Override
+  protected IPath getOutputDir(IMavenProjectFacade facade) {
     IProject project = facade.getProject();
-    IPath localEarResourceFolder =  ProjectUtils.getM2eclipseWtpFolder(facade.getMavenProject(), project);
-    return project.getFullPath().append(localEarResourceFolder)
-                                .append(MavenWtpConstants.EAR_RESOURCES_FOLDER);
+    IPath localEarResourceFolder = ProjectUtils.getM2eclipseWtpFolder(facade.getMavenProject(), project);
+    return project.getFullPath().append(localEarResourceFolder).append(MavenWtpConstants.EAR_RESOURCES_FOLDER);
   }
-  
+
+  @Override
   protected MojoExecutionKey getExecutionKey() {
     MojoExecutionKey key = new MojoExecutionKey("org.apache.maven.plugins", "maven-ear-plugin", "", "ear", null, null);
     return key;
   }
+
 }

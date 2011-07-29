@@ -42,18 +42,11 @@
           class="org.maven.ide.eclipse.wtp.OverlayConfigurator"
           name="Overlay" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"/>
-    </extension>
-	<extension point="org.eclipse.m2e.core.projectConfigurators">
-      <configurator 
-          id="org.maven.ide.eclipse.configuration.wtp.jarmanifest.configurator"
-          class="org.maven.ide.eclipse.wtp.manifest.JarManifestConfigurator"
-          name="JarManifestConfigurator" 
-          />
-    </extension>          
+    </extension>        
 	<extension point="org.eclipse.m2e.core.projectConfigurators">
       <configurator 
           id="org.maven.ide.eclipse.configuration.wtp.warmanifest.configurator"
-          class="org.maven.ide.eclipse.wtp.manifest.WarManifestConfigurator"
+          class="org.maven.ide.eclipse.wtp.mavenarchiver.WarMavenArchiverConfigurator"
           name="WarManifestConfigurator" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
           />
@@ -61,7 +54,7 @@
    	<extension point="org.eclipse.m2e.core.projectConfigurators">
       <configurator 
           id="org.maven.ide.eclipse.configuration.wtp.ejbmanifest.configurator"
-          class="org.maven.ide.eclipse.wtp.manifest.EjbManifestConfigurator"
+          class="org.maven.ide.eclipse.wtp.mavenarchiver.EjbMavenArchiverConfigurator"
           name="EjbManifestConfigurator" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
           />
@@ -69,14 +62,14 @@
 	<extension point="org.eclipse.m2e.core.projectConfigurators">
       <configurator 
           id="org.maven.ide.eclipse.configuration.wtp.earmanifest.configurator"
-          class="org.maven.ide.eclipse.wtp.manifest.EarManifestConfigurator"
+          class="org.maven.ide.eclipse.wtp.mavenarchiver.EarMavenArchiverConfigurator"
           name="EarManifestConfigurator" 
           />
     </extension>
 	<extension point="org.eclipse.m2e.core.projectConfigurators">
       <configurator 
           id="org.maven.ide.eclipse.configuration.wtp.rarmanifest.configurator"
-          class="org.maven.ide.eclipse.wtp.manifest.RarManifestConfigurator"
+          class="org.maven.ide.eclipse.wtp.mavenarchiver.RarMavenArchiverConfigurator"
           name="RarManifestConfigurator" 
           secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
           />

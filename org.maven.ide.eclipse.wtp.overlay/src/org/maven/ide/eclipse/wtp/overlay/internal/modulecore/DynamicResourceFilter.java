@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.tools.ant.types.selectors.SelectorUtils;
+import org.maven.ide.eclipse.wtp.overlay.utilities.PathUtil;
 
 public class DynamicResourceFilter implements IResourceFilter {
 
@@ -160,8 +161,7 @@ public class DynamicResourceFilter implements IResourceFilter {
     }
     
     private static String normalizePattern(String p) {
-        String pattern = p.replace('/', File.separatorChar)
-            .replace('\\', File.separatorChar);
+        String pattern = PathUtil.useSystemSeparator(p);
         if (pattern.endsWith(File.separator)) {
             pattern += "**";//$NON-NLS-1$
         }
@@ -263,6 +263,7 @@ public class DynamicResourceFilter implements IResourceFilter {
 
 	public boolean accepts(String path, boolean isFile) {
 		if (path == null) return false;
+		path = PathUtil.useSystemSeparator(path);
 		boolean isIncluded = isIncluded(path) && ! isExcluded(path);
 		//System.err.println(path + (isIncluded?" included":" excluded"));
 		return isIncluded;
