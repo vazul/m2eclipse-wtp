@@ -188,5 +188,27 @@ public class OverlayTest extends AbstractWTPTestCase {
             
   }
   
-
+  @Test
+  public void testZippedArchiveOverlay() throws Exception {
+      IProject war = importProject("projects/overlays/war-zipped-archive-overlay/pom.xml");
+      waitForJobsToComplete();
+      assertNoErrors(war);
+      
+      IVirtualComponent comp = ComponentCore.createComponent(war);
+      assertNotNull(comp);
+      
+      IVirtualReference[] references = comp.getReferences();
+      
+      assertEquals(2, references.length);
+      
+      assertEquals(OverlayVirtualArchiveComponent.class, references[0].getReferencedComponent().getClass());
+      assertEquals(OverlaySelfComponent.class, references[1].getReferencedComponent().getClass());
+      
+      IServer server = TestServerUtil.createPreviewServer();
+      TestServerUtil.addProjectToServer(war, server);
+      
+      List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
+      
+      assertTrue(resources.contains("junit/framework/Assert.class"));
+  }
 }

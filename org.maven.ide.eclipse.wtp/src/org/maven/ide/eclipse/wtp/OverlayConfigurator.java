@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
+import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
@@ -89,7 +90,12 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
     }
     
     Set<IVirtualReference> newOverlayRefs = new LinkedHashSet<IVirtualReference>();
-    
+    MavenSessionHelper helper = new MavenSessionHelper(mavenProject);
+    try {
+      helper.ensureDependenciesAreResolved("maven-war-plugin", "war:war");
+      
+      MavenPlugin.getMaven();
+      
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     
     List<Overlay> overlays = config.getOverlays();
@@ -151,6 +157,11 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
       System.arraycopy(updatedOverlayRefs, 0, allRefs, nonOverlayRefs.length, updatedOverlayRefs.length);
       warComponent.setReferences(allRefs);
     }
+
+    } finally {
+      helper.dispose();
+    }
+
   }
 
   private IOverlayVirtualComponent createOverlayArchiveComponent(IProject project, MavenProject mavenProject, Overlay overlay) throws CoreException {
