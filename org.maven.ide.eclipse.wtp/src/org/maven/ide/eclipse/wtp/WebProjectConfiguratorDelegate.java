@@ -55,6 +55,7 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,7 +225,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     DebugUtilities.debug("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     WarPackagingOptions opts = new WarPackagingOptions(config);
-
+    FileNameMapping fileNameMapping = config.getFileNameMapping();
+    
     List<AbstractDependencyConfigurator> depConfigurators = ExtensionReader.readDependencyConfiguratorExtensions(projectManager, 
         MavenPlugin.getDefault().getMavenRuntimeManager(), mavenMarkerManager);
     
@@ -246,7 +248,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   		      
         String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
         Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
-        String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+        String deployedName = fileNameMapping.mapFileName(artifact);
         
         boolean isDeployed = !artifact.isOptional() && opts.isPackaged(deployedName);
           
@@ -338,6 +340,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     Set<String> dups = new LinkedHashSet<String>();
     Set<String> names = new HashSet<String>();
+    FileNameMapping fileNameMapping = config.getFileNameMapping();
+    String targetDir = mavenProject.getBuild().getDirectory();
 
     // first pass removes projects, adds non-dependency attribute and collects colliding filenames
     Iterator<IClasspathEntryDescriptor> iter = classpath.getEntryDescriptors().iterator();
@@ -347,7 +351,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       String scope = descriptor.getScope();
       String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
       Artifact artifact = mavenProject.getArtifactMap().get(key);
-      String deployedName = FileNameMappingFactory.getDefaultFileNameMapping().mapFileName(artifact);
+      String deployedName = fileNameMapping.mapFileName(artifact);
     
       boolean isDeployed = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope)) 
     		  				&& !descriptor.isOptionalDependency() 
@@ -360,38 +364,52 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         descriptor.setClasspathAttribute(NONDEPENDENCY_ATTRIBUTE.getName(), NONDEPENDENCY_ATTRIBUTE.getValue());
       }
     
-      // collect duplicate file names 
+      //If custom fileName is used, then copy the artifact and rename the artifact under the build dir
       String fileName = entry.getPath().lastSegment(); 
-      if (!names.add(fileName)) {
-        dups.add(fileName);
+      if (!deployedName.equals(fileName)) {
+        IPath newPath = renameArtifact(targetDir, entry.getPath(), deployedName );
+        if (newPath != null) {
+          descriptor.setPath(newPath);
+        }
+      }
+      
+      if (!names.add(deployedName)) {
+        dups.add(deployedName);
       }
     }
-
-    String targetDir = mavenProject.getBuild().getDirectory();
 
     // second pass disambiguates colliding entry file names
     iter = classpath.getEntryDescriptors().iterator();
     while (iter.hasNext()) {
       IClasspathEntryDescriptor descriptor = iter.next();
       IClasspathEntry entry = descriptor.toClasspathEntry();
-
+      
       if (dups.contains(entry.getPath().lastSegment())) {
-        File src = new File(entry.getPath().toOSString());
-        String groupId = descriptor.getGroupId();
-        File dst = new File(targetDir, groupId + "-" + entry.getPath().lastSegment());
-        try {
-          if (src.canRead()) {
-            if (isDifferent(src, dst)) { // uses lastModified
-              FileUtils.copyFile(src, dst);
-              dst.setLastModified(src.lastModified());
-            }
-            descriptor.setPath(Path.fromOSString(dst.getCanonicalPath()));
-          }
-        } catch(IOException ex) {
-          log.error("File copy failed", ex);
+        String newName = descriptor.getGroupId() + "-" + entry.getPath().lastSegment();
+        IPath newPath = renameArtifact(targetDir, entry.getPath(), newName );
+        if (newPath != null) {
+          descriptor.setPath(newPath);
         }
       }
     }
+  }
+
+
+  private IPath renameArtifact(String targetDir, IPath source, String newName) {
+    File src = new File(source.toOSString());
+    File dst = new File(targetDir, newName);
+    try {
+      if (src.isFile() && src.canRead()) {
+        if (isDifferent(src, dst)) { // uses lastModified
+          FileUtils.copyFile(src, dst);
+          dst.setLastModified(src.lastModified());
+        }
+        return Path.fromOSString(dst.getCanonicalPath());
+      }
+    } catch(IOException ex) {
+      log.error("File copy failed", ex);
+    }
+    return null;
   }
 
   private boolean isWorkspaceProject(Artifact artifact) {

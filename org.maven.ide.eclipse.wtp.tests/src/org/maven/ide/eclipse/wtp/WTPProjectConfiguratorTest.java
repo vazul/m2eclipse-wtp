@@ -45,6 +45,7 @@ import org.eclipse.jst.javaee.application.Module;
 import org.eclipse.jst.javaee.core.SecurityRole;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IProjectConfigurationManager;
+import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.jdt.internal.BuildPathManager;
 import org.eclipse.wst.common.componentcore.ComponentCore;
@@ -201,6 +202,45 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("test-junit-3.8.1.jar", cp[1].getPath().lastSegment());
   }
 
+
+  
+  @Test
+  public void testMECLIPSEWTP112_CustomFilenameMapping() throws Exception {
+    ResolverConfiguration configuration = new ResolverConfiguration();
+    ProjectImportConfiguration importConfiguration = new ProjectImportConfiguration(configuration);
+    importConfiguration.setProjectNameTemplate("[groupId]-[artifactId]");
+ 
+    importProject("core1", "projects/MECLIPSEWTP-112/core1", importConfiguration);
+    IProject core1 = workspace.getRoot().getProject("foo.bar-core");
+    assertTrue(core1.exists());
+    importProject("core2", "projects/MECLIPSEWTP-112/core2", importConfiguration);
+    IProject core2 = workspace.getRoot().getProject("bar.foo-core");
+    assertTrue(core2.exists());
+
+    IProject web   = importProject("projects/MECLIPSEWTP-112/web/pom.xml", configuration);
+    waitForJobsToComplete();
+    assertNoErrors(web);
+    IVirtualComponent warComponent = ComponentCore.createComponent(web);
+    assertNotNull(warComponent);
+    IVirtualReference[] references =warComponent.getReferences(); 
+    assertEquals(4, references.length);
+    assertEquals("foo.bar-core-0.0.1-SNAPSHOT.jar", warComponent.getReferences()[0].getArchiveName());
+    assertEquals("bar.foo-core-0.0.1-SNAPSHOT.jar", warComponent.getReferences()[1].getArchiveName());
+    
+    IJavaProject javaProject = JavaCore.create(web);
+    IClasspathContainer container = BuildPathManager.getMaven2ClasspathContainer(javaProject);
+    IClasspathEntry[] cp = container.getClasspathEntries();
+
+    assertEquals(4, cp.length);
+    assertEquals("junit-junit-3.8.1.jar", cp[0].getPath().lastSegment());
+    assertEquals("foo.bar-core", cp[1].getPath().lastSegment());
+    assertEquals("bar.foo-core", cp[2].getPath().lastSegment());
+    assertEquals("commons-lang-commons-lang-2.4.jar", cp[3].getPath().lastSegment());
+
+  }
+
+  
+  
   //@Test
   public void _testLooseBuildDirectory() throws Exception {
     // import should not fail for projects with output folders located outside of project's basedir

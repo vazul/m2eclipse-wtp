@@ -31,6 +31,8 @@ import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
+import org.maven.ide.eclipse.wtp.namemapping.PatternBasedFileNameMapping;
 
 
 /**
@@ -408,4 +410,12 @@ public class WarPluginConfiguration {
     return null;
   }
 
+  public FileNameMapping getFileNameMapping() {
+    Xpp3Dom config = getConfiguration();
+    String expression = null;
+    if(config != null) {
+      expression = DomUtils.getChildValue(config, "outputFileNameMapping");
+    }
+    return new PatternBasedFileNameMapping(expression);
+  }
 }
