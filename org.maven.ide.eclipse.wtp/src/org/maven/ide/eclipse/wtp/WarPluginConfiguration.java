@@ -91,6 +91,13 @@ public class WarPluginConfiguration {
           //MECLIPSEWTP-97 support old maven-war-plugin configurations which used <webResource> 
           // instead of <resource>
           Xpp3Dom webResource = new Xpp3Dom(webResources.getChild(i),"resource"); 
+          
+          //MECLIPSEWTP-152 : Web resource processing fails when targetPath has a leading /
+          Xpp3Dom targetPath = webResource.getChild("targetPath");
+          if(targetPath != null && targetPath.getValue().startsWith("/")) {
+            targetPath.setValue(targetPath.getValue().substring(1));
+          }
+
           resources[i] = webResource;
         }
         return resources;

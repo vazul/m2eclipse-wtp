@@ -303,6 +303,28 @@ public class ResourceFilteringTest extends AbstractWTPTestCase {
     assertTrue("${welcome.page} from webfilter.properties was not interpolated", xml.contains("<welcome-file>index.html</welcome-file>"));
   }
 
+
+  @Test
+  public void testMECLIPSEWTP152_leadingSlashInTargetPath() throws Exception {
+    IProject web = importProject("projects/MECLIPSEWTP-152/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    //Check all the files are correctly filtered
+    IFile file = filteredFolder.getFile("test/page.properties");
+    assertTrue(file.getName() +" is missing from test folder",file.exists());
+    String content = getAsString(file);
+    assertEquals(content , "m2e rocks!");
+
+    file = filteredFolder.getFile("page.properties");
+    assertTrue(file.getName() +" is missing from root",file.exists());
+    String content2 = getAsString(file);
+    assertEquals(content , content2);
+
+  }
+
   /**
    * @param folder
    * @return
