@@ -284,10 +284,25 @@ public class ResourceFilteringTest extends AbstractWTPTestCase {
     
     index = getAsString(indexHtml);
     assertTrue("${artifactId} has not been interpolated", index.contains("web"));
-    
-    
   }
   
+
+  @Test
+  public void testMECLIPSEWTP159_filteringDeploymentDescriptors() throws Exception {
+    IProject web = importProject("projects/MECLIPSEWTP-159/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    //Check all the files are correctly filtered
+    IFile webXml = filteredFolder.getFile("WEB-INF/web.xml");
+    assertTrue(webXml.getName() +" is missing",webXml.exists());
+    String xml = getAsString(webXml);
+    assertTrue("web.xml was not filtered : " + xml , xml.contains("<display-name>Maven Webapp</display-name>"));
+    assertTrue("${welcome.page} from webfilter.properties was not interpolated", xml.contains("<welcome-file>index.html</welcome-file>"));
+  }
+
   /**
    * @param folder
    * @return

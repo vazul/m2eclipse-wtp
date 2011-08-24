@@ -90,36 +90,13 @@ public class WarPluginConfiguration {
         for (int i= 0; i< count ; i++) {
           //MECLIPSEWTP-97 support old maven-war-plugin configurations which used <webResource> 
           // instead of <resource>
-          Xpp3Dom webResource = webResources.getChild(i);
-          if ("resource".equals(webResource.getName())) {
-            resources[i] = webResource;
-          } else {
-            resources[i] = new Xpp3Dom(webResource,"resource");
-          }
+          Xpp3Dom webResource = new Xpp3Dom(webResources.getChild(i),"resource"); 
+          resources[i] = webResource;
         }
         return resources;
       }
     }
     return null;
-  }
-
-  public String getValueForWebResource(Xpp3Dom dom, String value) {
-    Xpp3Dom resource = dom.getChild("resource");
-    if(resource != null) {
-      Xpp3Dom child = resource.getChild(value);
-      if(child != null) {
-        return child.getValue();
-      }
-    }
-    return null;
-  }
-
-  public String getDirectoryForWebResource(Xpp3Dom dom) {
-    return getValueForWebResource(dom, "directory");
-  }
-
-  public String getTargetPathForWebResource(Xpp3Dom dom) {
-    return getValueForWebResource(dom, "targetPath");
   }
 
   public String getWarSourceDirectory() {
@@ -418,4 +395,13 @@ public class WarPluginConfiguration {
     }
     return new PatternBasedFileNameMapping(expression);
   }
+  
+  public boolean isFilteringDeploymentDescriptors()  {
+    Xpp3Dom configuration = getConfiguration();
+    if(configuration == null) {
+      return false;
+    }
+    return DomUtils.getBooleanChildValue(configuration, "filteringDeploymentDescriptors");
+  }
+  
 }

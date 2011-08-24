@@ -29,6 +29,8 @@ import org.maven.ide.eclipse.wtp.WarPluginConfiguration;
  */
 public class WebResourceFilteringConfiguration extends AbstractResourceFilteringConfiguration {
 
+  private static final String WEB_INF = "WEB-INF/";
+
   private WarPluginConfiguration pluginConfiguration;
   
   public WebResourceFilteringConfiguration(IMavenProjectFacade mavenProjectFacade) {
@@ -46,10 +48,49 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
 
   public List<Xpp3Dom> getResources() {
     Xpp3Dom[] domResources = pluginConfiguration.getWebResources();
-    if(domResources == null || domResources.length == 0){
-      return Collections.emptyList();
+    List<Xpp3Dom> resources = new ArrayList<Xpp3Dom>();
+    
+    if(domResources != null && domResources.length > 0){
+      resources.addAll(Arrays.asList(domResources));
+    }    
+
+    Xpp3Dom webXmlResource = getWebXmlResource();
+    if (webXmlResource != null) {
+      resources.add(webXmlResource);
     }
-    return Arrays.asList(domResources);
+
+    return resources;
+  }
+
+  //MECLIPSEWTP-159 : Handle web.xml filtering with <filteringDeploymentDescriptors> 
+  private Xpp3Dom getWebXmlResource() {
+    if (!pluginConfiguration.isFilteringDeploymentDescriptors()) {
+      return null;
+    }
+    String warSourceDirectory = pluginConfiguration.getWarSourceDirectory();
+    if (warSourceDirectory.startsWith("/")) {
+      warSourceDirectory = warSourceDirectory.substring(1);
+    }
+    if (!warSourceDirectory.endsWith("/")) {
+      warSourceDirectory = warSourceDirectory + "/";
+    }
+    Xpp3Dom resource = new Xpp3Dom("resource");
+    Xpp3Dom directory = new Xpp3Dom("directory");
+    directory.setValue(warSourceDirectory+WEB_INF);
+    resource.addChild(directory);
+    Xpp3Dom includes = new Xpp3Dom("includes");
+    Xpp3Dom include = new Xpp3Dom("include");
+    //TODO handle custom web.xml
+    include.setValue("web.xml");
+    includes.addChild(include);
+    resource.addChild(includes);
+    Xpp3Dom filter = new Xpp3Dom("filtering");
+    filter.setValue(Boolean.TRUE.toString());
+    Xpp3Dom targetPath = new Xpp3Dom("targetPath");
+    targetPath.setValue(WEB_INF);
+    resource.addChild(targetPath);
+    resource.addChild(filter);
+    return resource;
   }
 
   public List<String> getFilters() {
@@ -72,5 +113,6 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
     }
     return Arrays.asList(domext);
   }
+  
   
 }
