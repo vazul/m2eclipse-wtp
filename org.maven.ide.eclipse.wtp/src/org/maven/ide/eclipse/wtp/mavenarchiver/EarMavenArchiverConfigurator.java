@@ -8,16 +8,12 @@
 
 package org.maven.ide.eclipse.wtp.mavenarchiver;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
-import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.maven.ide.eclipse.wtp.MavenWtpConstants;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
-import org.sonatype.m2e.mavenarchiver.internal.JarArchiverConfigurator;
 
 
 /**

@@ -10,7 +10,6 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -56,7 +55,6 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.filtering.WebResourceFilteringConfiguration;
 import org.maven.ide.eclipse.wtp.internal.ExtensionReader;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
-import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

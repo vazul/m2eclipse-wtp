@@ -11,10 +11,6 @@ package org.maven.ide.eclipse.wtp.namemapping;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.war.util.MappingUtils;
 import org.codehaus.plexus.interpolation.InterpolationException;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
 
 /**
  * Pattern Based FileName Mapping
