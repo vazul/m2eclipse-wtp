@@ -10,7 +10,6 @@
 package org.maven.ide.eclipse.wtp;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +36,7 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
+import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -68,15 +68,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
 
-    if(facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
-      try {
-        facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
-            facetedProject.getInstalledVersion(WTPProjectsUtil.EAR_FACET), null)), monitor);
-      } catch(Exception ex) {
-        log.error("Error removing EAR facet", ex);
-      }
-    }
-
     EarPluginConfiguration config = new EarPluginConfiguration(mavenProject);
     Set<Action> actions = new LinkedHashSet<Action>();
     // WTP doesn't allow facet versions changes for JEE facets
@@ -89,26 +80,31 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if (!manifestAlreadyExists) {
       firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
     }   
-    
-    
+
+    IProjectFacetVersion earFv = config.getEarFacetVersion();
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
-      IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
-
-      // Configuring content directory
-      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDir);
-      earModelCfg.setProperty(IEarFacetInstallDataModelProperties.GENERATE_DD, false);
-
-      IProjectFacetVersion earFv = config.getEarFacetVersion();
-      
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, earFv, earModelCfg));
+      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, earFv, getEarModel(contentDir)));
+    } else {
+      //MECLIPSEWTP-37 : don't uninstall the EAR Facet, as it causes constraint failures when used with RAD
+      IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WTPProjectsUtil.EAR_FACET);     
+      if(earFv.getVersionString() != null && !earFv.getVersionString().equals(projectFacetVersion.getVersionString())){
+          actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, earFv, getEarModel(contentDir)));
+      } 
     }
-
+    
     if(!actions.isEmpty()) {
       facetedProject.modify(actions, monitor);
     }
 
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
     fixMissingModuleCoreNature(project, monitor);
+    
+    IVirtualComponent earComponent = ComponentCore.createComponent(project);
+    IPath contentDirPath = new Path((contentDir.startsWith("/"))?contentDir:"/"+contentDir);
+    //Ensure the EarContent link has been created
+    if (!WTPProjectsUtil.hasLink(project, ROOT_PATH, contentDirPath, monitor)) {
+      earComponent.getRootFolder().createLink(contentDirPath, IVirtualResource.NONE, monitor);
+    }
     
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
@@ -117,8 +113,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       manifest.delete(true, monitor);
     }
     
-    IVirtualComponent earComponent = ComponentCore.createComponent(project);
-    IPath contentDirPath = new Path((contentDir.startsWith("/"))?contentDir:"/"+contentDir);
     List<IPath> sourcePaths = new ArrayList<IPath>();
     sourcePaths.add(contentDirPath);
     
@@ -135,9 +129,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       {
         firstInexistentfolder.delete(true, monitor);
       }
-      
-      project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-    }
+     }
 
     //MECLIPSEWTP-161 remove stale source paths
     WTPProjectsUtil.deleteLinks(project, ROOT_PATH, sourcePaths, monitor);
@@ -147,7 +139,15 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);
 
     //configureDeployedName(project, mavenProject.getBuild().getFinalName());
+    project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 
+  }
+
+  private IDataModel getEarModel(String contentDir) {
+    IDataModel earModelCfg = DataModelFactory.createDataModel(new EarFacetInstallDataModelProvider());
+    earModelCfg.setProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR, contentDir);
+    earModelCfg.setProperty(IEarFacetInstallDataModelProperties.GENERATE_DD, false);
+    return earModelCfg;
   }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
