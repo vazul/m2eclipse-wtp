@@ -124,20 +124,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     String contextRoot = getContextRoot(mavenProject);
     
     IProjectFacetVersion webFv = config.getWebFacetVersion(project);
+    IDataModel webModelCfg = getWebModelConfig(warSourceDirectory, contextRoot);
     if(!facetedProject.hasProjectFacet(WebFacetUtils.WEB_FACET)) {
-      installWebFacet(mavenProject, warSourceDirectory, contextRoot, actions, webFv);
+      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, webFv, webModelCfg));
     } else {
       IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WebFacetUtils.WEB_FACET);     
       if(webFv.getVersionString() != null && !webFv.getVersionString().equals(projectFacetVersion.getVersionString())){
-        try {
-          Action uninstallAction = new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
-                                       facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET), 
-                                       null);
-          facetedProject.modify(Collections.singleton(uninstallAction), monitor);
-        } catch(Exception ex) {
-          log.error("Error removing WEB facet", ex);
-        }
-        installWebFacet(mavenProject, warSourceDirectory, contextRoot, actions, webFv);
+          actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, webFv, webModelCfg));
       }
     }
 
@@ -195,20 +188,12 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   }
 
 
-  /**
-   * Install a Web Facet version
-   * @param mavenProject
-   * @param warSourceDirectory
-   * @param actions
-   * @param webFv
-   */
-  private void installWebFacet(MavenProject mavenProject, String warSourceDirectory, String contextRoot, Set<Action> actions,
-      IProjectFacetVersion webFv) {
+  private IDataModel getWebModelConfig(String warSourceDirectory, String contextRoot) {
     IDataModel webModelCfg = DataModelFactory.createDataModel(new WebFacetInstallDataModelProvider());
     webModelCfg.setProperty(IJ2EEModuleFacetInstallDataModelProperties.CONFIG_FOLDER, warSourceDirectory);
     webModelCfg.setProperty(IWebFacetInstallDataModelProperties.CONTEXT_ROOT, contextRoot);
     webModelCfg.setProperty(IJ2EEModuleFacetInstallDataModelProperties.GENERATE_DD, false);
-    actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, webFv, webModelCfg));
+    return webModelCfg;
   }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)

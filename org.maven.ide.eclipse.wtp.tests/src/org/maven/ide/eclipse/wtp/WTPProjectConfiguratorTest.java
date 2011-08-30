@@ -1683,6 +1683,18 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(util.getFolder("/src/main/java"), underlyingResources[0]);
     assertEquals(util.getFolder("/src/main/resources"), underlyingResources[1]);
   }
+
+
+  @Test
+  public void testMECLIPSEWTP162_UpdateWebFacet() throws Exception {
+      IProject war = importProject("projects/MECLIPSEWTP-162/updatefacets/pom.xml");
+      waitForJobsToComplete();
+      war.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+      assertNoErrors(war);   
+      IFacetedProject fpWar = ProjectFacetsManager.create(war);
+      assertNotNull(fpWar);
+      assertEquals(WebFacetUtils.WEB_30, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
+  }
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";
