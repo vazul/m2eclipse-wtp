@@ -10,6 +10,7 @@ package org.maven.ide.eclipse.wtp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,19 +24,26 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.core.JavaFacet;
 import org.eclipse.jst.common.project.facet.core.internal.JavaFacetUtil;
+import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
+import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.internal.ComponentResource;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
@@ -75,6 +83,8 @@ public class WTPProjectsUtil {
   public static final IProjectFacet DYNAMIC_WEB_FACET = ProjectFacetsManager
       .getProjectFacet(IJ2EEFacetConstants.DYNAMIC_WEB);
 
+  public static final IClasspathAttribute NONDEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
+      IClasspathDependencyConstants.CLASSPATH_COMPONENT_NON_DEPENDENCY, "");
   /**
    * Defaults Web facet version to 2.5
    */
@@ -454,4 +464,49 @@ public class WTPProjectsUtil {
       }
     }
   }
+
+
+  public static void setNonDependencyAttributeToContainer(IProject project, IProgressMonitor monitor) throws JavaModelException {
+    updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
+  }
+
+  public static void updateContainerAttributes(IProject project, IClasspathAttribute attributeToAdd, String attributeToDelete, IProgressMonitor monitor)
+  throws JavaModelException {
+    IJavaProject javaProject = JavaCore.create(project);
+    if (javaProject == null) return;
+    IClasspathEntry[] cp = javaProject.getRawClasspath();
+    for(int i = 0; i < cp.length; i++ ) {
+      if(IClasspathEntry.CPE_CONTAINER == cp[i].getEntryKind()
+          && MavenClasspathHelpers.isMaven2ClasspathContainer(cp[i].getPath())) {
+        LinkedHashMap<String, IClasspathAttribute> attrs = new LinkedHashMap<String, IClasspathAttribute>();
+        for(IClasspathAttribute attr : cp[i].getExtraAttributes()) {
+          if (!attr.getName().equals(attributeToDelete)) {
+            attrs.put(attr.getName(), attr);            
+          }
+        }
+        attrs.put(attributeToAdd.getName(), attributeToAdd);
+        IClasspathAttribute[] newAttrs = attrs.values().toArray(new IClasspathAttribute[attrs.size()]);
+        cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
+        break;
+      }
+    }
+    javaProject.setRawClasspath(cp, monitor);
+  }
+
+
+  /**
+   * Add the ModuleCoreNature to a project, if necessary.
+   * 
+   * @param project An accessible project.
+   * @param monitor A progress monitor to track the time to completion
+   * @throws CoreException if the ModuleCoreNature cannot be added
+   */
+  public static void fixMissingModuleCoreNature(IProject project, IProgressMonitor monitor) throws CoreException {
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    if (null == ModuleCoreNature.addModuleCoreNatureIfNecessary(project, monitor)) {
+      //If we can't add the missing nature, then the project is useless, so let's tell the user
+      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
+    }
+  }
+
 }

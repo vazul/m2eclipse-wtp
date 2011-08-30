@@ -189,11 +189,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
    * @throws CoreException if the ModuleCoreNature cannot be added
    */
   protected void fixMissingModuleCoreNature(IProject project, IProgressMonitor monitor) throws CoreException {
-    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
-    if (null == ModuleCoreNature.addModuleCoreNatureIfNecessary(project, monitor)) {
-      //If we can't add the missing nature, then the project is useless, so let's tell the user
-      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
-    }
+    WTPProjectsUtil.fixMissingModuleCoreNature(project, monitor);
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
@@ -211,30 +207,12 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   }
 
   protected void setNonDependencyAttributeToContainer(IProject project, IProgressMonitor monitor) throws JavaModelException {
-    updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
+    WTPProjectsUtil.updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
   }
 
   protected void updateContainerAttributes(IProject project, IClasspathAttribute attributeToAdd, String attributeToDelete, IProgressMonitor monitor)
   throws JavaModelException {
-    IJavaProject javaProject = JavaCore.create(project);
-    if (javaProject == null) return;
-    IClasspathEntry[] cp = javaProject.getRawClasspath();
-    for(int i = 0; i < cp.length; i++ ) {
-      if(IClasspathEntry.CPE_CONTAINER == cp[i].getEntryKind()
-          && MavenClasspathHelpers.isMaven2ClasspathContainer(cp[i].getPath())) {
-        LinkedHashMap<String, IClasspathAttribute> attrs = new LinkedHashMap<String, IClasspathAttribute>();
-        for(IClasspathAttribute attr : cp[i].getExtraAttributes()) {
-          if (!attr.getName().equals(attributeToDelete)) {
-            attrs.put(attr.getName(), attr);            
-          }
-        }
-        attrs.put(attributeToAdd.getName(), attributeToAdd);
-        IClasspathAttribute[] newAttrs = attrs.values().toArray(new IClasspathAttribute[attrs.size()]);
-        cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
-        break;
-      }
-    }
-    javaProject.setRawClasspath(cp, monitor);
+    WTPProjectsUtil.updateContainerAttributes(project, attributeToAdd, attributeToDelete, monitor);
   }
 
   /**
