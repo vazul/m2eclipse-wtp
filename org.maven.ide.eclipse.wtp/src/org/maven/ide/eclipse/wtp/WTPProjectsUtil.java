@@ -151,6 +151,18 @@ public class WTPProjectsUtil {
    * @throws CoreException
    */
   public static void deleteLinks(IProject project, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    deleteLinks(project, runtimePath, null, monitor);
+  }
+
+  /**
+   * Delete a project's component resources having a given runtimePath
+   * @param project - the project to modify
+   * @param runtimePath - the component resource runtime path (i.e. deploy path)
+   * @param sourcePathToKeep - the list of source paths to keep
+   * @param monitor - an eclipse monitor
+   * @throws CoreException
+   */
+  public static void deleteLinks(IProject project, IPath runtimePath, List<IPath> sourcePathToKeep, IProgressMonitor monitor) throws CoreException {
     //Looks like WTP'APIS doesn't have such feature, hence this implementation.
     StructureEdit moduleCore = null;
     try {
@@ -165,7 +177,9 @@ public class WTPProjectsUtil {
       ResourceTreeRoot root = ResourceTreeRoot.getDeployResourceTreeRoot(component);
       ComponentResource[] resources = root.findModuleResources(runtimePath, 0);
       for (ComponentResource link : resources) {
-        component.getResources().remove(link);
+        if (sourcePathToKeep == null || !sourcePathToKeep.contains(link.getSourcePath())) {
+          component.getResources().remove(link);
+        }
       }
    }
    finally {
@@ -175,7 +189,7 @@ public class WTPProjectsUtil {
      }
     }
   }
-
+  
   public static void insertLinkBefore(IProject project, IPath newSource, IPath referenceSource, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
     //Looks like WTP'APIS doesn't have such feature, hence this implementation.
     StructureEdit moduleCore = null;
@@ -265,8 +279,6 @@ public class WTPProjectsUtil {
     }
     return false;
   }
-
-  
 
   /**
    * @param project
@@ -508,5 +520,4 @@ public class WTPProjectsUtil {
       throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
     }
   }
-
 }

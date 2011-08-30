@@ -9,10 +9,10 @@
 
 package org.maven.ide.eclipse.wtp;
 
-
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -25,7 +25,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.earcreation.IEarFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.J2EEConstants;
@@ -40,7 +39,6 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
-import org.eclipse.wst.common.frameworks.datamodel.IDataModelProvider;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
@@ -59,10 +57,10 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
-  private static final Logger log = LoggerFactory.getLogger(EarProjectConfiguratorDelegate.class); 
+  private static final Logger log = LoggerFactory.getLogger(EarProjectConfiguratorDelegate.class);
+  
+  private static final IPath ROOT_PATH = new Path("/"); 
       
-  private static final IStatus OK_STATUS = IDataModelProvider.OK_STATUS;
-
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     
@@ -120,13 +118,17 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
     
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
+    IPath contentDirPath = new Path((contentDir.startsWith("/"))?contentDir:"/"+contentDir);
+    List<IPath> sourcePaths = new ArrayList<IPath>();
+    sourcePaths.add(contentDirPath);
+    
     if (useBuildDirectory && earComponent != null) {
-      IPath m2eclipseWtpFolderPath = ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
+      IPath m2eclipseWtpFolderPath = new Path("/").append(ProjectUtils.getM2eclipseWtpFolder(mavenProject, project));
       ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
-      IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER); 
-      if (!WTPProjectsUtil.hasLink(project, new Path("/"), generatedResourcesPath, monitor)) {
-        IPath contentDirPath = new Path((contentDir.startsWith("/"))?contentDir:"/"+contentDir);
-        WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, new Path("/"), monitor);      
+      IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER);
+      sourcePaths.add(generatedResourcesPath);
+      if (!WTPProjectsUtil.hasLink(project, ROOT_PATH, generatedResourcesPath, monitor)) {
+        WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, ROOT_PATH, monitor);      
       }
 
       if (firstInexistentfolder != null && firstInexistentfolder.exists())
@@ -137,8 +139,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
     }
 
-
-
+    //MECLIPSEWTP-161 remove stale source paths
+    WTPProjectsUtil.deleteLinks(project, ROOT_PATH, sourcePaths, monitor);
     
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     

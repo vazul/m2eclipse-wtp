@@ -105,6 +105,23 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }
 
   @Test
+  public void testMECLIPSEWTP161_RemoveOldSourcePaths () throws Exception {
+      IProject ear = importProject("projects/MECLIPSEWTP-161/pom.xml");
+      waitForJobsToComplete();
+      ear.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+      assertNoErrors(ear);   
+      IResource[] underlyingResources = getUnderlyingResources(ear);
+      assertEquals(2, underlyingResources.length);
+      assertEquals(ear.getFolder("/src/main/application"), underlyingResources[1]);
+
+      updateProject(ear, "change-earcontent.xml", 2000);
+      
+      underlyingResources = getUnderlyingResources(ear);
+      assertEquals(2, underlyingResources.length);
+      assertEquals(ear.getFolder("/EarContent"), underlyingResources[1]);
+  }
+
+  @Test
   public void testMNGECLIPSE631() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-631", //
         new String[] {"common/pom.xml", "core/pom.xml", "project1/pom.xml"}, new ResolverConfiguration());
@@ -1666,7 +1683,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(util.getFolder("/src/main/java"), underlyingResources[0]);
     assertEquals(util.getFolder("/src/main/resources"), underlyingResources[1]);
   }
-  
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";
