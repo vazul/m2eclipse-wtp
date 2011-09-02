@@ -18,13 +18,13 @@
 
   <groupId>org.maven.ide.eclipse.wtp</groupId>
   <artifactId>org.maven.ide.eclipse.wtp.parent</artifactId>
-  <version>0.13.0-SNAPSHOT</version>
+  <version>0.14.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Maven Integration for Eclipse WTP (Parent)</name>
 
   <properties>
-    <tycho-version>0.12.0</tycho-version>
+    <tycho-version>0.13.0-SNAPSHOT</tycho-version>
     <m2eclipse-core.version>1.0.0.201106061504</m2eclipse-core.version>
     <m2eclipse-core.site>1.0.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e37</target.platform>        
@@ -36,10 +36,13 @@
     <module>org.maven.ide.eclipse.wtp.target-platform</module>
     <module>org.maven.ide.eclipse.wtp.overlay</module>
     <module>org.maven.ide.eclipse.wtp</module>
+    <module>org.maven.ide.eclipse.wtp.common.tests</module>
+    <!-- module>org.maven.ide.eclipse.wtp.overlay.tests</module -->
     <module>org.maven.ide.eclipse.wtp.tests</module>
     <module>org.maven.ide.eclipse.wtp.feature</module>
+    <module>org.maven.ide.eclipse.wtp.site</module>
   </modules>
-
+  
   <repositories>
     <!--
     <repository>
@@ -55,6 +58,17 @@
     </repository>
 	-->
   </repositories>
+  
+  <pluginRepositories>
+    <pluginRepository>
+      <id>tycho</id>
+      <url>http://repository.sonatype.org/content/groups/sonatype-public-grid</url>
+      <snapshots>
+	<enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
   <build>
     <plugins>
       <plugin>
@@ -63,7 +77,6 @@
         <version>${tycho-version}</version>
         <extensions>true</extensions>
       </plugin>
-
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>target-platform-configuration</artifactId>

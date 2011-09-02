@@ -10,29 +10,51 @@ package org.maven.ide.eclipse.wtp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.maven.project.MavenProject;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jst.common.project.facet.core.JavaFacet;
+import org.eclipse.jst.common.project.facet.core.internal.JavaFacetUtil;
+import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.m2e.core.internal.IMavenConstants;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.m2e.core.project.MavenProjectUtils;
+import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.internal.ComponentResource;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeNode;
 import org.eclipse.wst.common.componentcore.internal.impl.ResourceTreeRoot;
+import org.eclipse.wst.common.componentcore.internal.util.FacetedProjectUtilities;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
+import org.eclipse.wst.common.project.facet.core.IFacetedProject;
+import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
@@ -53,11 +75,18 @@ public class WTPProjectsUtil {
   public static final IProjectFacet EJB_FACET = ProjectFacetsManager.getProjectFacet(IJ2EEFacetConstants.EJB);
 
   public static final IProjectFacet JCA_FACET = ProjectFacetsManager.getProjectFacet(IJ2EEFacetConstants.JCA);
+  
+  public static final IProjectFacet WEB_FRAGMENT_FACET = ProjectFacetsManager.getProjectFacet(IJ2EEFacetConstants.WEBFRAGMENT);
+
+  public static final IProjectFacetVersion WEB_FRAGMENT_3_0 = WEB_FRAGMENT_FACET.getVersion("3.0");
 
   public static final IProjectFacet DYNAMIC_WEB_FACET = ProjectFacetsManager
       .getProjectFacet(IJ2EEFacetConstants.DYNAMIC_WEB);
 
   public static final IProjectFacet APP_CLIENT_FACET = ProjectFacetsManager.getProjectFacet(IJ2EEFacetConstants.APPLICATION_CLIENT);
+
+  public static final IClasspathAttribute NONDEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
+      IClasspathDependencyConstants.CLASSPATH_COMPONENT_NON_DEPENDENCY, "");
 
   /**
    * Defaults Web facet version to 2.5
@@ -125,6 +154,18 @@ public class WTPProjectsUtil {
    * @throws CoreException
    */
   public static void deleteLinks(IProject project, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
+    deleteLinks(project, runtimePath, null, monitor);
+  }
+
+  /**
+   * Delete a project's component resources having a given runtimePath
+   * @param project - the project to modify
+   * @param runtimePath - the component resource runtime path (i.e. deploy path)
+   * @param sourcePathToKeep - the list of source paths to keep
+   * @param monitor - an eclipse monitor
+   * @throws CoreException
+   */
+  public static void deleteLinks(IProject project, IPath runtimePath, List<IPath> sourcePathToKeep, IProgressMonitor monitor) throws CoreException {
     //Looks like WTP'APIS doesn't have such feature, hence this implementation.
     StructureEdit moduleCore = null;
     try {
@@ -139,7 +180,9 @@ public class WTPProjectsUtil {
       ResourceTreeRoot root = ResourceTreeRoot.getDeployResourceTreeRoot(component);
       ComponentResource[] resources = root.findModuleResources(runtimePath, 0);
       for (ComponentResource link : resources) {
-        component.getResources().remove(link);
+        if (sourcePathToKeep == null || !sourcePathToKeep.contains(link.getSourcePath())) {
+          component.getResources().remove(link);
+        }
       }
    }
    finally {
@@ -149,7 +192,7 @@ public class WTPProjectsUtil {
      }
     }
   }
-
+  
   public static void insertLinkBefore(IProject project, IPath newSource, IPath referenceSource, IPath runtimePath, IProgressMonitor monitor) throws CoreException {
     //Looks like WTP'APIS doesn't have such feature, hence this implementation.
     StructureEdit moduleCore = null;
@@ -239,8 +282,6 @@ public class WTPProjectsUtil {
     }
     return false;
   }
-
-  
 
   /**
    * @param project
@@ -353,5 +394,133 @@ public class WTPProjectsUtil {
       javaProject.setRawClasspath(newEntries.toArray(new IClasspathEntry[newEntries.size()]), null);
     }
   }
+
+
+  /**
+   * @param actions
+   * @param utilityFacet
+   */
+  public static void removeFacets(Set<Action> actions, IProjectFacetVersion ... facetVersions) {
+    for (IProjectFacetVersion facetVersion : facetVersions) {
+      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL, facetVersion, null));
+    }
+  }
+
+  /**
+   * @param actions
+   * @param project
+   * @param facetedProject
+   */
+  public static void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
+    IProjectFacetVersion javaFv = JavaFacet.FACET.getVersion(JavaFacetUtil.getCompilerLevel(project));
+    if(!facetedProject.hasProjectFacet(JavaFacet.FACET)) {
+      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, javaFv, null));
+    } else if(!facetedProject.hasProjectFacet(javaFv)) {
+      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, javaFv, null));
+    } 
+  }
+
+  /**
+   * @param project
+   * @return
+   */
+  @SuppressWarnings("restriction")
+  public static boolean hasWebFragmentFacet(IProject project) {
+    return FacetedProjectUtilities.isProjectOfType(project, WTPProjectsUtil.WEB_FRAGMENT_FACET.getId());
+  }
+
+  /**
+   * @param mavenProject
+   * @return
+   */
+  public static boolean isQualifiedAsWebFragment(IMavenProjectFacade facade) {
+    if ("jar".equals(facade.getPackaging())) {
+      IFolder classes = getClassesFolder(facade);
+      if (classes != null && classes.getFile("META-INF/web-fragment.xml").exists()) {
+        return true;
+      } else {
+        //No processed/filtered web-fragment.xml found 
+        //fall back : iterate over the resource folders
+        IProject project = facade.getProject();
+        for (IPath resourceFolderPath : facade.getResourceLocations()) {
+          if (project.exists(resourceFolderPath.append("META-INF/web-fragment.xml"))) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
   
+  /**
+   * Return the project's classes folder, a.k.a. output build directory
+   * @param facade
+   * @return the project's classes folder
+   */
+  public static IFolder getClassesFolder(IMavenProjectFacade facade) {
+    final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+    IFolder output = root.getFolder(facade.getOutputLocation());
+    return output;
+  }
+
+
+  public static void removeTestFolderLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor,
+      String folder) throws CoreException {
+    IVirtualComponent component = ComponentCore.createComponent(project);
+    if (component != null){
+      IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
+      for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
+        if (location == null) continue;
+        jsrc.removeLink(location, 0, monitor);
+      }
+      for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
+        if (location == null) continue;
+        jsrc.removeLink(location, 0, monitor);
+      }
+    }
+  }
+
+
+  public static void setNonDependencyAttributeToContainer(IProject project, IProgressMonitor monitor) throws JavaModelException {
+    updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
+  }
+
+  public static void updateContainerAttributes(IProject project, IClasspathAttribute attributeToAdd, String attributeToDelete, IProgressMonitor monitor)
+  throws JavaModelException {
+    IJavaProject javaProject = JavaCore.create(project);
+    if (javaProject == null) return;
+    IClasspathEntry[] cp = javaProject.getRawClasspath();
+    for(int i = 0; i < cp.length; i++ ) {
+      if(IClasspathEntry.CPE_CONTAINER == cp[i].getEntryKind()
+          && MavenClasspathHelpers.isMaven2ClasspathContainer(cp[i].getPath())) {
+        LinkedHashMap<String, IClasspathAttribute> attrs = new LinkedHashMap<String, IClasspathAttribute>();
+        for(IClasspathAttribute attr : cp[i].getExtraAttributes()) {
+          if (!attr.getName().equals(attributeToDelete)) {
+            attrs.put(attr.getName(), attr);            
+          }
+        }
+        attrs.put(attributeToAdd.getName(), attributeToAdd);
+        IClasspathAttribute[] newAttrs = attrs.values().toArray(new IClasspathAttribute[attrs.size()]);
+        cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
+        break;
+      }
+    }
+    javaProject.setRawClasspath(cp, monitor);
+  }
+
+
+  /**
+   * Add the ModuleCoreNature to a project, if necessary.
+   * 
+   * @param project An accessible project.
+   * @param monitor A progress monitor to track the time to completion
+   * @throws CoreException if the ModuleCoreNature cannot be added
+   */
+  public static void fixMissingModuleCoreNature(IProject project, IProgressMonitor monitor) throws CoreException {
+    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
+    if (null == ModuleCoreNature.addModuleCoreNatureIfNecessary(project, monitor)) {
+      //If we can't add the missing nature, then the project is useless, so let's tell the user
+      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
+    }
+  }
 }

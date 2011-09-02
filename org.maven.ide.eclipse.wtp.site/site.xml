@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Maven Integration for WTP">
+      Maven Integration for WTP
+   </description>
+   <category name="m2eclipse-wtp"/>
+   <feature url="features/org.maven.ide.eclipse.wtp.feature_0.0.0.qualifier.jar" id="org.maven.ide.eclipse.wtp.feature" version="0.0.0">
+      <category name="m2eclipse-wtp"/>
+   </feature>
+   <category-def name="m2eclipse-wtp" label="Maven Integration for WTP"/>
+</site>

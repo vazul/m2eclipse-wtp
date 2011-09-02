@@ -15,7 +15,7 @@ import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 
 /**
- * NoOpUninstallDelegate
+ * No Operation Facet uninstall delegate
  * 
  * @author Fred Bricon
  */

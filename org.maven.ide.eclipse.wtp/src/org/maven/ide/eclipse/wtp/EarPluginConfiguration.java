@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Fred Bricon
  */
-public class EarPluginConfiguration {
+public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin {
 
   private static final Logger log = LoggerFactory.getLogger(EarPluginConfiguration.class);
 
@@ -59,8 +59,6 @@ public class EarPluginConfiguration {
   private static final IProjectFacetVersion DEFAULT_EAR_FACET = IJ2EEFacetConstants.ENTERPRISE_APPLICATION_13;
 
   private final MavenProject mavenProject;
-
-  private final Plugin plugin;
 
   /**
    * directory where jars will be deployed.
@@ -80,17 +78,8 @@ public class EarPluginConfiguration {
     }
 
     this.mavenProject = mavenProject;
-    this.plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-ear-plugin");
-  }
-
-  /**
-   * @return ear plugin configuration or null.
-   */
-  private Xpp3Dom getConfiguration() {
-    if(plugin == null) {
-      return null;
-    }
-    return (Xpp3Dom) plugin.getConfiguration();
+    Plugin plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-ear-plugin");
+    setConfiguration((Xpp3Dom)plugin.getConfiguration());
   }
 
   /**
@@ -352,52 +341,7 @@ public class EarPluginConfiguration {
     return securityRoles;
   }
 
-  public boolean isFiltering()  {
-    Xpp3Dom configuration = getConfiguration();
-    if(configuration == null) {
-      return false;
-    }
-    return DomUtils.getBooleanChildValue(configuration, "filtering");
+  protected String getFilteringAttribute() {
+    return "filtering";
   }
-  
-  /**
-   * @return
-   */
-  public Collection<? extends String> getEarFilters() {
-    Xpp3Dom config = getConfiguration();
-    if(config != null) {
-      Xpp3Dom filtersNode = config.getChild("filters");
-      if (filtersNode != null && filtersNode.getChildCount() > 0) {
-        List<String> filters = new ArrayList<String>(filtersNode.getChildCount());
-        for (Xpp3Dom filterNode : filtersNode.getChildren("filter")) {
-          String  filter = filterNode.getValue();
-          if (!StringUtils.nullOrEmpty(filter)) {
-            filters.add(filter);
-          }
-        }
-        return filters;
-      }
-    }
-    return Collections.emptyList();
-  }
-
-  public String getEscapeString() {
-    Xpp3Dom config = getConfiguration();
-    if(config != null) {
-      return DomUtils.getChildValue(config, "escapeString");
-    }
-    return null;
-  }
-
-  public Xpp3Dom[] getNonfilteredExtensions() {
-    Xpp3Dom config = getConfiguration();
-    if(config != null) {
-      Xpp3Dom extensionsNode = config.getChild("nonFilteredFileExtensions");
-      if (extensionsNode != null && extensionsNode.getChildCount() > 0) {
-        return extensionsNode.getChildren();
-      }
-    }
-    return null;
-  }
-
 }

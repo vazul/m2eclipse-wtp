@@ -4,6 +4,7 @@ package org.maven.ide.eclipse.wtp;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.junit.Test;
 
@@ -19,8 +20,9 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
                     "war/pom.xml"}, 
         new ResolverConfiguration());
     waitForJobsToComplete();
-   
+    
     IProject jar =  projects[1];
+    jar.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
     assertNoErrors(jar);    
     IProject war =  projects[2];
     assertNoErrors(war);

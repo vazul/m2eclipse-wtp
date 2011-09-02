@@ -61,6 +61,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
   @Override
   public void mavenProjectChanged(MavenProjectChangedEvent event, IProgressMonitor monitor) throws CoreException {
     IMavenProjectFacade facade = event.getMavenProject();
+
     if(facade != null) {
       IProject project = facade.getProject();
       if (project.getResourceAttributes().isReadOnly()){
@@ -107,10 +108,17 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
    * @see org.maven.ide.eclipse.project.configurator.AbstractProjectConfigurator#getBuildParticipant(org.apache.maven.plugin.MojoExecution)
    */  
   @Override
-  @SuppressWarnings("restriction")
   public AbstractBuildParticipant getBuildParticipant(IMavenProjectFacade projectFacade, MojoExecution execution,
       IPluginExecutionMetadata executionMetadata) {
-    return ResourceFilteringBuildParticipant.getParticipant(execution);
+    
+    //FIXME that's ugly. should refactor that by removing the project configurator delegates
+      if ("maven-war-plugin".equals(execution.getArtifactId()) && "war".equals(execution.getGoal()) 
+        || "maven-ear-plugin".equals(execution.getArtifactId()) && "generate-application-xml".equals(execution.getGoal())
+        || "maven-acr-plugin".equals(execution.getArtifactId()) && "acr".equals(execution.getGoal()))
+      {
+        return new ResourceFilteringBuildParticipant(); 
+      }
+      return null;
   }
   
 }

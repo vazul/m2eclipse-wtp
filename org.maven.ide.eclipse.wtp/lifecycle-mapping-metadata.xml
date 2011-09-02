@@ -200,24 +200,40 @@
     </lifecycleMapping>
     
   </lifecycleMappings>
-  
-  
-       <pluginExecutions>
-        <pluginExecution>
-          <pluginExecutionFilter>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <versionRange>[1.0,)</versionRange>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </pluginExecutionFilter>
-          <action>
-            <configurator>
-              <id>org.maven.ide.eclipse.configuration.wtp.jarmanifest.configurator</id>
-            </configurator>
-          </action>
-        </pluginExecution>
-      </pluginExecutions>
+  <pluginExecutions>
+	<pluginExecution>
+		<pluginExecutionFilter>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<versionRange>[2.0,)</versionRange>
+			<goals>
+				<goal>compile</goal>
+				<goal>testCompile</goal>
+			</goals>
+		</pluginExecutionFilter>
+		<action>
+			<configurator>
+				<id>org.maven.ide.eclipse.configuration.wtp.webfragment.configurator</id>
+			</configurator>
+		</action>
+	</pluginExecution>
+	<pluginExecution>
+		<pluginExecutionFilter>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<versionRange>[2.0,)</versionRange>
+			<goals>
+				<goal>compile</goal>
+				<goal>testCompile</goal>
+			</goals>
+		</pluginExecutionFilter>
+		<action>
+			<configurator>
+				<id>org.maven.ide.eclipse.configuration.wtp.utility.configurator</id>
+			</configurator>
+		</action>
+	</pluginExecution>
+	
+  </pluginExecutions>
 
 </lifecycleMappingMetadata>

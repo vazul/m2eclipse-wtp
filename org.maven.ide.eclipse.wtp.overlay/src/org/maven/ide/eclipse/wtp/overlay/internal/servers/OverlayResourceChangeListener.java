@@ -51,7 +51,7 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 				IProject moduleProject = module.getProject();
 				for (IProject changedProject : changedProjects) {
 					if (isOverlaid(changedProject, moduleProject)) {
-						System.err.println(moduleProject.getName() + " overlays " +changedProject.getName());
+						//System.err.println(moduleProject.getName() + " overlays " +changedProject.getName());
 						republishableServers.add(server);
 						break modules;
 					}
@@ -61,8 +61,10 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 		
 		for(IServer server : republishableServers) {
 			if (server instanceof Server) {
-				System.err.println("Clearing "+server.getName() + "'s module cache");
-				((Server)server).clearModuleCache();
+				//System.err.println("Clearing "+server.getName() + "'s module cache");
+				synchronized (server) {
+					((Server)server).clearModuleCache();
+				}
 				//TODO Publish more elegantly (check server status ...)
 				server.publish(IServer.PUBLISH_INCREMENTAL, new NullProgressMonitor());
 			}
@@ -85,14 +87,14 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 	/**
 	 * Return true if moduleProject references changedProject as an IOverlayComponent
 	 * @param changedProject
-	 * @param moduleProject
+	 * @param projectDeployedOnServer
 	 * @return true if moduleProject references changedProject as an IOverlayComponent
 	 */
-	private boolean isOverlaid(IProject changedProject, IProject moduleProject) {
-		if (!ModuleCoreNature.isFlexibleProject(moduleProject)) {
+	private boolean isOverlaid(IProject changedProject, IProject projectDeployedOnServer) {
+		if (!ModuleCoreNature.isFlexibleProject(projectDeployedOnServer)) {
 			return false; 
 		}
-		IVirtualComponent component = ComponentCore.createComponent(moduleProject);
+		IVirtualComponent component = ComponentCore.createComponent(projectDeployedOnServer);
 		if (component == null) {
 			return false;
 		}
@@ -104,7 +106,8 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 			IVirtualComponent vc = reference.getReferencedComponent();
 			if (vc != null 
 			    && vc instanceof IOverlayVirtualComponent 
-			    && changedProject.equals(vc.getProject())) {
+			    && changedProject.equals(vc.getProject())
+			    ) {
 				return true;
 			}
 		}

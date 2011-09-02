@@ -36,27 +36,27 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
  * @author Fred Bricon
  */
 @SuppressWarnings("restriction")
-public class CompositeVirtualFolder implements IVirtualFolder {
+public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 
 	private FlatVirtualComponent flatVirtualComponent;
 	private IPath runtimePath;
 	private IProject project;
 	private Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>();
 	private IVirtualResource[] members;
+	private IResourceFilter filter;
 	
-	public CompositeVirtualFolder(FlatVirtualComponent aFlatVirtualComponent, IPath aRuntimePath) {
+	public CompositeVirtualFolder(FlatVirtualComponent aFlatVirtualComponent, IPath aRuntimePath, IResourceFilter filter) {
 		this.flatVirtualComponent = aFlatVirtualComponent;
 		if (flatVirtualComponent != null && flatVirtualComponent.getComponent() != null) {
 			project = flatVirtualComponent.getComponent().getProject();
 		}
 		this.runtimePath = aRuntimePath;
+		this.filter = filter;
 		try {
 			treeWalk();
 		} catch (CoreException e) {
+			//TODO handle exception
 			e.printStackTrace();
-		}
-		if (members == null) {
-			members = new IVirtualResource[0]; 
 		}
 	}
 
@@ -69,6 +69,9 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	}
 
 	public IVirtualResource[] members() throws CoreException {
+		if (members == null) {
+			members = new IVirtualResource[0]; 
+		}
 		return members;
 	}
 	
@@ -119,16 +122,26 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 	private IVirtualFile convertFile(IFlatFile flatFile) {
 		IFile f = (IFile)flatFile.getAdapter(IFile.class);
 		VirtualFile vf = null;
+		String filePath  = null;
 		if (f == null) {
 			//Not a workspace file, we assume it's an external reference
 			File underlyingFile = (File)flatFile.getAdapter(File.class);
 			if (underlyingFile != null && underlyingFile.exists()) {
-				references.add(createReference(underlyingFile, flatFile.getModuleRelativePath()));
+				//TODO test inclusion/exclusion before doing anything
+				filePath = flatFile.getModuleRelativePath().toPortableString() + Path.SEPARATOR + underlyingFile.getName();
+				if (filter == null || filter.accepts(filePath, true)) {
+					IVirtualReference reference = createReference(underlyingFile, flatFile.getModuleRelativePath());
+					references.add(reference);
+				}
 			}
 		} else {
 			vf = new VirtualFile(project, flatFile.getModuleRelativePath(), f);
+			filePath = vf.getRuntimePath().toPortableString() + Path.SEPARATOR + f.getName();
+			if (filter == null || filter.accepts(filePath, true)) {
+				return vf;
+			}
 		}
-		return vf;
+		return null;
 	}
 	
 	private IVirtualReference createReference(File underlyingFile, IPath path) {
@@ -307,6 +320,14 @@ public class CompositeVirtualFolder implements IVirtualFolder {
 
 	public IVirtualReference[] getReferences() {
 		return references.toArray(new IVirtualReference[references.size()]);
+	}
+	
+	public IResourceFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(IResourceFilter filter) {
+		this.filter = filter;
 	}
 	
 }

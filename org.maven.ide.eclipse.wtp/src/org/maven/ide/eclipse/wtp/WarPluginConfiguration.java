@@ -13,31 +13,36 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.war.Overlay;
+import org.apache.maven.plugin.war.overlay.InvalidOverlayConfigurationException;
+import org.apache.maven.plugin.war.overlay.OverlayManager;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jst.j2ee.internal.J2EEVersionConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.jee.util.internal.JavaEEQuickPeek;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.internal.StringUtils;
-import org.maven.ide.eclipse.wtp.overlay.IOverlay;
-import org.maven.ide.eclipse.wtp.overlay.Overlay;
+import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
+import org.maven.ide.eclipse.wtp.namemapping.PatternBasedFileNameMapping;
 
 
 /**
  * See http://maven.apache.org/plugins/maven-war-plugin/war-mojo.html
  * 
  * @author Igor Fedorenko
+ * @author Fred Bricon
  */
 @SuppressWarnings("restriction")
-public class WarPluginConfiguration {
+public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin {
   private static final String WAR_SOURCE_FOLDER = "/src/main/webapp";
 
   private static final String WAR_PACKAGING = "war";
@@ -46,34 +51,21 @@ public class WarPluginConfiguration {
 
   private static final int WEB_3_0_ID = 30;//Same Value as J2EEVersionConstants.WEB_3_0_ID from WTP 3.2 (org.eclipse.jst.j2ee.core_1.2.0.vX.jar)
 
-  final Plugin plugin;
-
   private IProject project;
   
   private MavenProject mavenProject;
 
   public WarPluginConfiguration(MavenProject mavenProject, IProject project) {
-    this.plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-war-plugin");
+    Plugin plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-war-plugin");
     this.project = project;
     this.mavenProject = mavenProject;
+    setConfiguration((Xpp3Dom)plugin.getConfiguration());
   }
 
   static boolean isWarProject(MavenProject mavenProject) {
     return WAR_PACKAGING.equals(mavenProject.getPackaging());
   }
 
-
-  /**
-   * @return war plugin configuration or null.
-   */
-  private Xpp3Dom getConfiguration() {
-    if(plugin == null) {
-      return null;
-    }
-    return (Xpp3Dom) plugin.getConfiguration();
-  }
-
- 
   public Xpp3Dom[] getWebResources() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
@@ -85,36 +77,20 @@ public class WarPluginConfiguration {
         for (int i= 0; i< count ; i++) {
           //MECLIPSEWTP-97 support old maven-war-plugin configurations which used <webResource> 
           // instead of <resource>
-          Xpp3Dom webResource = webResources.getChild(i);
-          if ("resource".equals(webResource.getName())) {
-            resources[i] = webResource;
-          } else {
-            resources[i] = new Xpp3Dom(webResource,"resource");
+          Xpp3Dom webResource = new Xpp3Dom(webResources.getChild(i),"resource"); 
+          
+          //MECLIPSEWTP-152 : Web resource processing fails when targetPath has a leading /
+          Xpp3Dom targetPath = webResource.getChild("targetPath");
+          if(targetPath != null && targetPath.getValue().startsWith("/")) {
+            targetPath.setValue(targetPath.getValue().substring(1));
           }
+
+          resources[i] = webResource;
         }
         return resources;
       }
     }
     return null;
-  }
-
-  public String getValueForWebResource(Xpp3Dom dom, String value) {
-    Xpp3Dom resource = dom.getChild("resource");
-    if(resource != null) {
-      Xpp3Dom child = resource.getChild(value);
-      if(child != null) {
-        return child.getValue();
-      }
-    }
-    return null;
-  }
-
-  public String getDirectoryForWebResource(Xpp3Dom dom) {
-    return getValueForWebResource(dom, "directory");
-  }
-
-  public String getTargetPathForWebResource(Xpp3Dom dom) {
-    return getValueForWebResource(dom, "targetPath");
   }
 
   public String getWarSourceDirectory() {
@@ -264,88 +240,117 @@ public class WarPluginConfiguration {
 
   /**
    * @return
+   * @throws CoreException 
    */
-  public List<String> getWebResourcesFilters() {
+  public List<Overlay> getOverlays() throws CoreException {
+    Overlay currentProjectOverlay = Overlay.createInstance();
+    currentProjectOverlay.setArtifact(mavenProject.getArtifact());
+    OverlayManager overlayManager = null;
+    List<Overlay> overlays = null;
+    try {
+      overlayManager = new OverlayManager(getConfiguredOverlays(), 
+                                                         mavenProject, 
+                                                         getDependentWarIncludes(),
+                                                         getDependentWarExcludes(), 
+                                                         currentProjectOverlay);
+      overlays = overlayManager.getOverlays();
+    } catch(InvalidOverlayConfigurationException ex) {
+      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, ex.getMessage(),ex));
+    }
+    
+    return overlays;
+  }
+  
+  public String getDependentWarIncludes() {
+    return DomUtils.getChildValue(getConfiguration(), "dependentWarIncludes", "**/**");
+  }
+
+  public String getDependentWarExcludes() {
+    return DomUtils.getChildValue(getConfiguration(), "dependentWarExcludes", "META-INF/MANIFEST.MF");
+  }
+
+  
+  public List<Overlay> getConfiguredOverlays() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
-      Xpp3Dom filtersNode = config.getChild("filters");
-      if (filtersNode != null && filtersNode.getChildCount() > 0) {
-        List<String> filters = new ArrayList<String>(filtersNode.getChildCount());
-        for (Xpp3Dom filterNode : filtersNode.getChildren("filter")) {
-          String  filter = filterNode.getValue();
-          if (!StringUtils.nullOrEmpty(filter)) {
-            filters.add(filter);
-          }
+      Xpp3Dom overlaysNode = config.getChild("overlays");
+      if (overlaysNode != null && overlaysNode.getChildCount() > 0) {
+        List<Overlay> overlays = new ArrayList<Overlay>(overlaysNode.getChildCount());
+        for (Xpp3Dom overlayNode : overlaysNode.getChildren("overlay")) {
+          overlays.add(parseOverlay(overlayNode));
         }
-        return filters;
+        return overlays;
       }
     }
     return Collections.emptyList();
   }
-
+  
   /**
+   * @param overlayNode
    * @return
    */
-  public List<IOverlay> getOverlays() {
-//    Xpp3Dom config = getConfiguration();
-//    if(config != null) {
-//      Xpp3Dom overlaysNode = config.getChild("overlays");
-//      if (overlaysNode != null && overlaysNode.getChildCount() > 0) {
-//        List<IOverlay> overlays = new ArrayList<IOverlay>(overlaysNode.getChildCount());
-//        for (Xpp3Dom overlayNode : overlaysNode.getChildren("overlay")) {
-//          IOverlay overlay = parseOverlay(overlayNode);
-//          if (overlay != null) {
-//            overlays.add(overlay);
-//          }
-//        }
-//        return overlays;
-//      }
-//    }
-//    return Collections.emptyList();
-    return getDefaultOverlays();
+  private Overlay parseOverlay(Xpp3Dom overlayNode) {
+    String artifactId = DomUtils.getChildValue(overlayNode, "artifactId");
+    String groupId = DomUtils.getChildValue(overlayNode, "groupId");
+    String[] exclusions = getChildrenAsStringArray(overlayNode.getChild("excludes"), "exclude");
+    String[] inclusions = getChildrenAsStringArray(overlayNode.getChild("includes"), "include");
+    String classifier = DomUtils.getChildValue(overlayNode, "classifier");
+    boolean filtered = DomUtils.getBooleanChildValue(overlayNode, "filtered");
+    boolean skip = DomUtils.getBooleanChildValue(overlayNode, "skip");
+    String type = DomUtils.getChildValue(overlayNode, "type", "war");
+    String targetPath = DomUtils.getChildValue(overlayNode, "targetPath", "/");
+
+    Overlay overlay = new Overlay();
+    overlay.setArtifactId(artifactId);
+    overlay.setGroupId(groupId);
+    overlay.setClassifier(classifier);
+    if (exclusions== null || exclusions.length ==0) {
+      overlay.setExcludes(getDependentWarExcludes());
+    } else {
+      overlay.setExcludes(exclusions);
+    }
+    if (inclusions== null || inclusions.length ==0) {
+      overlay.setIncludes(getDependentWarIncludes());
+    } else {
+      overlay.setIncludes(inclusions);
+    }
+    overlay.setFiltered(filtered);
+    overlay.setSkip(skip);
+    overlay.setTargetPath(targetPath);
+    overlay.setType(type);
+    
+    return overlay;
   }
 
   /**
    * @param overlayNode
    * @return
    */
-  private IOverlay parseOverlay(Xpp3Dom overlayNode) {
-    Artifact artifact = null;
-    Overlay overlay = new Overlay(artifact, "/");
-    return overlay;
-  }
-
-  private List<IOverlay> getDefaultOverlays() {
-    Set<Artifact> artifacts = mavenProject.getArtifacts();
-    if(artifacts == null || artifacts.isEmpty()) {
-      return Collections.<IOverlay> emptyList();
-    }
-    List<IOverlay> overlays = new ArrayList<IOverlay>();
-    for (Artifact artifact : artifacts) {
-      if ("war".equals(artifact.getType())) {
-        overlays.add(new Overlay(artifact, "/"));
+  private String[] getChildrenAsStringArray(Xpp3Dom root, String childName) {
+    String[] values = null;
+    if (root != null) {
+      Xpp3Dom[] children = root.getChildren(childName); 
+      if (children != null) {
+        values = new String[children.length];
+        int i = 0;
+        for (Xpp3Dom child : children) {
+          values[i++] = child.getValue();
+        }
       }
     }
-    return overlays;
+    return values;
   }
 
-  public String getEscapeString() {
+  public FileNameMapping getFileNameMapping() {
     Xpp3Dom config = getConfiguration();
+    String expression = null;
     if(config != null) {
-      DomUtils.getChildValue(config, "escapeString");
+      expression = DomUtils.getChildValue(config, "outputFileNameMapping");
     }
-    return null;
+    return new PatternBasedFileNameMapping(expression);
   }
-
-  public Xpp3Dom[] getNonfilteredExtensions() {
-    Xpp3Dom config = getConfiguration();
-    if(config != null) {
-      Xpp3Dom extensionsNode = config.getChild("nonFilteredFileExtensions");
-      if (extensionsNode != null && extensionsNode.getChildCount() > 0) {
-        return extensionsNode.getChildren();
-      }
-    }
-    return null;
+  
+  protected String getFilteringAttribute() {
+    return "filteringDeploymentDescriptors";
   }
-
 }

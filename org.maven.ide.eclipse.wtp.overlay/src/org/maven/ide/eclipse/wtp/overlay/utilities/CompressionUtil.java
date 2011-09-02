@@ -10,7 +10,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.eclipse.core.internal.utils.FileUtil;
+import org.apache.tools.ant.util.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
@@ -26,7 +26,7 @@ public class CompressionUtil {
 	 * @param zipFile
 	 *            The platform formatted zip file
 	 * @param projectFolderFile
-	 *            The folder where to unzip the project archive
+	 *            The folder where to unzip the archive
 	 * @param monitor
 	 *            Monitor to display progress and/or cancel operation
 	 * @throws IOException
@@ -37,6 +37,8 @@ public class CompressionUtil {
 			IProgressMonitor monitor) throws IOException,
 			FileNotFoundException, InterruptedException {
 
+		initialize(projectFolderFile);
+		
 		ZipFile zipFile = new ZipFile(archive);
 		Enumeration<ZipEntry> e = (Enumeration<ZipEntry>) zipFile.entries();
 
@@ -70,32 +72,30 @@ public class CompressionUtil {
 						os.write(buffer, 0, len);
 					}
 				} finally {
-					FileUtil.safeClose(is);
-					FileUtil.safeClose(os);
+					FileUtils.close(is);
+					FileUtils.close(os);
 				}
 			}
 
 			monitor.worked(1);
 
 			if (monitor.isCanceled()) {
-				throw new InterruptedException();
+				throw new InterruptedException(" unzipping " +archive.getAbsolutePath() + " to "+ projectFolderFile.getAbsolutePath() +" was interrupted");
 			}
 		}
 	}
 
-	private static File initialize(String destDir) throws IOException {
-	      // Create output directory
-	      final File outputDirectory = new File(destDir);
-	      if (!outputDirectory.mkdir() && !outputDirectory.exists())
-	      {
-	         throw new IOException("Unable to create archive output directory - " + outputDirectory);
-	      }
-	      if (outputDirectory.isFile())
-	      {
-	         throw new IllegalArgumentException("Unable to unpack to "
-	               + outputDirectory.getAbsolutePath() + ", it points to an existing file");
-	      }
-	      return outputDirectory;		
+	private static void initialize(File outputDirectory) throws IOException {
+      // Create output directory if needed
+      if (!outputDirectory.mkdirs() && !outputDirectory.exists())
+      {
+         throw new IOException("Unable to create archive output directory - " + outputDirectory);
+      }
+      if (outputDirectory.isFile())
+      {
+         throw new IllegalArgumentException("Unable to unpack to "
+               + outputDirectory.getAbsolutePath() + ", it points to an existing file");
+      }
 	}
 	
 }

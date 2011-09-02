@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde version="3.6"?>
 
-<target name="m2e-wtp-e37" sequenceNumber="6">
+<target name="m2e-wtp-e37" sequenceNumber="14">
 <locations>
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.slf4j.api" version="1.6.1.v20100831-0715"/>
+<unit id="ch.qos.logback.core" version="0.9.27.v20110224-1110"/>
+<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository"/>
+</location>
+<!--location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.sonatype.m2e.antlr.feature.feature.group" version="0.13.0.20110622-1538"/>
+<unit id="org.sonatype.m2e.buildhelper.feature.feature.group" version="0.13.0.20110622-1538"/>
+<unit id="org.sonatype.m2e.mavenarchiver.pomproperties.feature.feature.group" version="0.13.0.20110622-1538"/>
+<unit id="org.sonatype.m2e.modello.feature.feature.group" version="0.13.0.20110622-1538"/>
+<unit id="org.sonatype.m2e.plexus.annotations.feature.feature.group" version="0.13.0.20110622-1538"/>
+<repository location="https://repository.sonatype.org/content/sites/forge-sites/m2e-extras/0.13.0/S/0.13.0.20110622-1538/"/>
+</location-->
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.eclipse.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
 <unit id="org.eclipse.swtbot.eclipse.gef.feature.group" version="2.0.4.20110304_0338-e5aff47-dev-e36"/>
@@ -13,58 +26,40 @@
 <repository location="http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.sdk.ide" version="3.7.0.I20110526-1708"/>
-<unit id="org.eclipse.equinox.p2.sdk.feature.group" version="3.7.0.v20110519-9N7sHDJGMMn4xUrt4cFAa6939XLL"/>
+<unit id="org.eclipse.platform.sdk" version="3.7.0.I20110613-1736"/>
 <repository location="http://download.eclipse.org/eclipse/updates/3.7milestones"/>
 </location>
-<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
-<unit id="org.slf4j.api" version="1.6.1.v20100831-0715"/>
-<unit id="ch.qos.logback.core" version="0.9.27.v20110224-1110"/>
-<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20110523182458/repository"/>
+<location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.m2e.feature.feature.group" version="1.0.0.20110607-2117"/>
+<unit id="org.eclipse.m2e.logback.feature.feature.group" version="1.0.0.20110607-2117"/>
+<repository location="http://download.eclipse.org/releases/indigo"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.m2e.sdk.feature.feature.group" version="1.0.0.201106061504"/>
-<unit id="org.eclipse.m2e.feature.feature.group" version="1.0.0.201106061504"/>
 <repository location="https://repository.sonatype.org/content/sites/forge-sites/m2e/1.0.0/N/1.0.0.201106061504/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.wst.common.fproj.feature.group" version="3.3.0.v201102150115-377DF8s7355397B4B9B"/>
-<unit id="org.eclipse.jst.common.fproj.enablement.jdt.feature.group" version="3.3.0.v201102200555-377DF8s73543E5I5768"/>
-<unit id="org.eclipse.jst.enterprise_ui.feature.feature.group" version="3.3.0.v201102200555-7b7IHxjFSK2WH7RH8SoSvIZz0TrSn"/>
-<unit id="org.eclipse.jst.web_ui.feature.feature.group" version="3.3.0.v201103310009-7F7AFO-C25TohFopjiyZxyypBLimJWtl0-z-rVjv"/>
-<unit id="org.eclipse.wst.web_ui.feature.feature.group" version="3.3.0.v201102200555-7O7IFhJEMi9DyJcFJu7OrFtCGlwfv20b2SPz-ndB"/>
-<unit id="org.eclipse.wst.xml_ui.feature.feature.group" version="3.3.0.v201103310011-7H7EFZ-DxumTlXw7mjVSoG0ltwPSCOLmS5Rz012S"/>
-<unit id="org.eclipse.wst.xsl.feature.feature.group" version="1.2.0.v201102200555-7T7XFT1FIqToIrvWIpCpS8LQGaPZ"/>
-<unit id="org.eclipse.wst.jsdt.feature.feature.group" version="1.3.0.v201103031824-7F78FXPFBBoPbXRHeLhk0z0"/>
-<unit id="org.eclipse.jsf.feature.feature.group" version="3.3.0.v201103022146-7E7IBtF9JgLWTM6WDPfRm"/>
-<unit id="org.eclipse.jst.ws.jaxws.dom.feature.feature.group" version="1.0.100.v201102200555-5-A7AkF7B97HDVDRJZ"/>
-<unit id="org.eclipse.jst.ws.jaxws.feature.feature.group" version="1.1.0.v201104031551-7E79BtF8NcJSXKrNz0Sjcv"/>
-<unit id="org.eclipse.jst.server_adapters.ext.feature.feature.group" version="3.3.0.v201102200555-777HFHyCcNBDjBfJa4BA8"/>
-<unit id="org.eclipse.jst.server_adapters.feature.feature.group" version="3.2.100.v20110303-208Z7w31211419"/>
-<unit id="org.eclipse.jst.server_ui.feature.feature.group" version="3.3.0.v201102200555-7A6FHr9xFcAVCFLZBBJLIR43A"/>
-<unit id="org.eclipse.jst.webpageeditor.feature.feature.group" version="2.3.3.v20110303-468b9oB5875G5M6D4A"/>
-<unit id="org.eclipse.wst.server_adapters.feature.feature.group" version="3.2.100.v20110303-51EoAkF77g8HBSc"/>
 <unit id="org.eclipse.jst.common.fproj.enablement.jdt.sdk.feature.group" version="3.3.0.v201102200555-777EF8N9tKENNGGHPFMFT6J6879"/>
 <unit id="org.eclipse.wst.common.fproj.sdk.feature.group" version="3.3.0.v201102150115-787IFBVApOGQQILMKH_MW8C5CAC"/>
-<unit id="org.eclipse.wst.xml_sdk.feature.feature.group" version="3.3.0.v201102071641-7A78-8DXJRVlHHRC82PdWXmkZ9Xpw1fOMZ4_fPgs"/>
-<unit id="org.eclipse.wst.jsdt_sdk.feature.feature.group" version="1.3.0.v201103031824-47C190OCFLbbKRI3WkZaZoWz0ITFECpQcYSIfMil"/>
-<unit id="org.eclipse.jsf_sdk.feature.feature.group" version="3.3.0.v201103022146-775-84JAMFwLCOlPcbOGmNjuM2AKhMXUN7XEQgSn"/>
+<unit id="org.eclipse.wst.xml_sdk.feature.feature.group" version="3.3.0.v201102071641-7A78-8DXJRVlHHRC82RFhWaijCYVa6fVckLdoLQh"/>
+<unit id="org.eclipse.wst.jsdt_sdk.feature.feature.group" version="1.3.0.v201103031824-47C190OCFLbbKRI3WkZa_mTz-QTFECpQcYSJdJht"/>
+<unit id="org.eclipse.jsf_sdk.feature.feature.group" version="3.3.0.v201103022146-775-84JAMFyLCOlPccODkImwY0AKhMXVN4V9Tibl"/>
 <unit id="org.eclipse.jst.ws.jaxws.dom_sdk.feature.feature.group" version="1.0.100.v201102200555-4-A78z8FEGpQFNFQSWXLTWiBlG8CA8IEWESK_"/>
-<unit id="org.eclipse.jst.ws.jaxws_sdk.feature.feature.group" version="1.1.0.v201104031551-42-90NCGIySDYjYgdN-e7Cgdv4OdKTYLsOz01Tkd"/>
-<unit id="org.eclipse.jst.enterprise_sdk.feature.feature.group" version="3.3.0.v201102200555-775-84gAMLz0oKVNAdP9avIn7Rfa2K609cFI9TpT"/>
+<unit id="org.eclipse.jst.ws.jaxws_sdk.feature.feature.group" version="1.1.0.v201104031551-42-90NCFIxTEbjafgN3dBbyXB9OdKTXLwO2Skdw"/>
+<unit id="org.eclipse.jst.enterprise_sdk.feature.feature.group" version="3.3.0.v201102200555-775-84gAMM4LKVNAdPBaz0HiCI9_0WXWKfFN8OuE"/>
 <unit id="org.eclipse.jst.server_adapters.ext.sdk.feature.feature.group" version="3.3.0.v201102200555-775-84CALJL1HfQJLrDpTkOTV7DdOCEkCgKb5CB9"/>
 <unit id="org.eclipse.jst.server_adapters.sdk.feature.feature.group" version="3.3.0.v201102200555-773A78-5BcBz-948367Ck8x4232252A"/>
 <unit id="org.eclipse.jst.server_sdk.feature.feature.group" version="3.3.0.v201102200555-775-84F9JLuF0IfIcKHVlKTdDVPMiNWDGM_CCKMJ"/>
-<unit id="org.eclipse.jst.web_sdk.feature.feature.group" version="3.3.0.v201102200555-7B7A-99ZJTWeAqSUvdakz0W4folrgLX1cny2fg3E"/>
-<unit id="org.eclipse.jst.webpageeditor_sdk.feature.feature.group" version="2.3.3.v20110303-55581BBfDrH8E9CPGz0J2II986H6N7E5B"/>
+<unit id="org.eclipse.jst.web_sdk.feature.feature.group" version="3.3.0.v201102200555-7B7A-99ZJTWeAqSUvdal4U8ejlyfKhhS4z0_U6H2"/>
+<unit id="org.eclipse.jst.webpageeditor_sdk.feature.feature.group" version="2.3.4.v201105111126-557781BBfDrJ9CB9LEODMFoApC6986H6N7E5B"/>
 <unit id="org.eclipse.wst.server_adapters.sdk.feature.feature.group" version="3.2.100.v20110303-773A7826HsEnLADiGLTHplG88h9ICTd"/>
-<unit id="org.eclipse.wst.web_sdk.feature.feature.group" version="3.3.0.v201102200555-7E7E-8Sxdj463QBwz-457-ez-7nmsx9HyEZUEPhL"/>
-<unit id="org.eclipse.wst.xsl_sdk.feature.feature.group" version="1.1.100.v201102200555-638Z99mLyMlskbE0B0EVH2n2JWQgHmQkRwXJqDqT"/>
+<unit id="org.eclipse.wst.web_sdk.feature.feature.group" version="3.3.0.v201102200555-7E7E-8Sxdj463QDoxz0DUJeVYV-mU9eq1IIQIA9w"/>
+<unit id="org.eclipse.wst.xsl_sdk.feature.feature.group" version="1.1.100.v201102200555-638Z99nLz-MkHkbE2B1CbIys9AtYeOnOiZwZFwCj"/>
 <repository location="http://download.eclipse.org/webtools/repository/indigo/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.epp.usagedata.feature.feature.group" version="1.3.1.R201102081640"/>
-<repository location="http://download.eclipse.org/releases/indigo"/>
+<unit id="org.sonatype.m2e.mavenarchiver.feature.feature.group" version="0.14.0.201107260131"/>
+<repository location="https://repository.sonatype.org/content/repositories/forge-sites/m2e-extras/0.14.0/N/0.14.0.201107260131/"/>
 </location>
 </locations>
 </target>

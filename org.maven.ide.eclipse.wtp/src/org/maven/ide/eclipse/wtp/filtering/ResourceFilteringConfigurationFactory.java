@@ -22,14 +22,20 @@ public class ResourceFilteringConfigurationFactory {
   public static ResourceFilteringConfiguration getConfiguration(IMavenProjectFacade mavenProjectFacade) {
 
     JEEPackaging packaging = JEEPackaging.getValue(mavenProjectFacade.getPackaging());
-    if (JEEPackaging.WAR == packaging)
-    {
-      return new WebResourceFilteringConfiguration(mavenProjectFacade);
-    } else if (JEEPackaging.EAR == packaging)
-    {
-      return new EarResourceFilteringConfiguration(mavenProjectFacade);
+    if (packaging == null) {
+      return null;
     }
-    return null;
+    switch(packaging) {
+      case WAR:
+        return new WebResourceFilteringConfiguration(mavenProjectFacade);
+      case EAR:
+        return new EarResourceFilteringConfiguration(mavenProjectFacade);
+      case APP_CLIENT:
+        return new AppClientResourceFilteringConfiguration(mavenProjectFacade);
+      case EJB:
+      default:
+          return null;
+    }
   }
 
 }

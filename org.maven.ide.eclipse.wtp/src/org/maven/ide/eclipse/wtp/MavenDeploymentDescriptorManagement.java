@@ -230,7 +230,6 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
 
   private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId, String goal) throws CoreException {
     for(MojoExecution execution : executionPlan.getMojoExecutions()) {
-      System.err.println(execution.getArtifactId() + " : " + execution.getGoal());
       if(artifactId.equals(execution.getArtifactId()) && goal.equals(execution.getGoal())) {
         return execution;
       }
