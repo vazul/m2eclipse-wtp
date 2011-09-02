@@ -225,6 +225,11 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       
       try {
         preConfigureDependencyProject(dependency, monitor);
+        
+        if (!ModuleCoreNature.isFlexibleProject(dependency.getProject())) {
+          //Projects unsupported by WTP (ex. adobe flex projects) should not be added as references
+          continue;
+        }
         MavenProject depMavenProject =  dependency.getMavenProject(monitor);
   
         IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
@@ -236,14 +241,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         
         boolean isDeployed = !artifact.isOptional() && opts.isPackaged(deployedName);
           
-		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
-		if (isDeployed) {
-		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
-		  IPath path = new Path("/WEB-INF/lib");
-		  reference.setArchiveName(deployedName);
-		  reference.setRuntimePath(path);
-		  references.add(reference);
-		}
+    		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
+    		if (isDeployed) {
+    		  IVirtualReference reference = ComponentCore.createReference(component, depComponent);
+    		  IPath path = new Path("/WEB-INF/lib");
+    		  reference.setArchiveName(deployedName);
+    		  reference.setRuntimePath(path);
+    		  references.add(reference);
+    		}
       } catch(RuntimeException ex) {
         //Should probably be NPEs at this point
         String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());

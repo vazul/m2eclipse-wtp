@@ -523,4 +523,21 @@ public class WTPProjectsUtil {
       throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
     }
   }
+
+
+  /**
+   * @param facade
+   * @return
+   */
+  public static boolean isJavaProject(IMavenProjectFacade facade) {
+    //Java rocks ... not
+    if (facade == null 
+     || facade.getMavenProject() == null
+     || facade.getMavenProject().getArtifact() == null
+     || facade.getMavenProject().getArtifact().getArtifactHandler() == null) {
+      return false;
+    }
+    String language = facade.getMavenProject().getArtifact().getArtifactHandler().getLanguage();
+    return "java".equals(language);
+  }
 }

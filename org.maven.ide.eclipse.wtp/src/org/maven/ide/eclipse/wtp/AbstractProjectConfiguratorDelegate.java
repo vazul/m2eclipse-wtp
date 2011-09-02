@@ -102,7 +102,9 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     // Adding utility facet on JEE projects is not allowed
     IProject project = facade.getProject();
     MavenProject mavenProject = facade.getMavenProject();
-    if(WTPProjectsUtil.isJavaEEProject(project) || WTPProjectsUtil.isQualifiedAsWebFragment(facade)) {
+    if(  !WTPProjectsUtil.isJavaProject(facade)
+       || WTPProjectsUtil.isJavaEEProject(project) 
+       || WTPProjectsUtil.isQualifiedAsWebFragment(facade)) {
       return;
     }
 

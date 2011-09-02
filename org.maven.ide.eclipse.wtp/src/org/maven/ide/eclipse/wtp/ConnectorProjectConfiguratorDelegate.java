@@ -27,6 +27,7 @@ import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelPro
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
@@ -167,8 +168,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
           && workspaceDependency.getFullPath(artifact.getFile()) != null) {
         //artifact dependency is a workspace project
         IProject depProject = preConfigureDependencyProject(workspaceDependency, monitor);
-        
-        newRefs.add(createReference(rarComponent, depProject, artifact));
+        if (ModuleCoreNature.isFlexibleProject(depProject)) {
+          newRefs.add(createReference(rarComponent, depProject, artifact));
+        }
       } else {
         //artifact dependency should be added as a JEE module, referenced with M2_REPO variable 
         newRefs.add(createReference(rarComponent, artifact));

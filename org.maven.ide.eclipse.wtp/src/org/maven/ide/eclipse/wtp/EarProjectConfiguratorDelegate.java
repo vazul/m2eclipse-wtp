@@ -34,6 +34,7 @@ import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.application.Application;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
@@ -179,19 +180,22 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
           && workspaceDependency.getFullPath(artifact.getFile()) != null) {
         //artifact dependency is a workspace project
         IProject depProject = preConfigureDependencyProject(workspaceDependency, monitor);
-        
-        depComponent = createDependencyComponent(earComponent, depProject);
-        configureDeployedName(depProject, earModule.getBundleFileName());
+        if (ModuleCoreNature.isFlexibleProject(depProject)) {
+          depComponent = createDependencyComponent(earComponent, depProject);
+          configureDeployedName(depProject, earModule.getBundleFileName());
+        }
       } else {
         //artifact dependency should be added as a JEE module, referenced with M2_REPO variable 
         depComponent = createDependencyComponent(earComponent, earModule.getArtifact());
       }
-
-      IVirtualReference depRef = ComponentCore.createReference(earComponent, depComponent);
-      String bundleDir = (StringUtils.isBlank(earModule.getBundleDir()))?"/":earModule.getBundleDir();
-      depRef.setRuntimePath(new Path(bundleDir));
-      depRef.setArchiveName(earModule.getBundleFileName());
-      newRefs.add(depRef);
+      
+      if (depComponent != null) {
+        IVirtualReference depRef = ComponentCore.createReference(earComponent, depComponent);
+        String bundleDir = (StringUtils.isBlank(earModule.getBundleDir()))?"/":earModule.getBundleDir();
+        depRef.setRuntimePath(new Path(bundleDir));
+        depRef.setArchiveName(earModule.getBundleFileName());
+        newRefs.add(depRef);
+      }
     }
     
     IVirtualReference[] newRefsArray = new IVirtualReference[newRefs.size()];
