@@ -14,7 +14,6 @@ import java.util.Set;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jst.j2ee.project.facet.AppClientFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.project.facet.IAppClientFacetInstallDataModelProperties;
@@ -68,7 +67,7 @@ class AppClientProjectConfiguratorDelegate extends AbstractProjectConfiguratorDe
         
         facetedProject.modify(actions, monitor);
       } finally {
-        //Remove any unwanted MANIFEST.MF the Facet installation have created
+        //Remove any unwanted MANIFEST.MF the Facet installation has created
         fileCleaner.cleanUp();
       }
     }
@@ -94,9 +93,4 @@ class AppClientProjectConfiguratorDelegate extends AbstractProjectConfiguratorDe
     return appClientModelCfg;
   }
 
-  private void addFilesToClean(ResourceCleaner fileCleaner, IPath[] paths) {
-    for (IPath resourceFolderPath : paths) {
-      fileCleaner.addFiles(resourceFolderPath.append("META-INF/MANIFEST.MF"));
-    }
-  }
 }

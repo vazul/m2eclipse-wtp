@@ -309,4 +309,11 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       throws CoreException {
     // do nothing
   }
+  
+  protected void addFilesToClean(ResourceCleaner fileCleaner, IPath[] paths) {
+    for (IPath resourceFolderPath : paths) {
+      fileCleaner.addFiles(resourceFolderPath.append("META-INF/MANIFEST.MF"));
+    }
+  }
+
 }
