@@ -52,7 +52,7 @@ public class AcrPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
   public IProjectFacetVersion getFacetVersion() {
     IFile applicationClientXml = getApplicationClientXml();
 
-    if(applicationClientXml.isAccessible()) {
+    if(applicationClientXml != null && applicationClientXml.isAccessible()) {
       try {
         InputStream is = applicationClientXml.getContents();
         try {

@@ -1,0 +1,4 @@
+#NOTE: This is an internal implementation file, its format can be changed without prior notice.
+#Fri Sep 02 15:48:18 CEST 2011
+backport-util-concurrent-3.1.jar>central=
+backport-util-concurrent-3.1.pom>central=

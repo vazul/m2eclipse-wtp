@@ -58,6 +58,9 @@ public class AppClientResourceFilteringConfiguration extends AbstractResourceFil
     include.setValue(applicationClientXml.getName());
     includes.addChild(include);
     resource.addChild(includes);
+    Xpp3Dom targetPath = new Xpp3Dom("targetPath");
+    targetPath.setValue("META-INF/");
+    resource.addChild(targetPath);
     resource.addChild(filter);
     
     return Arrays.asList(resource);

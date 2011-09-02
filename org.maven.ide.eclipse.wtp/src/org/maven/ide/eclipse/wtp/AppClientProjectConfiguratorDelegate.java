@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jst.j2ee.project.facet.AppClientFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.project.facet.IAppClientFacetInstallDataModelProperties;
+import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetInstallDataModelProperties;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -88,6 +89,8 @@ class AppClientProjectConfiguratorDelegate extends AbstractProjectConfiguratorDe
   private IDataModel getAppClientDataModel(String contentDir) {
     IDataModel appClientModelCfg = DataModelFactory.createDataModel(new AppClientFacetInstallDataModelProvider());
     appClientModelCfg.setProperty(IAppClientFacetInstallDataModelProperties.CONFIG_FOLDER, contentDir);
+    appClientModelCfg.setProperty(IAppClientFacetInstallDataModelProperties.CREATE_DEFAULT_MAIN_CLASS, false);
+    appClientModelCfg.setProperty(IJ2EEFacetInstallDataModelProperties.GENERATE_DD, false);
     return appClientModelCfg;
   }
 
