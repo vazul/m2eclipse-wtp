@@ -168,10 +168,10 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       //the regular web source directory. First resources discovered take precedence on deployment
       IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
       component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
-      //if (config.getWebResources() != null && config.getWebResources().length > 0) {
+      if (isUsingFilteredFolder(config)) {
         String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
         WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
-      //}   
+      }   
     }
     
     if (!manifestAlreadyExists && manifest.exists()) {
@@ -183,6 +183,13 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
     
     WTPProjectsUtil.removeWTPClasspathContainer(project);
+  }
+
+
+  private boolean isUsingFilteredFolder(WarPluginConfiguration config) {
+    return true //preferences.isUsingFilteredFolder 
+        || config.getWebResources() != null && config.getWebResources().length > 0 //Uses filtering
+        || config.isFilteringDeploymentDescriptorsEnabled();
   }
 
 

@@ -44,7 +44,7 @@ public class EarResourceFilteringConfiguration extends AbstractResourceFiltering
   }
 
   public List<Xpp3Dom> getResources() {
-    if (!earPluginConfiguration.isFilteringEnabled()) {
+    if (!earPluginConfiguration.isFilteringDeploymentDescriptorsEnabled()) {
       return null;
     }
     String earContentDir = earPluginConfiguration.getEarContentDirectory(mavenProjectFacade.getProject());

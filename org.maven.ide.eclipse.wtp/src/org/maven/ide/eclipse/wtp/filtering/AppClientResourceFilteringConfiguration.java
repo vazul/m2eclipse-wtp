@@ -40,7 +40,7 @@ public class AppClientResourceFilteringConfiguration extends AbstractResourceFil
   }
 
   public List<Xpp3Dom> getResources() {
-    if (!acrPluginConfiguration.isFilteringEnabled()) {
+    if (!acrPluginConfiguration.isFilteringDeploymentDescriptorsEnabled()) {
       return null;
     }
     IFile applicationClientXml = acrPluginConfiguration.getApplicationClientXml();

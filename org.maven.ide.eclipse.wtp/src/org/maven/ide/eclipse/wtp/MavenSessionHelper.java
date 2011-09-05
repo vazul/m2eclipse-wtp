@@ -37,7 +37,7 @@ import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 /**
  * MavenSessionHelper
  *
- * @author fbricon
+ * @author Fred Bricon
  */
 public class MavenSessionHelper {
   
@@ -58,18 +58,24 @@ public class MavenSessionHelper {
     artifacts = project.getArtifacts();
     dependencyArtifacts = project.getDependencyArtifacts();
     IProgressMonitor monitor = new NullProgressMonitor();
+    MavenSession session = getSession(monitor);
+          
+    MavenExecutionPlan executionPlan = MavenPlugin.getMaven().calculateExecutionPlan(session, 
+                                                                                     project, 
+                                                                                     Collections.singletonList(goal), 
+                                                                                     true, 
+                                                                                     monitor);
+    
+    MojoExecution execution = getExecution(executionPlan, pluginId);
+    
+    ensureDependenciesAreResolved(session, execution, monitor);
+  }
+  
+  public void ensureDependenciesAreResolved(MavenSession session, MojoExecution execution, IProgressMonitor monitor) throws CoreException {
+    artifacts = project.getArtifacts();
+    dependencyArtifacts = project.getDependencyArtifacts();
     try {
-      MavenSession session = getSession(monitor);
-            
-      MavenExecutionPlan executionPlan = MavenPlugin.getMaven().calculateExecutionPlan(session, 
-                                                                                       project, 
-                                                                                       Collections.singletonList(goal), 
-                                                                                       true, 
-                                                                                       monitor);
-      
-      MojoExecution execution = getExecution(executionPlan, pluginId);
-      
-      
+               
       MojoExecutor mojoExecutor = lookup(MojoExecutor.class);
       DependencyContext dependencyContext = mojoExecutor.newDependencyContext(session,
           Collections.singletonList(execution));

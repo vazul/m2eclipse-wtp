@@ -70,7 +70,7 @@ public abstract class AbstractFilteringSupportMavenPlugin {
     return Collections.emptyList();
   }  
   
-  public boolean isFilteringEnabled()  {
+  public boolean isFilteringDeploymentDescriptorsEnabled()  {
     Xpp3Dom configuration = getConfiguration();
     if(configuration == null) {
       return false;

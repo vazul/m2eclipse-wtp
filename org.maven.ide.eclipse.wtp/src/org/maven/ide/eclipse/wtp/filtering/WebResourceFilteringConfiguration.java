@@ -65,7 +65,7 @@ public class WebResourceFilteringConfiguration extends AbstractResourceFiltering
 
   //MECLIPSEWTP-159 : Handle web.xml filtering with <filteringDeploymentDescriptors> 
   private Xpp3Dom getWebXmlResource() {
-    if (!pluginConfiguration.isFilteringEnabled()) {
+    if (!pluginConfiguration.isFilteringDeploymentDescriptorsEnabled()) {
       return null;
     }
     String warSourceDirectory = warPluginConfiguration.getWarSourceDirectory();

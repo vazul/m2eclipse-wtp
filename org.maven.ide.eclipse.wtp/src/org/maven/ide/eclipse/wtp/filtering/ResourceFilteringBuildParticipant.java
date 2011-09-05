@@ -20,6 +20,7 @@ import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomUtils;
@@ -47,6 +48,7 @@ import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.maven.ide.eclipse.wtp.DomUtils;
+import org.maven.ide.eclipse.wtp.MavenSessionHelper;
 import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -251,6 +253,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
 
     //Create a maven request + session
     ResolverConfiguration resolverConfig = facade.getResolverConfiguration();
+    
     List<String> filters = filteringConfiguration.getFilters();
     IMavenProjectRegistry projectManager = MavenPlugin.getMavenProjectRegistry();
     MavenExecutionRequest request = projectManager.createExecutionRequest(facade.getPom(), resolverConfig, monitor);
@@ -258,8 +261,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     request.setOffline(true);
 
     IMaven maven = MavenPlugin.getMaven();
-    MavenSession session = maven.createSession(request, facade.getMavenProject());
-    MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, facade.getMavenProject(), Collections.singletonList("resources:copy-resources"), true, monitor);
+    MavenProject mavenProject = facade.getMavenProject();
+    
+    MavenSession session = maven.createSession(request, mavenProject);
+    MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, mavenProject, Collections.singletonList("resources:copy-resources"), true, monitor);
     
     MojoExecution copyFilteredResourcesMojo = getExecution(executionPlan, "maven-resources-plugin");
 
@@ -267,8 +272,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
 
     Xpp3Dom originalConfig = copyFilteredResourcesMojo.getConfiguration();
     Xpp3Dom  configuration = Xpp3DomUtils.mergeXpp3Dom(new Xpp3Dom("configuration"), originalConfig);
- 
+    boolean parentHierarchyLoaded = false;
     try {
+      parentHierarchyLoaded = loadParentHierarchy(facade, monitor);
+      
       //Set resource directories to read
       setupResources(configuration, resources);
       
@@ -312,7 +319,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       
     } finally {
       //Restore original configuration
-      copyFilteredResourcesMojo.setConfiguration(originalConfig);      
+      copyFilteredResourcesMojo.setConfiguration(originalConfig);
+      if (parentHierarchyLoaded) {
+        mavenProject.setParent(null);
+      }
     }
   }
 
@@ -425,4 +435,43 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     return null;
   }
 
+  /**
+   * Workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=356725. 
+   * Loads the parent project hierarchy if needed.
+   * @param facade
+   * @param monitor
+   * @return true if parent projects had to be loaded.
+   * @throws CoreException
+   */
+  private boolean loadParentHierarchy(IMavenProjectFacade facade, IProgressMonitor monitor) throws CoreException {
+    boolean loadedParent = false; 
+    MavenProject mavenProject = facade.getMavenProject();
+    try {
+      if (mavenProject.getModel().getParent() == null || mavenProject.getParent() != null) {
+        //If the method is called without error, we can assume the project has been fully loaded
+        //No need to continue. 
+        return false;
+      }
+    } catch (IllegalStateException e) {
+    //The parent can not be loaded properly 
+    }
+    MavenExecutionRequest request = null;
+    while(mavenProject !=null && mavenProject.getModel().getParent() != null) {
+        if(monitor.isCanceled()) {
+          break;
+        }
+        if (request == null) {
+          request = MavenPlugin.getMavenProjectRegistry().createExecutionRequest(facade, monitor);
+        }
+        MavenProject parentProject = MavenPlugin.getMaven().resolveParentProject(request, mavenProject, monitor);
+        if (parentProject != null) {
+          mavenProject.setParent(parentProject);
+          loadedParent = true;            
+        }
+        mavenProject = parentProject;
+    }
+    return loadedParent; 
+  }
+  
+  
 }

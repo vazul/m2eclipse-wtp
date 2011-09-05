@@ -325,6 +325,22 @@ public class ResourceFilteringTest extends AbstractWTPTestCase {
 
   }
 
+  @Test
+  public void testMECLIPSEWTP138_loadParent() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-138/error/", 
+                  new String[]{"pom.xml", "modules/error-war/pom.xml"}, 
+                  new ResolverConfiguration());
+    
+    IProject web = projects[1];
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    //assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    IFile testXml = filteredFolder.getFile("WEB-INF/etc/config/test.xml");
+    assertTrue("test.xml is missing",testXml.exists());
+  }  
   /**
    * @param folder
    * @return
