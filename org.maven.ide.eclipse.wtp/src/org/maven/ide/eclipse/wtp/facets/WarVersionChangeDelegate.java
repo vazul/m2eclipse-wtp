@@ -23,10 +23,12 @@ import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelPropertie
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.datamodel.FacetDataModelProvider;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
 
 
 /**
@@ -59,7 +61,9 @@ public class WarVersionChangeDelegate implements IDelegate {
 
           final IPath contentdir = setContentPropertyIfNeeded(model, pjpath, project);
           mkdirs(ws.getRoot().getFolder(contentdir), monitor);
-
+          IVirtualFolder contentRootFolder = c.getRootFolder();
+          WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(contentRootFolder, contentdir, monitor);
+          
           String contextRoot = model.getStringProperty(IWebFacetInstallDataModelProperties.CONTEXT_ROOT);
           setContextRootPropertyIfNeeded(c, contextRoot);
 

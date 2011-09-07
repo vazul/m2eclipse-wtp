@@ -56,6 +56,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   static final IClasspathAttribute NONDEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
       IClasspathDependencyConstants.CLASSPATH_COMPONENT_NON_DEPENDENCY, "");
 
+  protected static final IPath ROOT_PATH = new Path("/"); 
 
   protected final IMavenProjectRegistry projectManager;
 

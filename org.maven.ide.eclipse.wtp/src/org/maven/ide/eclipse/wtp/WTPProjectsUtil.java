@@ -8,6 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,6 +36,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.common.project.facet.core.JavaFacet;
 import org.eclipse.jst.common.project.facet.core.internal.JavaFacetUtil;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
+import org.eclipse.jst.j2ee.componentcore.J2EEModuleVirtualComponent;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
@@ -180,7 +182,8 @@ public class WTPProjectsUtil {
       ResourceTreeRoot root = ResourceTreeRoot.getDeployResourceTreeRoot(component);
       ComponentResource[] resources = root.findModuleResources(runtimePath, 0);
       for (ComponentResource link : resources) {
-        if (sourcePathToKeep == null || !sourcePathToKeep.contains(link.getSourcePath())) {
+        if (runtimePath.equals(link.getRuntimePath()) && 
+           (sourcePathToKeep == null || !sourcePathToKeep.contains(link.getSourcePath()))) {
           component.getResources().remove(link);
         }
       }
@@ -207,20 +210,33 @@ public class WTPProjectsUtil {
       }
       
       int i = 0;
-      
+      int refPosition = -1;
+      int newSourcePosition = -1;
       List<ComponentResource> resources = component.getResources();
       
       for (ComponentResource resource : resources) {
         IPath sourcePath = resource.getSourcePath();
         if (referenceSource.equals(sourcePath)) {
+          refPosition = i;
+        } else if (newSource.equals(sourcePath)) {
+          newSourcePosition = i;
+        }
+        if (refPosition > -1 &&  newSourcePosition > -1) {
           break;
         }
         i++;
       }
+      if (refPosition < 0) {
+        refPosition = i;
+      }
       IResource folder = project.getFolder(newSource);
-      ComponentResource componentResource = moduleCore.createWorkbenchModuleResource(folder);
-      componentResource.setRuntimePath(runtimePath);
-      component.getResources().add(i,componentResource);
+      if (newSourcePosition > refPosition) {
+        component.getResources().move(newSourcePosition, refPosition);
+      } else if (newSourcePosition < 0) {
+        ComponentResource componentResource = moduleCore.createWorkbenchModuleResource(folder);
+        componentResource.setRuntimePath(runtimePath);
+        component.getResources().add(refPosition,componentResource);
+      }
    }
    finally {
      if (moduleCore != null) {
@@ -539,5 +555,25 @@ public class WTPProjectsUtil {
     }
     String language = facade.getMavenProject().getArtifact().getArtifactHandler().getLanguage();
     return "java".equals(language);
+  }
+  
+  public static void setDefaultDeploymentDescriptorFolder(IVirtualFolder folder, IPath aProjectRelativeLocation, IProgressMonitor monitor) {
+    try {
+      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", IVirtualFolder.class);
+      IPath currentDefaultLocation =(IPath) getDefaultDeploymentDescriptorFolder.invoke(null, folder);
+      if (aProjectRelativeLocation.equals(currentDefaultLocation)) {
+        return;
+      }
+      Method setDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("setDefaultDeploymentDescriptorFolder", 
+                                                                                               IVirtualFolder.class, 
+                                                                                               IPath.class, 
+                                                                                               IProgressMonitor.class);
+      setDefaultDeploymentDescriptorFolder.invoke(null, folder, aProjectRelativeLocation, monitor);
+    } catch (NoSuchMethodException nsme) {
+      //Not available in this WTP version, let's ignore it
+    } catch(Exception ex) {
+      //The exception shouldn't halt the configuration process.
+      ex.printStackTrace();
+    } 
   }
 }

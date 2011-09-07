@@ -52,12 +52,13 @@ public class EarVersionChangeDelegate implements IDelegate {
         monitor.worked(1);
       }
       IPath earContent = new Path("/" + model.getStringProperty(IEarFacetInstallDataModelProperties.CONTENT_DIR));//$NON-NLS-1$
-      if (!WTPProjectsUtil.hasLink(project, new Path("/"), earContent, monitor)) {//$NON-NLS-1$
-        final IVirtualComponent c = ComponentCore.createComponent(project, true);
-        if (c != null) {
-          final IVirtualFolder earroot = c.getRootFolder();
+      final IVirtualComponent c = ComponentCore.createComponent(project, true);
+      if (c != null) {
+        final IVirtualFolder earroot = c.getRootFolder();
+        if (!WTPProjectsUtil.hasLink(project, new Path("/"), earContent, monitor)) {//$NON-NLS-1$
           earroot.createLink(earContent , 0, null); 
         }
+        WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(earroot, earContent, monitor);
       }
 
       try {

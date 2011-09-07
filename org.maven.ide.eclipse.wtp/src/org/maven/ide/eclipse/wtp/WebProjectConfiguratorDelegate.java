@@ -10,6 +10,7 @@ package org.maven.ide.eclipse.wtp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -113,15 +114,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     IVirtualComponent component = ComponentCore.createComponent(project, true);
     
-    IPath warPath = new Path(warSourceDirectory);
-    
-    //Despite a non null component, if the ModuleCoreNature is missing, removeLink will crash
-    if(component != null && ModuleCoreNature.isFlexibleProject(project)) {      
-       //remove the old links (if there is one) before adding the new one.
-      component.getRootFolder().removeLink(warPath,IVirtualResource.NONE, monitor);
-      component.getRootFolder().createLink(warPath, IVirtualResource.NONE, monitor);
-    }
-    
     //MNGECLIPSE-2279 get the context root from the final name of the project, or artifactId by default.
     String contextRoot = getContextRoot(mavenProject);
     
@@ -168,10 +160,16 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     component = ComponentCore.createComponent(project, true);
     if(component != null) {      
+
+      IPath warPath = new Path("/").append(contentFolder.getProjectRelativePath());
+      List<IPath> sourcePaths = new ArrayList<IPath>();
+      sourcePaths.add(warPath);
+      if (!WTPProjectsUtil.hasLink(project, ROOT_PATH, warPath, monitor)) {
+        component.getRootFolder().createLink(warPath, IVirtualResource.NONE, monitor); 
+      }
       //MECLIPSEWTP-22 support web filtered resources. Filtered resources directory must be declared BEFORE
       //the regular web source directory. First resources discovered take precedence on deployment
-      IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
-      component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
+      IPath filteredFolder = new Path("/").append(WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project));
       
       boolean useBuildDir = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isWebMavenArchiverUsesBuildDirectory();
       boolean useWebresourcefiltering = config.getWebResources() != null 
@@ -184,13 +182,18 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
           mavenMarkerManager.addMarker(project, MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID, 
                                       WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED, -1, IMarker.SEVERITY_WARNING);
         }
-        
-        String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
-        WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
-      }   
+        sourcePaths.add(filteredFolder);
+        WTPProjectsUtil.insertLinkBefore(project, filteredFolder, warPath, new Path("/"), monitor);
+      } else {
+        component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
+      }
+
+      WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(component.getRootFolder(), warPath, monitor);
       
+      WTPProjectsUtil.deleteLinks(project, ROOT_PATH, sourcePaths, monitor);
     }
     
+
     
     if (!manifestAlreadyExists && manifest.exists()) {
       manifest.delete(true, monitor);

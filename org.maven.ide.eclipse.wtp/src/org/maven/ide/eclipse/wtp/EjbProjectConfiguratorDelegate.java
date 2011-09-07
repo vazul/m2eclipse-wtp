@@ -14,12 +14,16 @@ import java.util.Set;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.ejb.project.operations.IEjbFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.ejb.project.operations.EjbFacetInstallDataModelProvider;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
@@ -76,6 +80,12 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     removeTestFolderLinks(project, mavenProject, monitor, "/");
 
+    IVirtualComponent ejbComponent = ComponentCore.createComponent(project);
+    if (ejbComponent != null) {
+      IPath contentDirPath = new Path("/").append(contentDir);
+      WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(ejbComponent.getRootFolder(), contentDirPath, monitor);
+    }
+    
     //Remove "library unavailable at runtime" warning.
     setNonDependencyAttributeToContainer(project, monitor);
     

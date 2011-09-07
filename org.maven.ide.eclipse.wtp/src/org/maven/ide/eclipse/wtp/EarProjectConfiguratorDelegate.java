@@ -26,7 +26,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.earcreation.IEarFacetInstallDataModelProperties;
-import org.eclipse.jst.j2ee.internal.J2EEConstants;
 import org.eclipse.jst.j2ee.internal.earcreation.EarFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.model.IEARModelProvider;
@@ -60,8 +59,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
   private static final Logger log = LoggerFactory.getLogger(EarProjectConfiguratorDelegate.class);
   
-  private static final IPath ROOT_PATH = new Path("/"); 
-      
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     
@@ -106,7 +103,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if (!WTPProjectsUtil.hasLink(project, ROOT_PATH, contentDirPath, monitor)) {
       earComponent.getRootFolder().createLink(contentDirPath, IVirtualResource.NONE, monitor);
     }
-    
+    WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(earComponent.getRootFolder(), contentDirPath, monitor);
+
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
 
