@@ -1701,6 +1701,30 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertEquals(WebFacetUtils.WEB_30, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
   }
   
+  @Test
+  public void testMECLIPSEWTP167_noSlashInlibDir() throws Exception {
+    IProject ear = importProject("projects/MECLIPSEWTP-167/ear6/pom.xml");
+    waitForJobsToComplete();
+    assertNoErrors(ear);
+    
+    IFacetedProject fpEar = ProjectFacetsManager.create(ear);
+    assertNotNull(fpEar);
+    assertEquals(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_60, fpEar.getInstalledVersion(EAR_FACET));
+
+    String libDir = "library";
+    
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference[] references = comp.getReferences();
+    assertEquals(1, references.length);
+    IVirtualReference junit = references[0];
+    assertEquals("junit-3.8.1.jar", junit.getArchiveName());
+    assertEquals("/"+libDir, junit.getRuntimePath().toPortableString());
+    
+    final Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
+    assertNotNull(app);
+    assertEquals(libDir,app.getLibraryDirectory());
+  }
+  
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";
     StringBuilder sb = new StringBuilder("[");

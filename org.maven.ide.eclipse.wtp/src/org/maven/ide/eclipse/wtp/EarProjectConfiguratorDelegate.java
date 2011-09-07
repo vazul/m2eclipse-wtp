@@ -219,15 +219,22 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
     
     //if the ear project Java EE level was < 5.0, the following would throw a ClassCastException  
-    final Application app = (Application)ModelProviderManager.getModelProvider(project).getModelObject();
+    final IEARModelProvider earModel = (IEARModelProvider)ModelProviderManager.getModelProvider(project);
+    if (earModel == null) {
+      return;
+    }
+    final Application app = (Application)earModel.getModelObject();
     if (app != null) {
       if (newLibDir == null || "/".equals(newLibDir)) {
-        newLibDir = J2EEConstants.EAR_DEFAULT_LIB_DIR;
+        newLibDir = "lib";
+      } 
+      //MECLIPSEWTP-167 : lib directory mustn't start with a slash
+      else if (newLibDir.startsWith("/")) {
+        newLibDir = newLibDir.substring(1);
       }
       String oldLibDir = app.getLibraryDirectory();
       if (newLibDir.equals(oldLibDir)) return;
       final String libDir = newLibDir;
-      final IEARModelProvider earModel = (IEARModelProvider)ModelProviderManager.getModelProvider(project);
       earModel.modify(new Runnable() {
         public void run() {     
         app.setLibraryDirectory(libDir);
