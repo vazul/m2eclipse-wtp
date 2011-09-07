@@ -105,7 +105,7 @@ public class MavenWtpPreferencesManagerImpl implements IMavenWtpPreferencesManag
 
   private static IEclipsePreferences getEclipsePreferences()
   {
-    return InstanceScope.INSTANCE.getNode(MavenWtpPreferencesConstants.PREFIX);    
+    return new InstanceScope().getNode(MavenWtpPreferencesConstants.PREFIX);    
   }
 
   private static IEclipsePreferences getEclipsePreferences(IProject project)
