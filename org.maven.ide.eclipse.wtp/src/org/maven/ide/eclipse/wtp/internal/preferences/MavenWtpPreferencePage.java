@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jst.j2ee.project.JavaEEProjectUtilities;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
@@ -63,6 +64,11 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
 
   private Button genApplicationXmlButton;
 
+  //WAR elements
+  private Group warPrefGroup;
+
+  private Button warMavenArchiverButton;
+
   public MavenWtpPreferencePage() {
     setTitle("WTP Integration Settings");
   }
@@ -73,11 +79,29 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     main.setLayout(gl);
     IProject project = getProject();
     createOverridePrefs(main, project);
-    createEarPrefs(main);
+    if (project == null || JavaEEProjectUtilities.isEARProject(project)) {
+      createEarPrefs(main);
+    }
+    if (project == null || JavaEEProjectUtilities.isDynamicWebProject(project)) {
+      createWarPrefs(main);
+    }
     IMavenWtpPreferences preferences = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager()
         .getPreferences(project);
     fillValues(preferences);
     return main;
+  }
+
+  /**
+   * @param main
+   */
+  private void createEarPrefs(Composite main) {
+    earPrefGroup = new Group(main, SWT.NONE);
+    earPrefGroup.setText("EAR Project preferences");
+    earPrefGroup.setLayout(new GridLayout(1, false));
+    earPrefGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    genApplicationXmlButton = new Button(earPrefGroup, SWT.CHECK);
+    genApplicationXmlButton.setText("Generate application.xml under the build directory");
   }
 
   private void createOverridePrefs(Composite main, IProject project) {
@@ -116,14 +140,15 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     }
   }
 
-  private void createEarPrefs(Composite main) {
-    earPrefGroup = new Group(main, SWT.NONE);
-    earPrefGroup.setText("EAR Project preferences");
-    earPrefGroup.setLayout(new GridLayout(1, false));
-    earPrefGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+  private void createWarPrefs(Composite main) {
+    warPrefGroup = new Group(main, SWT.NONE);
+    warPrefGroup.setText("WAR Project preferences");
+    warPrefGroup.setLayout(new GridLayout(1, false));
+    warPrefGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-    genApplicationXmlButton = new Button(earPrefGroup, SWT.CHECK);
-    genApplicationXmlButton.setText("Generate application.xml under the build directory");
+    warMavenArchiverButton = new Button(warPrefGroup, SWT.CHECK);
+    warMavenArchiverButton.setText("Maven Archiver generates files under the build directory");
+    warMavenArchiverButton.setToolTipText("The build directory will always be used if Web resource filtering is enabled");
   }
 
   private Link createLink(Composite composite, String text) {
@@ -148,7 +173,12 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
   }
 
   protected void setWidgetsEnabled(boolean isEnabled) {
-    genApplicationXmlButton.setEnabled(isEnabled);
+    if (genApplicationXmlButton != null) {
+      genApplicationXmlButton.setEnabled(isEnabled);
+    }
+    if (warMavenArchiverButton != null) {
+      warMavenArchiverButton.setEnabled(isEnabled);
+    }
   }
 
   private void fillValues(IMavenWtpPreferences preferences) {
@@ -159,7 +189,12 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
       setWidgetsEnabled(overrideButton.getSelection());
     }
     //read from stored preferences
-    genApplicationXmlButton.setSelection(preferences.isApplicationXmGeneratedInBuildDirectory());
+    if (genApplicationXmlButton != null) {
+      genApplicationXmlButton.setSelection(preferences.isApplicationXmGeneratedInBuildDirectory());
+    }
+    if (warMavenArchiverButton != null) {
+      warMavenArchiverButton.setSelection(preferences.isWebMavenArchiverUsesBuildDirectory());
+    }
   }
 
   public IProject getProject() {
@@ -188,7 +223,12 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     if(project != null) {
       newPreferences.setEnabledProjectSpecificSettings(overrideButton.getSelection());
     }
-    newPreferences.setApplicationXmGeneratedInBuildDirectory(genApplicationXmlButton.getSelection());
+    if (genApplicationXmlButton != null) {
+      newPreferences.setApplicationXmGeneratedInBuildDirectory(genApplicationXmlButton.getSelection());
+    }
+    if (warMavenArchiverButton != null) {
+      newPreferences.setWebMavenArchiverUsesBuildDirectory(warMavenArchiverButton.getSelection());
+    }
 
     if(!newPreferences.equals(preferences)) {
       preferencesManager.savePreferences(newPreferences, getProject());
@@ -214,6 +254,7 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
 
     if(project == null) {
       workspacePreferences.setApplicationXmGeneratedInBuildDirectory(true);
+      workspacePreferences.setWebMavenArchiverUsesBuildDirectory(true);
     }
 
     fillValues(workspacePreferences);
@@ -292,6 +333,11 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
    */
   private boolean isImpacted(IMavenProjectFacade facade) {
     //We simply check if the project is an EAR for now
-    return JEEPackaging.EAR.equals(JEEPackaging.getValue(facade.getPackaging()));
+    switch(JEEPackaging.getValue(facade.getPackaging())) {
+      case EAR:
+      case WAR:
+        return true;
+    }
+    return false;
   }
 }

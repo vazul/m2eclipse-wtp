@@ -8,12 +8,15 @@
 
 package org.maven.ide.eclipse.wtp.mavenarchiver;
 
+import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.maven.ide.eclipse.wtp.MavenWtpConstants;
+import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
 import org.maven.ide.eclipse.wtp.ProjectUtils;
+import org.maven.ide.eclipse.wtp.WarPluginConfiguration;
 
 /**
  * WarMavenArchiverConfigurator
@@ -27,9 +30,20 @@ public class WarMavenArchiverConfigurator extends AbstractWTPArchiverConfigurato
   @Override
   protected IPath getOutputDir(IMavenProjectFacade facade) {
     IProject project = facade.getProject();
-    IPath localEarResourceFolder =  ProjectUtils.getM2eclipseWtpFolder(facade.getMavenProject(), project);
-    return project.getFullPath().append(localEarResourceFolder)
-                                .append(MavenWtpConstants.WEB_RESOURCES_FOLDER);
+    MavenProject mavenProject = facade.getMavenProject();
+    
+    WarPluginConfiguration warPluginConfiguration = new WarPluginConfiguration(mavenProject, project);
+    
+    if (MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isWebMavenArchiverUsesBuildDirectory()
+        || warPluginConfiguration.getWebResources() != null && warPluginConfiguration.getWebResources().length > 0 //Uses filtering
+        || warPluginConfiguration.isFilteringDeploymentDescriptorsEnabled()) {
+
+      IPath localResourceFolder =  ProjectUtils.getM2eclipseWtpFolder(mavenProject, project);
+      return project.getFullPath().append(localResourceFolder)
+                                  .append(MavenWtpConstants.WEB_RESOURCES_FOLDER);
+    }
+    
+    return project.getFolder(warPluginConfiguration.getWarSourceDirectory()).getFullPath();
   }
   
   @Override

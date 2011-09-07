@@ -23,6 +23,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -68,6 +69,9 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("restriction")
 class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
+
+  public static final String WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED = "Current Maven Archiver output settings are ignored " +
+  		                                                                        "as web resource filtering is currently used";
 
   private static final Logger log = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
   
@@ -168,11 +172,25 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       //the regular web source directory. First resources discovered take precedence on deployment
       IPath filteredFolder = WebResourceFilteringConfiguration.getTargetFolder(mavenProject, project);
       component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
-      if (isUsingFilteredFolder(config)) {
+      
+      boolean useBuildDir = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isWebMavenArchiverUsesBuildDirectory();
+      boolean useWebresourcefiltering = config.getWebResources() != null 
+                                        && config.getWebResources().length > 0 
+                                        || config.isFilteringDeploymentDescriptorsEnabled();
+
+      if (useBuildDir || useWebresourcefiltering) {
+        
+        if (!useBuildDir && useWebresourcefiltering) {
+          mavenMarkerManager.addMarker(project, MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID, 
+                                      WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED, -1, IMarker.SEVERITY_WARNING);
+        }
+        
         String warFolder = (warSourceDirectory.startsWith("/"))?warSourceDirectory:"/"+warSourceDirectory;
         WTPProjectsUtil.insertLinkBefore(project, filteredFolder, new Path(warFolder), new Path("/"), monitor);
       }   
+      
     }
+    
     
     if (!manifestAlreadyExists && manifest.exists()) {
       manifest.delete(true, monitor);
@@ -184,14 +202,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     WTPProjectsUtil.removeWTPClasspathContainer(project);
   }
-
-
-  private boolean isUsingFilteredFolder(WarPluginConfiguration config) {
-    return true //preferences.isUsingFilteredFolder 
-        || config.getWebResources() != null && config.getWebResources().length > 0 //Uses filtering
-        || config.isFilteringDeploymentDescriptorsEnabled();
-  }
-
 
   private IDataModel getWebModelConfig(String warSourceDirectory, String contextRoot) {
     IDataModel webModelCfg = DataModelFactory.createDataModel(new WebFacetInstallDataModelProvider());

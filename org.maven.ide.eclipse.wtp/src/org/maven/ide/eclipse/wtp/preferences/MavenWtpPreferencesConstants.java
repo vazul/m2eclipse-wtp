@@ -25,6 +25,8 @@ public class MavenWtpPreferencesConstants {
 
   public static final String P_APPLICATION_XML_IN_BUILD_DIR = PREFIX + ".ear.applicationXmlInBuilDir";
 
+  public static final String P_WEB_MAVENARCHIVER_IN_BUILD_DIR = PREFIX + ".war.archiverFilesInBuilDir";
+
   public static final String P_ENABLED_PROJECT_SPECIFIC__PREFS = PREFIX + ".enabledProjectSpecificPrefs";
 
   /**

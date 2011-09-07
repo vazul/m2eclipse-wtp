@@ -82,6 +82,8 @@ public class MavenWtpPreferencesManagerImpl implements IMavenWtpPreferencesManag
   
   private void removeSpecificSettings(IEclipsePreferences eclipsePrefs) {
     eclipsePrefs.remove(MavenWtpPreferencesConstants.P_APPLICATION_XML_IN_BUILD_DIR);
+    eclipsePrefs.remove(MavenWtpPreferencesConstants.P_WEB_MAVENARCHIVER_IN_BUILD_DIR);
+    
   }
 
   private IMavenWtpPreferences loadWorkspacePreferences() {
@@ -90,18 +92,20 @@ public class MavenWtpPreferencesManagerImpl implements IMavenWtpPreferencesManag
   
   private void transformPreferences(IMavenWtpPreferences preferences, IEclipsePreferences eclipsePrefs) {
     eclipsePrefs.putBoolean(MavenWtpPreferencesConstants.P_APPLICATION_XML_IN_BUILD_DIR, preferences.isApplicationXmGeneratedInBuildDirectory());
+    eclipsePrefs.putBoolean(MavenWtpPreferencesConstants.P_WEB_MAVENARCHIVER_IN_BUILD_DIR, preferences.isWebMavenArchiverUsesBuildDirectory());
   }
 
   private IMavenWtpPreferences convertPreferences(IEclipsePreferences eclipsePrefs) {
     IMavenWtpPreferences preferences = createNewPreferences();
     preferences.setEnabledProjectSpecificSettings(eclipsePrefs.getBoolean(MavenWtpPreferencesConstants.P_ENABLED_PROJECT_SPECIFIC__PREFS, false));
     preferences.setApplicationXmGeneratedInBuildDirectory(eclipsePrefs.getBoolean(MavenWtpPreferencesConstants.P_APPLICATION_XML_IN_BUILD_DIR, true));
+    preferences.setWebMavenArchiverUsesBuildDirectory(eclipsePrefs.getBoolean(MavenWtpPreferencesConstants.P_WEB_MAVENARCHIVER_IN_BUILD_DIR, true));
     return preferences;
   }
 
   private static IEclipsePreferences getEclipsePreferences()
   {
-    return new InstanceScope().getNode(MavenWtpPreferencesConstants.PREFIX);    
+    return InstanceScope.INSTANCE.getNode(MavenWtpPreferencesConstants.PREFIX);    
   }
 
   private static IEclipsePreferences getEclipsePreferences(IProject project)

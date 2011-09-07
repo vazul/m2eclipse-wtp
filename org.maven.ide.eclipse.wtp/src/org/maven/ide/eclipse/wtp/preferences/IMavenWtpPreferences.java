@@ -22,9 +22,9 @@ public interface IMavenWtpPreferences {
    * @return true if the application.xml should be generated under the build directory
    */
   boolean isApplicationXmGeneratedInBuildDirectory();
-  
+
   void setApplicationXmGeneratedInBuildDirectory(boolean isEnabled);
-  
+
   /**
    * Indicates if the project uses specific settings.
    * @return true if the project settings override the workspace preferences.
@@ -33,4 +33,14 @@ public interface IMavenWtpPreferences {
   
   void setEnabledProjectSpecificSettings(boolean isEnabled);
 
+  /**
+   * Indicates if the Maven Archiver should try to generate files in the build directory.
+   * false indicates the content directory of the project will be used instead, unless resource filtering is activated.
+   *  
+   * @return true if the Maven Archiver should try to generate files in the build directory.
+   */
+  boolean isWebMavenArchiverUsesBuildDirectory();
+ 
+  void setWebMavenArchiverUsesBuildDirectory(boolean isEnabled);
+  
 }

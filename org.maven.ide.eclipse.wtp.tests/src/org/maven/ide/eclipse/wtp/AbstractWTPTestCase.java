@@ -41,6 +41,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
 
 @SuppressWarnings("restriction")
 public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
@@ -202,4 +203,16 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
   protected void assertNotContains(String findMe, String holder) {
     assertFalse("'" +findMe + "' was found in : \n" + holder, holder.contains(findMe));
   }
+  
+
+  protected void useBuildDirforGeneratingFiles(IProject project, boolean b) {
+    IMavenWtpPreferences preferences = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project);
+    preferences.setApplicationXmGeneratedInBuildDirectory(b);
+    preferences.setWebMavenArchiverUsesBuildDirectory(b);
+    MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().savePreferences(preferences, null);
+  }
+
+  protected void useBuildDirforGeneratingFiles(boolean b) {
+    useBuildDirforGeneratingFiles(null, b);
+  }  
 }

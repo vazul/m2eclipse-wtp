@@ -22,6 +22,7 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
   
   private boolean isEnabledProjectSpecificSettings; 
   
+  private boolean isWebMavenArchiverUsesBuildDirectory;
   
   public boolean isApplicationXmGeneratedInBuildDirectory() {
     return isApplicationXmGeneratedInBuildDirectory;
@@ -48,6 +49,20 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
     isEnabledProjectSpecificSettings = isEnabled;    
   }
 
+  /**
+   * @return Returns the isWebMavenArchiverUsesBuildDirectory.
+   */
+  public boolean isWebMavenArchiverUsesBuildDirectory() {
+    return isWebMavenArchiverUsesBuildDirectory;
+  }
+
+  /**
+   * @param isWebMavenArchiverUsesBuildDirectory The isWebMavenArchiverUsesBuildDirectory to set.
+   */
+  public void setWebMavenArchiverUsesBuildDirectory(boolean isWebMavenArchiverUsesBuildDirectory) {
+    this.isWebMavenArchiverUsesBuildDirectory = isWebMavenArchiverUsesBuildDirectory;
+  }
+
   /* (non-Javadoc)
    * @see java.lang.Object#hashCode()
    */
@@ -56,6 +71,7 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
     int result = 1;
     result = prime * result + (isApplicationXmGeneratedInBuildDirectory ? 1231 : 1237);
     result = prime * result + (isEnabledProjectSpecificSettings ? 1231 : 1237);
+    result = prime * result + (isWebMavenArchiverUsesBuildDirectory ? 1231 : 1237);
     return result;
   }
 
@@ -74,6 +90,9 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
       return false;
     if(isEnabledProjectSpecificSettings != other.isEnabledProjectSpecificSettings)
       return false;
+    if(isWebMavenArchiverUsesBuildDirectory != other.isWebMavenArchiverUsesBuildDirectory)
+      return false;
     return true;
   }
+
 }

@@ -58,7 +58,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.junit.Test;
-import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
 
 /**
  * WTPProjectConfiguratorTest
@@ -82,6 +81,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(project.getFolder("/src/main/webapp"), underlyingResources[1]);
 
     assertFalse(project.exists(new Path("/src/main/webapp/WEB-INF/lib")));
+    
+    project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+    waitForJobsToComplete();
+    
+    assertTrue(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/MANIFEST.MF")));
+    assertTrue(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/maven/")));
 }
 
   @Test
@@ -359,7 +364,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE688_CustomEarContent () throws Exception {
     try {
-      useBuildDirforApplicationXml(false);
+      useBuildDirforGeneratingFiles(false);
 
       IProject ear = importProject("projects/MNGECLIPSE-688/ear21-1/pom.xml", new ResolverConfiguration());
 
@@ -376,14 +381,14 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertTrue(applicationXml.exists());
 
     } finally {
-      useBuildDirforApplicationXml(true);
+      useBuildDirforGeneratingFiles(true);
     }
   }
 
   @Test
   public void testMNGECLIPSE688_Ear50 () throws Exception {
     try {
-      useBuildDirforApplicationXml(false);
+      useBuildDirforGeneratingFiles(false);
       
       IProject ear = importProject("projects/MNGECLIPSE-688/ear50-1/pom.xml", new ResolverConfiguration());
       waitForJobsToComplete();
@@ -415,7 +420,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertEquals("/lib", junit.getRuntimePath().toPortableString());
         
     } finally {
-      useBuildDirforApplicationXml(true);
+      useBuildDirforGeneratingFiles(true);
     }
   
   }
@@ -918,7 +923,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE1088_generateApplicationXml() throws Exception {
     try {
-      useBuildDirforApplicationXml(false);
+      useBuildDirforGeneratingFiles(false);
       IProject[] projects = importProjects(
           "projects/MNGECLIPSE-1088/", //
           new String[] {"A/pom.xml", "B/pom.xml", "C/pom.xml", "D/pom.xml"},
@@ -951,7 +956,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   //    assertNotNull("missing jarmodule for D",app2.getFirstModule("A.jar"));
   //    assertNotNull("missing webmodule for D",app2.getFirstModule("B.war"));
     } finally {
-      useBuildDirforApplicationXml(true);
+      useBuildDirforGeneratingFiles(true);
     }
 }
 
@@ -959,7 +964,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE1644_contextRoot() throws Exception {
      try {
-     useBuildDirforApplicationXml(false);
+     useBuildDirforGeneratingFiles(false);
      IProject[] projects = importProjects(
          "projects/MNGECLIPSE-1644/", //
          new String[] {"ear/pom.xml", "war1/pom.xml", "war2/pom.xml", },
@@ -986,7 +991,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
      assertEquals("/custom-context-root", war1ContextRoot);
      assertEquals("/MNGECLIPSE-1644-war2", war2ContextRoot);
      } finally {
-       useBuildDirforApplicationXml(true);
+       useBuildDirforGeneratingFiles(true);
      }
   }
 
@@ -1521,7 +1526,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMECLIPSEWTP73_EjbClientInLib_J2ee14() throws Exception {
 
     try {
-      useBuildDirforApplicationXml(false);    
+      useBuildDirforGeneratingFiles(false);    
       
       IProject[] projects = importProjects(
           "projects/MECLIPSEWTP-73/", //
@@ -1555,7 +1560,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
       assertEquals("war",webModule.getContextRoot());
     } finally {
-        useBuildDirforApplicationXml(true);    
+        useBuildDirforGeneratingFiles(true);    
     }
   }
 
@@ -1660,7 +1665,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFile applicationXmlInSourceDir = ear.getFile("src/main/application/META-INF/application.xml"); 
     assertFalse(applicationXmlInSourceDir.getFullPath()+" shouldn't exist",applicationXmlInSourceDir.exists());
 
-    useBuildDirforApplicationXml(ear, false);
+    useBuildDirforGeneratingFiles(ear, false);
     updateProject(ear);     
     
     assertFalse(applicationXmlInBuidDir.getFullPath()+" should have been deleted",applicationXmlInBuidDir.exists());
@@ -1710,16 +1715,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     }
     sb.append("]");
     return sb.toString();
-  }
-
-  private void useBuildDirforApplicationXml(IProject ear, boolean b) {
-    IMavenWtpPreferences preferences = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(ear);
-    preferences.setApplicationXmGeneratedInBuildDirectory(b);
-    MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().savePreferences(preferences, null);
-  }
-
-  private void useBuildDirforApplicationXml(boolean b) {
-    useBuildDirforApplicationXml(null, b);
   }
 
 }

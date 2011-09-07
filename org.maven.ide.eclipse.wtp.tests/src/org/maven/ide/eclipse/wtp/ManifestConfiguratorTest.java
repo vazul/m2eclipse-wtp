@@ -1,11 +1,19 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.junit.Test;
 
 @SuppressWarnings("restriction")
@@ -177,6 +185,63 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     
   }
   
+  @Test
+  public void testMECLIPSEWTP136_WarManifestInSource() throws Exception {
+    useBuildDirforGeneratingFiles(false);
+    try {
+      IProject project = importProject("projects/MECLIPSEWTP-136/war1/pom.xml");
+      project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+      waitForJobsToComplete();
+      List<IMarker> markers = findErrorMarkers(project);
+      assertTrue("Should not have any markers",markers.isEmpty());
+      
+      assertFalse(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/MANIFEST.MF")));
+      assertFalse(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/maven/")));
+      
+      IVirtualComponent warComponent = ComponentCore.createComponent(project);
+      IVirtualFolder rootwar = warComponent.getRootFolder();
+      IResource[] warResources = rootwar.getUnderlyingResources();
+      assertEquals(1, warResources.length);
+      assertEquals(project.getFolder("/src/main/webapp"), warResources[0]);
+      
+      assertTrue(project.exists(new Path("/src/main/webapp/META-INF/MANIFEST.MF")));
+      assertTrue(project.exists(new Path("/src/main/webapp/META-INF/maven/")));
+      
+    } finally {
+      useBuildDirforGeneratingFiles(true);
+    }
+    
+  }
+
+  @Test
+  public void testMECLIPSEWTP136_OverrideArchiverSettingWhenFiltering() throws Exception {
+    useBuildDirforGeneratingFiles(false);
+    try {
+      IProject project = importProject("projects/MECLIPSEWTP-136/war2/pom.xml");
+      project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+      waitForJobsToComplete();
+      List<IMarker> markers = findMarkers(project, IMarker.SEVERITY_WARNING);
+      assertFalse("Should have some markers",markers.isEmpty());
+      assertHasMarker(WebProjectConfiguratorDelegate.WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED, markers);
+      
+      assertTrue(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/MANIFEST.MF")));
+      assertTrue(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/maven/")));
+      
+      IVirtualComponent warComponent = ComponentCore.createComponent(project);
+      IVirtualFolder rootwar = warComponent.getRootFolder();
+      IResource[] warResources = rootwar.getUnderlyingResources();
+      assertEquals(2, warResources.length);
+      assertEquals(project.getFolder("/src/main/webapp"), warResources[1]);
+      
+      assertFalse(project.exists(new Path("/src/main/webapp/META-INF/MANIFEST.MF")));
+      assertFalse(project.exists(new Path("/src/main/webapp/META-INF/maven/")));
+      
+    } finally {
+      useBuildDirforGeneratingFiles(true);
+    }
+    
+  }
+
   @Test
   public void testProvidedManifest() throws Exception {
     IProject ejb = importProject("projects/manifests/ejb-provided-manifest/pom.xml");

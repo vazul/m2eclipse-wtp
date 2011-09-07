@@ -8,13 +8,10 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -31,7 +28,6 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 import org.maven.ide.eclipse.wtp.earmodules.EarModuleFactory;
 import org.maven.ide.eclipse.wtp.earmodules.EarPluginException;
 import org.maven.ide.eclipse.wtp.earmodules.SecurityRoleKey;
-import org.maven.ide.eclipse.wtp.internal.StringUtils;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMapping;
 import org.maven.ide.eclipse.wtp.namemapping.FileNameMappingFactory;
 import org.slf4j.Logger;

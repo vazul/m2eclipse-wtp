@@ -48,7 +48,6 @@ import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.maven.ide.eclipse.wtp.DomUtils;
-import org.maven.ide.eclipse.wtp.MavenSessionHelper;
 import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
