@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Tests Plug-in
 Bundle-SymbolicName: org.maven.ide.eclipse.wtp.tests
-Bundle-Version: 0.13.0.qualifier
+Bundle-Version: 0.14.0.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
 Require-Bundle: org.junit,
@@ -20,4 +20,6 @@ Require-Bundle: org.junit,
  org.maven.ide.eclipse.wtp,
  org.eclipse.jst.j2ee.core,
  org.eclipse.emf.ecore,
- org.eclipse.m2e.maven.runtime
+ org.eclipse.m2e.maven.runtime,
+ org.maven.ide.eclipse.wtp.common.tests,
+ org.eclipse.jst.common.project.facet.core

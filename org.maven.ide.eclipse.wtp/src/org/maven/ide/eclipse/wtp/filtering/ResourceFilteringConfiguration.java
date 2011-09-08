@@ -20,20 +20,30 @@ import org.eclipse.core.runtime.IPath;
  */
 public interface ResourceFilteringConfiguration {
 
+  /**
+   * @return the target folder in which filtered resources should be generated
+   */
   IPath getTargetFolder();
   
-  //FIXME maybe return List<org.apache.maven.model.Resource> instead
+  /**
+   * @return the list of resources to filter / copy
+   */
   List<Xpp3Dom> getResources();
   
+  /**
+   * Filters (property files) to include during the interpolation of the pom.xml.
+   * @return the list of Filters  
+   */
   List<String> getFilters();
 
   /**
-   * @return
+   * Expression preceded with this String won't be interpolated \${foo} will be replaced with ${foo}
+   * @return the escape String
    */
   String getEscapeString();
 
   /**
-   * @return
+   * @return A list of file extensions that should not be filtered if filtering is enabled.
    */
   List<Xpp3Dom> getNonfilteredExtensions();
 }

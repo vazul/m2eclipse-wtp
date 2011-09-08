@@ -8,26 +8,28 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.maven.project.MavenProject;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.ejb.project.operations.IEjbFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.ejb.project.operations.EjbFacetInstallDataModelProvider;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.internal.IMavenConstants;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.frameworks.datamodel.DataModelFactory;
 import org.eclipse.wst.common.frameworks.datamodel.IDataModel;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -38,49 +40,39 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
-  private static final Logger log = LoggerFactory.getLogger(EjbProjectConfiguratorDelegate.class); 
-
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
 
-    if(facetedProject.hasProjectFacet(WTPProjectsUtil.EJB_FACET)) {
-      try {
-        facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
-            facetedProject.getInstalledVersion(WTPProjectsUtil.EJB_FACET), null)), monitor);
-      } catch(Exception ex) {
-        log.error("Error removing EJB facet", ex);
-      }
-    }
+    IMavenProjectFacade facade = MavenPlugin.getMavenProjectRegistry().create(project.getFile(IMavenConstants.POM_FILE_NAME), true, monitor);
 
     Set<Action> actions = new LinkedHashSet<Action>();
     installJavaFacet(actions, project, facetedProject);
 
-    IFile manifest = null;
-    IFolder firstInexistentfolder = null;
-    boolean manifestAlreadyExists =false;
-    // WTP doesn't allow facet versions changes for JEE facets 
+    EjbPluginConfiguration config = new EjbPluginConfiguration(mavenProject);
+    String contentDir = config.getEjbContentDirectory(project);
+    IProjectFacetVersion ejbFv = config.getEjbFacetVersion();
+    
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EJB_FACET)) {
-      // Configuring content directory, used by WTP to create META-INF/manifest.mf, ejb-jar.xml
-      EjbPluginConfiguration config = new EjbPluginConfiguration(mavenProject);
-      String contentDir = config.getEjbContentDirectory(project);
-      IFolder contentFolder = project.getFolder(contentDir);
-      manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
-      manifestAlreadyExists =manifest.exists(); 
-      if (!manifestAlreadyExists) {
-        firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
-      }   
-      
-      IDataModel ejbModelCfg = DataModelFactory.createDataModel(new EjbFacetInstallDataModelProvider());
-      ejbModelCfg.setProperty(IEjbFacetInstallDataModelProperties.CONFIG_FOLDER, contentDir);
-
-      IProjectFacetVersion ejbFv = config.getEjbFacetVersion();
-      
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, ejbFv, ejbModelCfg));
+      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, ejbFv, getEjbDataModel(contentDir)));
+    } else {
+      IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WTPProjectsUtil.EJB_FACET);     
+      if(ejbFv.getVersionString() != null && !ejbFv.getVersionString().equals(projectFacetVersion.getVersionString())){
+          actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, ejbFv, getEjbDataModel(contentDir)));
+      } 
     }
-
+    
     if(!actions.isEmpty()) {
-      facetedProject.modify(actions, monitor);
+      ResourceCleaner fileCleaner = new ResourceCleaner(project);
+      try {
+        addFilesToClean(fileCleaner, facade.getResourceLocations());
+        addFilesToClean(fileCleaner, facade.getCompileSourceLocations());
+        
+        facetedProject.modify(actions, monitor);
+      } finally {
+        //Remove any unwanted MANIFEST.MF the Facet installation has created
+        fileCleaner.cleanUp();
+      }
     }
 
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
@@ -88,18 +80,23 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     removeTestFolderLinks(project, mavenProject, monitor, "/");
 
-    if (!manifestAlreadyExists && manifest != null && manifest.exists()) {
-      manifest.delete(true, monitor);
+    IVirtualComponent ejbComponent = ComponentCore.createComponent(project);
+    if (ejbComponent != null) {
+      IPath contentDirPath = new Path("/").append(contentDir);
+      WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(ejbComponent.getRootFolder(), contentDirPath, monitor);
     }
-    if (firstInexistentfolder != null && firstInexistentfolder.exists() && firstInexistentfolder.members().length == 0 )
-    {
-      firstInexistentfolder.delete(true, monitor);
-    }
-
     
     //Remove "library unavailable at runtime" warning.
     setNonDependencyAttributeToContainer(project, monitor);
-}
+    
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
+  }
+
+  private Object getEjbDataModel(String contentDir) {
+    IDataModel ejbModelCfg = DataModelFactory.createDataModel(new EjbFacetInstallDataModelProvider());
+    ejbModelCfg.setProperty(IEjbFacetInstallDataModelProperties.CONFIG_FOLDER, contentDir);
+    return ejbModelCfg;
+  }
 
   public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {

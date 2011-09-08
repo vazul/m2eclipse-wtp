@@ -39,6 +39,8 @@ class ProjectConfiguratorDelegateFactory {
         return new EarProjectConfiguratorDelegate();
       case RAR:
         return new ConnectorProjectConfiguratorDelegate();
+      case APP_CLIENT:
+    	  return new AppClientProjectConfiguratorDelegate();
       default :
         return null;
     }

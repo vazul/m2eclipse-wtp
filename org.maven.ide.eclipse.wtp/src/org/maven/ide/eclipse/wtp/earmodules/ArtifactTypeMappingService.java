@@ -60,6 +60,7 @@ public class ArtifactTypeMappingService {
     standardArtifactTypes.add("sar");
     standardArtifactTypes.add("wsr");
     standardArtifactTypes.add("har");
+    standardArtifactTypes.add("app-client");    
   }
 
   // A standard type to a list of customType

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server>
+    <mbean name="mbeanName" code="fully.qualified.name">
+        <attribute name="CustomAttribute">${my.custom.mbean.attribute.value}</attribute>
+    </mbean>
+</server>

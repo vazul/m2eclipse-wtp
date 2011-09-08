@@ -10,7 +10,6 @@ package org.maven.ide.eclipse.wtp;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,35 +23,25 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathAttribute;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jst.common.project.facet.JavaFacetUtils;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
-import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 import org.eclipse.wst.common.componentcore.ComponentCore;
-import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
-import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
-import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 
 
@@ -67,6 +56,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   static final IClasspathAttribute NONDEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
       IClasspathDependencyConstants.CLASSPATH_COMPONENT_NON_DEPENDENCY, "");
 
+  protected static final IPath ROOT_PATH = new Path("/"); 
 
   protected final IMavenProjectRegistry projectManager;
 
@@ -79,11 +69,11 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   
   public void configureProject(IProject project, MavenProject mavenProject, IProgressMonitor monitor) throws MarkedException {
     try {
-      mavenMarkerManager.deleteMarkers(project,IMavenConstants.MARKER_CONFIGURATION_ID);//FIXME This is utterly wrong. Need to handle non core markers
+      mavenMarkerManager.deleteMarkers(project,MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID);
       configure(project, mavenProject, monitor);
     } catch (CoreException cex) {
       //TODO Filter out constraint violations
-      mavenMarkerManager.addErrorMarkers(project, IMavenConstants.MARKER_CONFIGURATION_ID, cex);
+      mavenMarkerManager.addErrorMarkers(project, MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID, cex);
       throw new MarkedException("Unable to configure "+project.getName(), cex);
     }
   }
@@ -108,13 +98,16 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     return dependencies;
   }
 
-  protected void configureWtpUtil(IProject project, MavenProject mavenProject, IProgressMonitor monitor) throws CoreException {
+  protected void configureWtpUtil(IMavenProjectFacade facade, IProgressMonitor monitor) throws CoreException {
     // Adding utility facet on JEE projects is not allowed
-    if(WTPProjectsUtil.isJavaEEProject(project)) {
+    IProject project = facade.getProject();
+    MavenProject mavenProject = facade.getMavenProject();
+    if(  !WTPProjectsUtil.isJavaProject(facade)
+       || WTPProjectsUtil.isJavaEEProject(project) 
+       || WTPProjectsUtil.isQualifiedAsWebFragment(facade)) {
       return;
     }
 
-    //System.err.println("configuring "+project);
     boolean isDebugEnabled = DebugUtilities.isDebugEnabled();
     if (isDebugEnabled) {
       DebugUtilities.debug(DebugUtilities.dumpProjectState("Before configuration ",project));
@@ -161,7 +154,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       DebugUtilities.debug(DebugUtilities.dumpProjectState("after configuration ",project));
     }
     //MNGECLIPSE-904 remove tests folder links for utility jars
-    //TODO handle modules in a parent pom (the following doesn't work)
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
     //Remove "library unavailable at runtime" warning.
@@ -179,6 +171,8 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     if (!manifestAlreadyExists && manifest.exists()) {
       manifest.delete(true, monitor);
     }
+
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
   }
 
   /**
@@ -189,36 +183,16 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
    * @throws CoreException if the ModuleCoreNature cannot be added
    */
   protected void fixMissingModuleCoreNature(IProject project, IProgressMonitor monitor) throws CoreException {
-    //MECLIPSEWTP-41 Fix the missing moduleCoreNature
-    if (null == ModuleCoreNature.addModuleCoreNatureIfNecessary(project, monitor)) {
-      //If we can't add the missing nature, then the project is useless, so let's tell the user
-      throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID, "Unable to add the ModuleCoreNature to "+project.getName(),null));
-    }
+    WTPProjectsUtil.fixMissingModuleCoreNature(project, monitor);
   }
 
   protected void installJavaFacet(Set<Action> actions, IProject project, IFacetedProject facetedProject) {
-    IProjectFacetVersion javaFv = JavaFacetUtils.compilerLevelToFacet(JavaFacetUtils.getCompilerLevel(project));
-    if(!facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET)) {
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, javaFv, null));
-    } else if(!facetedProject.hasProjectFacet(javaFv)) {
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.VERSION_CHANGE, javaFv, null));
-    }
+    WTPProjectsUtil.installJavaFacet(actions, project, facetedProject);
   }
 
   protected void removeTestFolderLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor,
       String folder) throws CoreException {
-    IVirtualComponent component = ComponentCore.createComponent(project);
-    if (component != null){
-      IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
-      for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
-        if (location == null) continue;
-        jsrc.removeLink(location, 0, monitor);
-      }
-      for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
-        if (location == null) continue;
-        jsrc.removeLink(location, 0, monitor);
-      }
-    }
+    WTPProjectsUtil.removeTestFolderLinks(project, mavenProject, monitor, folder);
   }
 
   protected void addContainerAttribute(IProject project, IClasspathAttribute attribute, IProgressMonitor monitor)
@@ -227,30 +201,12 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
   }
 
   protected void setNonDependencyAttributeToContainer(IProject project, IProgressMonitor monitor) throws JavaModelException {
-    updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
+    WTPProjectsUtil.updateContainerAttributes(project, NONDEPENDENCY_ATTRIBUTE, IClasspathDependencyConstants.CLASSPATH_COMPONENT_DEPENDENCY, monitor);
   }
 
   protected void updateContainerAttributes(IProject project, IClasspathAttribute attributeToAdd, String attributeToDelete, IProgressMonitor monitor)
   throws JavaModelException {
-    IJavaProject javaProject = JavaCore.create(project);
-    if (javaProject == null) return;
-    IClasspathEntry[] cp = javaProject.getRawClasspath();
-    for(int i = 0; i < cp.length; i++ ) {
-      if(IClasspathEntry.CPE_CONTAINER == cp[i].getEntryKind()
-          && MavenClasspathHelpers.isMaven2ClasspathContainer(cp[i].getPath())) {
-        LinkedHashMap<String, IClasspathAttribute> attrs = new LinkedHashMap<String, IClasspathAttribute>();
-        for(IClasspathAttribute attr : cp[i].getExtraAttributes()) {
-          if (!attr.getName().equals(attributeToDelete)) {
-            attrs.put(attr.getName(), attr);            
-          }
-        }
-        attrs.put(attributeToAdd.getName(), attributeToAdd);
-        IClasspathAttribute[] newAttrs = attrs.values().toArray(new IClasspathAttribute[attrs.size()]);
-        cp[i] = JavaCore.newContainerEntry(cp[i].getPath(), cp[i].getAccessRules(), newAttrs, cp[i].isExported());
-        break;
-      }
-    }
-    javaProject.setRawClasspath(cp, monitor);
+    WTPProjectsUtil.updateContainerAttributes(project, attributeToAdd, attributeToDelete, monitor);
   }
 
   /**
@@ -278,7 +234,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       }
     } else {
       // XXX Probably should create a UtilProjectConfiguratorDelegate
-      configureWtpUtil(dependency, mavenDependency, monitor);
+      configureWtpUtil(dependencyMavenProjectFacade, monitor);
     }
     return dependency;
   }
@@ -350,4 +306,16 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       IProgressMonitor monitor) throws CoreException {
     // do nothing
   }
+
+  public void setModuleDependencies(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
+      throws CoreException {
+    // do nothing
+  }
+  
+  protected void addFilesToClean(ResourceCleaner fileCleaner, IPath[] paths) {
+    for (IPath resourceFolderPath : paths) {
+      fileCleaner.addFiles(resourceFolderPath.append("META-INF/MANIFEST.MF"));
+    }
+  }
+
 }

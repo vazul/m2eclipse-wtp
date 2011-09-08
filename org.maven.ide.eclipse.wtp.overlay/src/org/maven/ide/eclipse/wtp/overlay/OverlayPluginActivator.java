@@ -9,6 +9,8 @@ import org.osgi.framework.BundleContext;
 
 public class OverlayPluginActivator extends Plugin {
 	
+	public static final String PLUGIN_ID = "org.maven.ide.eclipse.wtp.overlay";
+	
 	IResourceChangeListener overlayresourceChangeListener;
 	
 	@Override

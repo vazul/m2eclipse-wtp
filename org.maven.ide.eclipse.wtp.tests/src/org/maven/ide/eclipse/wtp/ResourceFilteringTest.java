@@ -142,7 +142,7 @@ public class ResourceFilteringTest extends AbstractWTPTestCase {
     //assertHasMarker("org.maven.ide.eclipse.maven2Problem:Cannot find setter, adder nor field in org.apache.maven.plugin.resources.Resource for 'filter'", markers);
     
     IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
-    assertTrue("Filtered folder should always be created", filteredFolder.exists());
+    //assertTrue("Filtered folder should always be created", filteredFolder.exists());
        
     //Let's change the active profile to see if the values are updated
     updateProject(web, "good.pom.xml");    
@@ -229,7 +229,7 @@ public class ResourceFilteringTest extends AbstractWTPTestCase {
   }
 
   @Test
-  public void testMECLIPSE124_advancedFiltering() throws Exception {
+  public void testMECLIPSE124_advancedEarFiltering() throws Exception {
     IProject[] projects = importProjects("projects/MECLIPSEWTP-124/", 
         new String[]{"pom.xml", "advanced-ear-filters/pom.xml", "ejb/pom.xml"},
         new ResolverConfiguration());
@@ -258,10 +258,89 @@ public class ResourceFilteringTest extends AbstractWTPTestCase {
     
     String ignored = getAsString(propertiesFile);
     assertTrue("ignored.properties  was filtered "+ignored, ignored.contains("attribute=${my.custom.mbean.attribute.value}"));
+  }
 
-
+  
+  @Test
+  public void testResourcesOutsideProject() throws Exception {
+    IProject[] projects = importProjects("projects/WebResourceFiltering/top/", 
+                  new String[]{"pom.xml", "mid/pom.xml", "mid/web/pom.xml"}, 
+                  new ResolverConfiguration());
+    
+    IProject web = projects[2];
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    IFile indexHtml = filteredFolder.getFile("index.html");
+    assertTrue("index.html is missing",indexHtml.exists());
+    String index = getAsString(indexHtml);
+    assertTrue("${artifactId} is missing", index.contains("${artifactId}"));
+    
+    //Let's activate filtering, see if the values are updated
+    updateProject(web, "pom2.xml");    
+    
+    index = getAsString(indexHtml);
+    assertTrue("${artifactId} has not been interpolated", index.contains("web"));
   }
   
+
+  @Test
+  public void testMECLIPSEWTP159_filteringDeploymentDescriptors() throws Exception {
+    IProject web = importProject("projects/MECLIPSEWTP-159/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    //Check all the files are correctly filtered
+    IFile webXml = filteredFolder.getFile("WEB-INF/web.xml");
+    assertTrue(webXml.getName() +" is missing",webXml.exists());
+    String xml = getAsString(webXml);
+    assertTrue("web.xml was not filtered : " + xml , xml.contains("<display-name>Maven Webapp</display-name>"));
+    assertTrue("${welcome.page} from webfilter.properties was not interpolated", xml.contains("<welcome-file>index.html</welcome-file>"));
+  }
+
+
+  @Test
+  public void testMECLIPSEWTP152_leadingSlashInTargetPath() throws Exception {
+    IProject web = importProject("projects/MECLIPSEWTP-152/pom.xml");
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    //Check all the files are correctly filtered
+    IFile file = filteredFolder.getFile("test/page.properties");
+    assertTrue(file.getName() +" is missing from test folder",file.exists());
+    String content = getAsString(file);
+    assertEquals(content , "m2e rocks!");
+
+    file = filteredFolder.getFile("page.properties");
+    assertTrue(file.getName() +" is missing from root",file.exists());
+    String content2 = getAsString(file);
+    assertEquals(content , content2);
+
+  }
+
+  @Test
+  public void testMECLIPSEWTP138_loadParent() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-138/error/", 
+                  new String[]{"pom.xml", "modules/error-war/pom.xml"}, 
+                  new ResolverConfiguration());
+    
+    IProject web = projects[1];
+    web.build(IncrementalProjectBuilder.FULL_BUILD, new NullProgressMonitor());
+    waitForJobsToComplete();
+    //assertNoErrors(web);
+    IFolder filteredFolder = web.getFolder(FILTERED_FOLDER_NAME);
+    assertTrue("Filtered folder doesn't exist", filteredFolder.exists());
+    
+    IFile testXml = filteredFolder.getFile("WEB-INF/etc/config/test.xml");
+    assertTrue("test.xml is missing",testXml.exists());
+  }  
   /**
    * @param folder
    * @return

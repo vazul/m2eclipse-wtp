@@ -20,6 +20,7 @@ import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomUtils;
@@ -39,6 +40,8 @@ import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
+import org.eclipse.m2e.core.internal.builder.AbstractEclipseBuildContext;
+import org.eclipse.m2e.core.internal.builder.AbstractEclipseBuildContext.Message;
 import org.eclipse.m2e.core.internal.builder.EclipseBuildContext;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
@@ -89,9 +92,9 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
         log.info("Changed resources require a complete clean of filtered resources of {}",project.getName());
         Map<String, Object> contextState = new HashMap<String, Object>();
         project.setSessionProperty(BUILD_CONTEXT_KEY, contextState);
-        //String id = ((AbstractEclipseBuildContext)super.getBuildContext()).getCurrentBuildParticipantId();
+        //String id = "" + "-" + getClass().getName();
         forceCopyBuildContext = new EclipseBuildContext(project, contextState);
-        //forceCopyBuildContext.setCurrentBuildParticipantId(id);
+        forceCopyBuildContext.setCurrentBuildParticipantId(getBuildParticipantId());
         ThreadBuildContext.setThreadBuildContext(forceCopyBuildContext);
       }
       if (forceCopyBuildContext != null || hasResourcesChanged(facade, delta, resources)) {
@@ -108,6 +111,27 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     }
 
     return null;
+  }
+
+  /**
+   * Super bad hack to retrieve the buildParticipantId that is not exposed by AbstractEclipseBuildContext
+   */
+  private String getBuildParticipantId() {
+    BuildContext originalContext = super.getBuildContext();
+    String id = "org.apache.maven.plugins:maven-resources:copy-resources:::-"+getClass().getName(); 
+    if (originalContext != null && (originalContext instanceof AbstractEclipseBuildContext)) {
+      //That hack allows us to avoid doing some introspection
+      AbstractEclipseBuildContext eclipseContext = ((AbstractEclipseBuildContext)originalContext); 
+      Map<String, List<Message>> map = eclipseContext.getMessages();
+      if (map == null || map.isEmpty()) {
+        eclipseContext.addMessage(null, 0, 0, "dummy", 0, null);
+        id = map.keySet().iterator().next();
+        map.clear();
+      } else {
+        id = map.keySet().iterator().next();
+      }
+    }
+    return id;
   }
 
   protected BuildContext getBuildContext() {
@@ -169,7 +193,6 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       if (parent != null) {
         parent.refreshLocal(IResource.DEPTH_INFINITE, monitor ); 
       }
-      targetFolder.refreshLocal(IResource.DEPTH_INFINITE, monitor); 
     }    
   }
 
@@ -229,6 +252,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
 
     //Create a maven request + session
     ResolverConfiguration resolverConfig = facade.getResolverConfiguration();
+    
     List<String> filters = filteringConfiguration.getFilters();
     IMavenProjectRegistry projectManager = MavenPlugin.getMavenProjectRegistry();
     MavenExecutionRequest request = projectManager.createExecutionRequest(facade.getPom(), resolverConfig, monitor);
@@ -236,8 +260,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     request.setOffline(true);
 
     IMaven maven = MavenPlugin.getMaven();
-    MavenSession session = maven.createSession(request, facade.getMavenProject());
-    MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, facade.getMavenProject(), Collections.singletonList("resources:copy-resources"), true, monitor);
+    MavenProject mavenProject = facade.getMavenProject();
+    
+    MavenSession session = maven.createSession(request, mavenProject);
+    MavenExecutionPlan executionPlan = maven.calculateExecutionPlan(session, mavenProject, Collections.singletonList("resources:copy-resources"), true, monitor);
     
     MojoExecution copyFilteredResourcesMojo = getExecution(executionPlan, "maven-resources-plugin");
 
@@ -245,8 +271,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
 
     Xpp3Dom originalConfig = copyFilteredResourcesMojo.getConfiguration();
     Xpp3Dom  configuration = Xpp3DomUtils.mergeXpp3Dom(new Xpp3Dom("configuration"), originalConfig);
- 
+    boolean parentHierarchyLoaded = false;
     try {
+      parentHierarchyLoaded = loadParentHierarchy(facade, monitor);
+      
       //Set resource directories to read
       setupResources(configuration, resources);
       
@@ -290,7 +318,10 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       
     } finally {
       //Restore original configuration
-      copyFilteredResourcesMojo.setConfiguration(originalConfig);      
+      copyFilteredResourcesMojo.setConfiguration(originalConfig);
+      if (parentHierarchyLoaded) {
+        mavenProject.setParent(null);
+      }
     }
   }
 
@@ -393,7 +424,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     }
   }
   
-  private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId) throws CoreException {
+  private MojoExecution getExecution(MavenExecutionPlan executionPlan, String artifactId) {
     if (executionPlan == null) return null;
     for(MojoExecution execution : executionPlan.getMojoExecutions()) {
       if(artifactId.equals(execution.getArtifactId()) ) {
@@ -402,13 +433,44 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     }
     return null;
   }
-  
-  public static ResourceFilteringBuildParticipant getParticipant(MojoExecution execution) {
-    if ("maven-war-plugin".equals(execution.getArtifactId()) && "war".equals(execution.getGoal()) 
-        || "maven-ear-plugin".equals(execution.getArtifactId()) && "generate-application-xml".equals(execution.getGoal()))
-    {
-      return new ResourceFilteringBuildParticipant(); 
+
+  /**
+   * Workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=356725. 
+   * Loads the parent project hierarchy if needed.
+   * @param facade
+   * @param monitor
+   * @return true if parent projects had to be loaded.
+   * @throws CoreException
+   */
+  private boolean loadParentHierarchy(IMavenProjectFacade facade, IProgressMonitor monitor) throws CoreException {
+    boolean loadedParent = false; 
+    MavenProject mavenProject = facade.getMavenProject();
+    try {
+      if (mavenProject.getModel().getParent() == null || mavenProject.getParent() != null) {
+        //If the method is called without error, we can assume the project has been fully loaded
+        //No need to continue. 
+        return false;
+      }
+    } catch (IllegalStateException e) {
+    //The parent can not be loaded properly 
     }
-    return null;
+    MavenExecutionRequest request = null;
+    while(mavenProject !=null && mavenProject.getModel().getParent() != null) {
+        if(monitor.isCanceled()) {
+          break;
+        }
+        if (request == null) {
+          request = MavenPlugin.getMavenProjectRegistry().createExecutionRequest(facade, monitor);
+        }
+        MavenProject parentProject = MavenPlugin.getMaven().resolveParentProject(request, mavenProject, monitor);
+        if (parentProject != null) {
+          mavenProject.setParent(parentProject);
+          loadedParent = true;            
+        }
+        mavenProject = parentProject;
+    }
+    return loadedParent; 
   }
+  
+  
 }

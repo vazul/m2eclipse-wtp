@@ -26,11 +26,12 @@ import org.eclipse.wst.common.componentcore.internal.resources.VirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualResource;
 
-public class ResourceListVirtualFolder extends VirtualFolder {
+public class ResourceListVirtualFolder extends VirtualFolder implements IFilteredVirtualFolder {
 
 	private ArrayList<IResource> children;
 	private ArrayList<IContainer> underlying;
-	private ResourceFilter filter;
+	private IResourceFilter filter;
+	
 	public ResourceListVirtualFolder(
 			IProject aComponentProject,
 			IPath aRuntimePath) {
@@ -54,7 +55,7 @@ public class ResourceListVirtualFolder extends VirtualFolder {
 		addChildren(looseResources);
 	}
 
-	public void setFilter(ResourceFilter filter) {
+	public void setFilter(IResourceFilter filter) {
 		this.filter = filter;
 	}
 	
@@ -114,10 +115,15 @@ public class ResourceListVirtualFolder extends VirtualFolder {
 	}
 
 	protected void handleResource(IResource resource, HashMap<String, IVirtualResource> map, int memberFlags) throws CoreException {
-		if( filter != null && !filter.accepts(resource))
+		if (resource == null) {
+			return;
+		}
+		boolean isFile =  resource instanceof IFile;
+		String path = resource.getLocation().toPortableString();
+		if( filter != null && !filter.accepts(path, isFile))
 			return;
 		
-		if( resource instanceof IFile ) {
+		if( isFile) {
 			if( !map.containsKey(resource.getName()) ) {
 				IVirtualFile virtFile = new VirtualFile(getProject(), 
 						getRuntimePath().append(((IFile)resource).getName()), (IFile)resource);
@@ -140,5 +146,9 @@ public class ResourceListVirtualFolder extends VirtualFolder {
 				map.put(resource.getName(), childFolder);
 			}
 		} // end container
+	}
+
+	public IResourceFilter getFilter() {
+		return filter;
 	}
 }

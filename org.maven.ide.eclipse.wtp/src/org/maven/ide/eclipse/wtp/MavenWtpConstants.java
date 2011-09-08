@@ -21,9 +21,15 @@ public class MavenWtpConstants {
 
   public static final String WTP_MARKER_ID = IMavenConstants.MARKER_ID + ".wtp"; //$NON-NLS-1$
 
+  public static final String WTP_MARKER_CONFIGURATION_ERROR_ID = WTP_MARKER_ID + ".configuration";//$NON-NLS-1$ 
+  
   public static final String WTP_MARKER_FILTERING_ERROR = WTP_MARKER_ID + ".filteringError"; //$NON-NLS-1$
 
+  public static final String WTP_MARKER_OVERLAY_ERROR = WTP_MARKER_ID + ".overlayError"; //$NON-NLS-1$
+
   public static final String WTP_MARKER_GENERATE_APPLICATIONXML_ERROR = WTP_MARKER_ID + ".filteringError"; //$NON-NLS-1$
+
+  public static final String WTP_MARKER_MANIFEST_ERROR = WTP_MARKER_ID + ".manifestError"; //$NON-NLS-1$
 
   public static final String M2E_WTP_FOLDER = "m2e-wtp";
   

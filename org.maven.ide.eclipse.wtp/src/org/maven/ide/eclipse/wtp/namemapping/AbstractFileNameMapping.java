@@ -9,6 +9,8 @@
 package org.maven.ide.eclipse.wtp.namemapping;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.maven.ide.eclipse.wtp.ArtifactHelper;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -54,8 +56,9 @@ public abstract class AbstractFileNameMapping
      */
     protected String generateFileName( final Artifact a, boolean addVersion )
     {
-        final String extension = a.getArtifactHandler().getExtension();
-
+    	ArtifactHandler artifactHandler = a.getArtifactHandler();
+    	ArtifactHelper.fixArtifactHandler(artifactHandler);
+        String extension = artifactHandler.getExtension();
         final StringBuilder buffer = new StringBuilder( 128 );
         buffer.append( a.getArtifactId() );
         if ( addVersion )

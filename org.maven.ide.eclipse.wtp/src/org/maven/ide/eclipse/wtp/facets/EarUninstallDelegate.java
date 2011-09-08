@@ -8,11 +8,6 @@
 
 package org.maven.ide.eclipse.wtp.facets;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.wst.common.project.facet.core.IDelegate;
-import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 
 
 /**
@@ -20,11 +15,6 @@ import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
  * 
  * @author Eugene Kuleshov
  */
-public class EarUninstallDelegate implements IDelegate {
-
-  public void execute(IProject project, IProjectFacetVersion fv, Object config, IProgressMonitor monitor)
-      throws CoreException {
-    // do nothing
-  }
-
+public class EarUninstallDelegate extends NoOpUninstallDelegate {
+	
 }

@@ -22,11 +22,13 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jst.j2ee.jca.project.facet.ConnectorFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.jca.project.facet.IConnectorFacetInstallDataModelProperties;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.wst.common.componentcore.ComponentCore;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
@@ -75,9 +77,10 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     IFile manifest = null;
     IFolder firstInexistentfolder = null;
     boolean manifestAlreadyExists =false;
+    String contentDir = config.getRarContentDirectory(project);
+
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.JCA_FACET)) {
       // Configuring content directory, used by WTP to create META-INF/manifest.mf, ra.xml
-      String contentDir = config.getRarContentDirectory(project);
       IFolder contentFolder = project.getFolder(contentDir);
       manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
       manifestAlreadyExists =manifest.exists(); 
@@ -122,6 +125,15 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     {
       firstInexistentfolder.delete(true, monitor);
     }
+
+    IVirtualComponent component = ComponentCore.createComponent(project);
+    if (component != null) {
+      IPath contentDirPath = new Path("/").append(contentDir);
+      WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(component.getRootFolder(), contentDirPath, monitor);
+    }
+
+    WTPProjectsUtil.removeWTPClasspathContainer(project);
+    
   }
 
   private void removeSourceLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor, String folder) throws CoreException {
@@ -151,6 +163,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     
     //Adding artifact references in .component. See https://bugs.eclipse.org/bugs/show_bug.cgi?id=297777#c1
     for(Artifact artifact : artifacts) {
+    	ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
       //Don't deploy pom, non runtime or optional dependencies
       if("pom".equals(artifact.getType()) || !SCOPE_FILTER_RUNTIME.include(artifact) || artifact.isOptional()) {
         continue;
@@ -163,8 +176,9 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
           && workspaceDependency.getFullPath(artifact.getFile()) != null) {
         //artifact dependency is a workspace project
         IProject depProject = preConfigureDependencyProject(workspaceDependency, monitor);
-        
-        newRefs.add(createReference(rarComponent, depProject, artifact));
+        if (ModuleCoreNature.isFlexibleProject(depProject)) {
+          newRefs.add(createReference(rarComponent, depProject, artifact));
+        }
       } else {
         //artifact dependency should be added as a JEE module, referenced with M2_REPO variable 
         newRefs.add(createReference(rarComponent, artifact));

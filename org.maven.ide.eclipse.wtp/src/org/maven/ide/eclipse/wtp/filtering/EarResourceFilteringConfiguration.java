@@ -8,9 +8,7 @@
 
 package org.maven.ide.eclipse.wtp.filtering;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.project.MavenProject;
@@ -29,11 +27,12 @@ import org.maven.ide.eclipse.wtp.ProjectUtils;
  */
 public class EarResourceFilteringConfiguration extends AbstractResourceFilteringConfiguration {
 
-  private EarPluginConfiguration pluginConfiguration;
+  private EarPluginConfiguration earPluginConfiguration;
   
   public EarResourceFilteringConfiguration(IMavenProjectFacade mavenProjectFacade) {
     super(mavenProjectFacade);
-    pluginConfiguration = new EarPluginConfiguration(mavenProjectFacade.getMavenProject());
+    earPluginConfiguration = new EarPluginConfiguration(mavenProjectFacade.getMavenProject());
+    pluginConfiguration = earPluginConfiguration;
   }
 
   public IPath getTargetFolder() {
@@ -45,10 +44,10 @@ public class EarResourceFilteringConfiguration extends AbstractResourceFiltering
   }
 
   public List<Xpp3Dom> getResources() {
-    if (!pluginConfiguration.isFiltering()) {
+    if (!earPluginConfiguration.isFilteringDeploymentDescriptorsEnabled()) {
       return null;
     }
-    String earContentDir = pluginConfiguration.getEarContentDirectory(mavenProjectFacade.getProject());
+    String earContentDir = earPluginConfiguration.getEarContentDirectory(mavenProjectFacade.getProject());
     Xpp3Dom resource = new Xpp3Dom("resource");
     Xpp3Dom directory = new Xpp3Dom("directory");
     directory.setValue(earContentDir);
@@ -60,26 +59,4 @@ public class EarResourceFilteringConfiguration extends AbstractResourceFiltering
     return Arrays.asList(resource);
   }
 
-  public List<String> getFilters() {
-    List<String> filters = new ArrayList<String>(mavenProjectFacade.getMavenProject().getFilters());
-    filters.addAll(pluginConfiguration.getEarFilters());
-    return filters;
-  }
-
-  public String getEscapeString() {
-    return pluginConfiguration.getEscapeString();
-  }
-
-  /* (non-Javadoc)
-   * @see org.maven.ide.eclipse.wtp.filtering.ResourceFilteringConfiguration#getNonfilteredExtensions()
-   */
-  public List<Xpp3Dom> getNonfilteredExtensions() {
-    Xpp3Dom[] domext = pluginConfiguration.getNonfilteredExtensions();
-    if(domext == null || domext.length == 0){
-      return Collections.emptyList();
-    }
-    return Arrays.asList(domext);
-  }
-
-  
 }

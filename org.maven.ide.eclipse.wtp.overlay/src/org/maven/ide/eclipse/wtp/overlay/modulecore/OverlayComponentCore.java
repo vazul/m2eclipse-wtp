@@ -9,12 +9,8 @@
 package org.maven.ide.eclipse.wtp.overlay.modulecore;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlaySelfComponent;
 import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlayVirtualArchiveComponent;
 import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlayVirtualComponent;
@@ -25,28 +21,18 @@ import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlayVirtualCompo
  * @author Fred Bricon
  */
 public class OverlayComponentCore {
-
+	
 	public static IOverlayVirtualComponent createOverlayComponent(IProject aProject) {
 		return new OverlayVirtualComponent(aProject);
 	}
 
+	//TODO check and prevent circular references
 	public static IOverlayVirtualComponent createSelfOverlayComponent(IProject aProject) {
 		return new OverlaySelfComponent(aProject);
 	}
 
 	public static IOverlayVirtualComponent createOverlayArchiveComponent(IProject aComponentProject, String archiveLocation, IPath unpackDirPath, IPath aRuntimePath) throws CoreException {
-
-		final OverlayVirtualArchiveComponent component = new OverlayVirtualArchiveComponent(
-				aComponentProject, archiveLocation, unpackDirPath, aRuntimePath);
-		WorkspaceJob job = new WorkspaceJob("Unpacking " + component.getName()	+ "overlay") {
-			@Override
-			public IStatus runInWorkspace(IProgressMonitor monitor)	throws CoreException {
-				component.unpackIfNeeded(new NullProgressMonitor());
-				return null;
-			}
-		};
-
-		job.runInWorkspace(new NullProgressMonitor());
+		final OverlayVirtualArchiveComponent component = new OverlayVirtualArchiveComponent(aComponentProject, archiveLocation, unpackDirPath, aRuntimePath);
 		return component;
 	}
 }

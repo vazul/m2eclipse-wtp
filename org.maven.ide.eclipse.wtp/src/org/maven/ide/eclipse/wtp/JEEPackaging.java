@@ -32,6 +32,10 @@ public enum JEEPackaging {
    */
   RAR("rar"),
   /**
+   * Application client
+   */
+  APP_CLIENT("app-client"),
+  /**
    * Unknown packaging.
    */
   UNKNOWN(null);
