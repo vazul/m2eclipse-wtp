@@ -11,19 +11,29 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jpt.common.core.JptCommonCorePlugin;
+import org.eclipse.jpt.common.core.internal.resource.ModuleResourceLocator;
 import org.eclipse.jpt.common.core.internal.resource.SimpleJavaResourceLocator;
 import org.eclipse.jpt.common.core.resource.ResourceLocator;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
+import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 
+/**
+ * Maven resource Locator
+ * @author Fred Bricon
+ */
 @SuppressWarnings("restriction")
-public class MavenResourceLocator extends SimpleJavaResourceLocator implements ResourceLocator {
+public class MavenResourceLocator implements ResourceLocator {
 	
-	@Override
+  private static IPath META_INF_PATH = new Path("META-INF");
+
+  /**
+   * Accepts all resources not under the build output and test build output folders
+   */
 	public boolean acceptResourceLocation(IProject project, IContainer container) {
     IMavenProjectFacade mavenProjectFacade = getMavenProjectFacade(project);
     boolean accept = true;
@@ -37,53 +47,76 @@ public class MavenResourceLocator extends SimpleJavaResourceLocator implements R
       }
     } else {
       //Maven project not loaded yet, fallback to default behaviour.
-      accept = super.acceptResourceLocation(project, container);
+      accept = getDefaultDelegate().acceptResourceLocation(project, container);
     }
-    System.err.println("acceptResourceLocation(" + project +", "+ container + ") ="+ accept );
+    //System.err.println("acceptResourceLocation(" + project +", "+ container + ") ="+ accept );
     return accept;
-    
 	}
 
-	/*
-  @Override 
-  public IPath _getResourcePath(IProject project, IPath runtimePath) {
-    IPath resourcePath = super.getResourcePath(project, runtimePath); 
-    if (isFiltered(getMavenProjectFacade(project), resourcePath)) {
-      IPath filteredResourcePath = getFilteredResourcePath(project, runtimePath);
-      if (filteredResourcePath != null) {
-        resourcePath = filteredResourcePath;
-      }
-    }
-		System.err.println("getResourcePath (" + project + ", " + runtimePath + ") = " + resourcePath);
-		return resourcePath;
-	}
-  */
+	
+	private ResourceLocator getDelegate(IProject project) {
+	  if (ModuleCoreNature.isFlexibleProject(project)) {
+	    return new ModuleResourceLocator();
+	  }
+    return getDefaultDelegate();
+  }
+	
+	 private ResourceLocator getDefaultDelegate() {
+	    return new SimpleJavaResourceLocator();
+	 }
 
-	@Override 
+	/**
+	 * Returns the resource path from Maven's resource folders mapped to the runtimePath.  
+	 */
   public IPath getResourcePath(IProject project, IPath runtimePath) {
     IPath resourcePath = null; 
     IMavenProjectFacade mavenProjectFacade = getMavenProjectFacade(project);
     if (mavenProjectFacade != null && mavenProjectFacade.getMavenProject() != null) {
-      final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
       for (Resource resourceFolder : mavenProjectFacade.getMavenProject().getBuild().getResources()) {
-        IPath p = getWorkspaceRelativePath(resourceFolder);
-        if (p != null){
-          IFile resource = root.getFile(p.append(runtimePath));
-          if (resource.exists()) {
-            resourcePath = resource.getFullPath();
-            break;
+        resourcePath = getFilePath(getWorkspaceRelativePath(resourceFolder), runtimePath);
+        if (resourcePath != null) {
+          break;
+        }
+      } 
+    } else {
+      //Maven project not loaded yet, we fallback on the JavaProject source folders lookup
+      IJavaProject javaProject = JavaCore.create(project);
+      try {
+        for(IClasspathEntry entry : javaProject.getRawClasspath()) {
+          if (IClasspathEntry.CPE_SOURCE == entry.getEntryKind()) {
+            resourcePath = getFilePath(entry.getPath(), runtimePath);
+            if (resourcePath != null) {
+              break;
+            }
           }
         }
+      } catch (JavaModelException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     }
+
     System.err.println("getResourcePath (" + project + ", " + runtimePath + ") = " + resourcePath);
     if (resourcePath == null) {
-      resourcePath = super.getResourcePath(project, runtimePath);
+      resourcePath = getDefaultDelegate().getResourcePath(project, runtimePath);
     }
     return resourcePath;
   }
-  
-  @Override
+
+  private IPath getFilePath(IPath containerPath, IPath runtimePath) {
+    if (containerPath != null){
+      final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+      IFile resource = root.getFile(containerPath.append(runtimePath));
+      if (resource.exists()) {
+        return resource.getFullPath();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the META-INF folder found in one of Maven's resource.  
+   */
   public IContainer getDefaultResourceLocation(IProject project) {
     IMavenProjectFacade mavenProjectFacade = getMavenProjectFacade(project);
     IContainer defaultLocation = null;
@@ -105,27 +138,9 @@ public class MavenResourceLocator extends SimpleJavaResourceLocator implements R
     }
   
     if (defaultLocation == null) {
-      defaultLocation = super.getDefaultResourceLocation(project);
+      defaultLocation = getDefaultDelegate().getDefaultResourceLocation(project);
     }
     return defaultLocation;
-  }
-  
-  private boolean isFiltered(IMavenProjectFacade mavenProjectFacade, IPath resourcePath) {
-    if (mavenProjectFacade == null || mavenProjectFacade.getMavenProject() == null) {
-      return false;
-    }
-    for (Resource resourceFolder : mavenProjectFacade.getMavenProject().getBuild().getResources()) {
-      if (contains(mavenProjectFacade.getProject(), resourceFolder, resourcePath )) {
-        return resourceFolder.isFiltering();
-      }
-    }
-    
-    return false;
-  }
-  
-  private boolean contains(IProject project, Resource mavenResourceFolder, IPath jpaResourcePath) {
-    IPath mavenResourceFolderRelativePath = getWorkspaceRelativePath(mavenResourceFolder);
-    return (mavenResourceFolderRelativePath != null) && mavenResourceFolderRelativePath.isPrefixOf(jpaResourcePath);
   }
 
   private IPath getWorkspaceRelativePath(Resource mavenResourceFolder) {
@@ -151,24 +166,9 @@ public class MavenResourceLocator extends SimpleJavaResourceLocator implements R
     return MavenPlugin.getMavenProjectRegistry().getProject(project);
   }
 
-  private IPath getFilteredResourcePath(IProject project, IPath runtimePath) {
-    IJavaProject javaProject = JavaCore.create(project);
-    IPath resourcePath = null;
-    try {
-      IPath buildOutput = javaProject.getOutputLocation();
-      resourcePath = buildOutput.append(runtimePath);
-    } catch (JavaModelException jme) {
-      JptCommonCorePlugin.log(jme);
-    }
-    return resourcePath;
-  }
-
-  @Override
-	public IPath getRuntimePath(IProject project, IPath resourcePath) {
-    //Never called, can't find any reference to this method 
-    IPath runtimePath = super.getRuntimePath(project, resourcePath);
-		System.err.println("getRuntimePath " + project + " : " + resourcePath + " = " + runtimePath);
+  public IPath getRuntimePath(IProject project, IPath resourcePath) {
+    IPath runtimePath = getDelegate(project).getRuntimePath(project, resourcePath);
+    System.err.println("getRuntimePath " + project + " : " + resourcePath + " = " + runtimePath);
     return runtimePath;
-	}
-
+  }
 }
