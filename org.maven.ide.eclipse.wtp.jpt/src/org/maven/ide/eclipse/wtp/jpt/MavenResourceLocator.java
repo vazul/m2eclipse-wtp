@@ -19,8 +19,11 @@ import org.eclipse.jpt.common.core.internal.resource.ModuleResourceLocator;
 import org.eclipse.jpt.common.core.internal.resource.SimpleJavaResourceLocator;
 import org.eclipse.jpt.common.core.resource.ResourceLocator;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.internal.embedder.MavenImpl;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Maven resource Locator
@@ -29,6 +32,8 @@ import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 @SuppressWarnings("restriction")
 public class MavenResourceLocator implements ResourceLocator {
 	
+  private static final Logger log = LoggerFactory.getLogger(MavenResourceLocator.class);
+  
   private static IPath META_INF_PATH = new Path("META-INF");
 
   /**
@@ -47,9 +52,13 @@ public class MavenResourceLocator implements ResourceLocator {
       }
     } else {
       //Maven project not loaded yet, fallback to default behaviour.
-      accept = getDefaultDelegate().acceptResourceLocation(project, container);
+      accept = getDelegate(project).acceptResourceLocation(project, container);
     }
-    //System.err.println("acceptResourceLocation(" + project +", "+ container + ") ="+ accept );
+    //Sometimes src/main/resources/META-INF is not even sent immediately to this method, resulting in 
+    // persistence.xml not being added to the jpaFiles of the jpaProject hence the creation of a 
+    // "The persistence.xml file does not have recognized content." error marker
+    log.debug("acceptResourceLocation({}, {}) = {}",new Object[]{project, container, accept});
+    
     return accept;
 	}
 
@@ -91,14 +100,13 @@ public class MavenResourceLocator implements ResourceLocator {
           }
         }
       } catch (JavaModelException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        log.error("Error getting the resource path", e);
       }
     }
 
-    System.err.println("getResourcePath (" + project + ", " + runtimePath + ") = " + resourcePath);
+    //System.err.println("getResourcePath (" + project + ", " + runtimePath + ") = " + resourcePath);
     if (resourcePath == null) {
-      resourcePath = getDefaultDelegate().getResourcePath(project, runtimePath);
+      resourcePath = getDelegate(project).getResourcePath(project, runtimePath);
     }
     return resourcePath;
   }
@@ -127,7 +135,7 @@ public class MavenResourceLocator implements ResourceLocator {
         if (p != null){
           IFolder candidate = root.getFolder(p.append(META_INF_PATH));
           if (candidate.exists()) {
-            System.err.println("getDefaultResourceLocation = "+candidate);
+            log.debug("getDefaultResourceLocation = {}",candidate);
             return candidate;
           }
           if (defaultLocation == null) {
@@ -138,7 +146,7 @@ public class MavenResourceLocator implements ResourceLocator {
     }
   
     if (defaultLocation == null) {
-      defaultLocation = getDefaultDelegate().getDefaultResourceLocation(project);
+      defaultLocation = getDelegate(project).getDefaultResourceLocation(project);
     }
     return defaultLocation;
   }
@@ -168,7 +176,7 @@ public class MavenResourceLocator implements ResourceLocator {
 
   public IPath getRuntimePath(IProject project, IPath resourcePath) {
     IPath runtimePath = getDelegate(project).getRuntimePath(project, resourcePath);
-    System.err.println("getRuntimePath " + project + " : " + resourcePath + " = " + runtimePath);
+    log.debug("getRuntimePath({}, {}) = {}",new Object[]{project, resourcePath, runtimePath});
     return runtimePath;
   }
 }
