@@ -54,13 +54,6 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
   // IWorkbenchAdapter
   
   public String getLabel(Object o) {
-//    IContainer[] folders = getRootFolders();
-//    StringBuilder label = new StringBuilder(getLabel());
-//    if(folders.length == 1) {
-//      IContainer c = folders[0];
-//      label.append(" : ").append(c.getFullPath().removeFirstSegments(1));
-//    }
-//    return label.toString();
     return getLabel();
   }
 
@@ -88,23 +81,17 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
   
   private IContainer[] getRootFolders() {
     IVirtualComponent component = ComponentCore.createComponent(project);
-    IVirtualFolder rootFolder = component.getRootFolder();
-    IContainer[] folders = rootFolder.getUnderlyingFolders();
+    IContainer[] folders = null;
+    if (component != null) {
+      IVirtualFolder rootFolder = component.getRootFolder();
+      folders = rootFolder.getUnderlyingFolders();
+    } else {
+      folders = new IContainer[0];
+    }
     return folders;
   }
   
   public String getLabel() {
-//    try {
-//      IFacetedProject facetedProject = ProjectFacetsManager.create(project);
-//      if (facetedProject.hasProjectFacet(IJ2EEFacetConstants.DYNAMIC_WEB_FACET)) {
-//        return "Web Resources";
-//      }
-//      if (facetedProject.hasProjectFacet(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_FACET)) {
-//        return "Application Resources";
-//      }
-//    } catch(CoreException ex) {
-//      log.error("Cannot retrieve the project facet",ex);
-//    }    
     return "Deployed Resources";
   }
 
