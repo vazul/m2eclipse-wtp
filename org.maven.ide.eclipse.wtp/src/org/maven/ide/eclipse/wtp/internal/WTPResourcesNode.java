@@ -88,8 +88,13 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
   
   private IContainer[] getRootFolders() {
     IVirtualComponent component = ComponentCore.createComponent(project);
-    IVirtualFolder rootFolder = component.getRootFolder();
-    IContainer[] folders = rootFolder.getUnderlyingFolders();
+    IContainer[] folders = null;
+    if (component != null) {
+      IVirtualFolder rootFolder = component.getRootFolder();
+      folders = rootFolder.getUnderlyingFolders();
+    } else {
+      folders = new IContainer[0];
+    }
     return folders;
   }
   
