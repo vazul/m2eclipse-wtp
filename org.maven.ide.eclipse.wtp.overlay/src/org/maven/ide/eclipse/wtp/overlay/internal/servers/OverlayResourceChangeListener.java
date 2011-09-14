@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -17,7 +18,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.ServerCore;
-import org.eclipse.wst.server.core.internal.Server;
+import org.maven.ide.eclipse.wtp.overlay.OverlayConstants;
 import org.maven.ide.eclipse.wtp.overlay.internal.modulecore.OverlaySelfComponent;
 import org.maven.ide.eclipse.wtp.overlay.modulecore.IOverlayVirtualComponent;
 
@@ -25,6 +26,10 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 
 	public void resourceChanged(IResourceChangeEvent event) {
 		
+	  if (!isEnabled()) {
+	    return;
+	  }  
+	  
 		IResourceDelta delta =  event.getDelta();
 		if (delta == null) {
 			return;
@@ -75,7 +80,13 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 		}
 	}
 
-	private Set<IProject> getChangedProjects(IResourceDelta[] projectDeltas) {
+	private boolean isEnabled() {
+	  boolean isEnabled = new InstanceScope().getNode(OverlayConstants.PLUGIN_ID)
+	                      .getBoolean(OverlayConstants.P_REPUBLISH_ON_PROJECT_CHANGE, true);
+	  return isEnabled;
+  }
+
+  private Set<IProject> getChangedProjects(IResourceDelta[] projectDeltas) {
 		Set<IProject> projects = new HashSet<IProject>();
 		if (projectDeltas != null) {
 			for (IResourceDelta delta : projectDeltas) {

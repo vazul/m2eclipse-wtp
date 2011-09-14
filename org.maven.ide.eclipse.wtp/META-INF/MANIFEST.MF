@@ -4,7 +4,8 @@ Bundle-Name: Maven Integration for Eclipse WTP
 Bundle-SymbolicName: org.maven.ide.eclipse.wtp;singleton:=true
 Bundle-Version: 0.14.0.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
- JavaSE-1.6
+ JavaSE-1.6,
+ JavaSE-1.7
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
  org.eclipse.core.commands,

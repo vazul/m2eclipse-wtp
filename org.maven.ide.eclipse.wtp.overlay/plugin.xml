@@ -8,4 +8,9 @@
             id="org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayReferenceResolver">
       </resolver>
    </extension>
+
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.maven.ide.eclipse.wtp.overlay.preferences.OverlayPreferencesInitializer"/>
+   </extension>
+     
 </plugin>

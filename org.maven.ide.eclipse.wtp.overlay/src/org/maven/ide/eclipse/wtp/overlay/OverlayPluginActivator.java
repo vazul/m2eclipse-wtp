@@ -9,7 +9,7 @@ import org.osgi.framework.BundleContext;
 
 public class OverlayPluginActivator extends Plugin {
 	
-	public static final String PLUGIN_ID = "org.maven.ide.eclipse.wtp.overlay";
+	public static final String PLUGIN_ID = OverlayConstants.PLUGIN_ID;
 	
 	IResourceChangeListener overlayresourceChangeListener;
 	
@@ -29,5 +29,4 @@ public class OverlayPluginActivator extends Plugin {
 		}
 		super.stop(context);
 	}
-
 }
