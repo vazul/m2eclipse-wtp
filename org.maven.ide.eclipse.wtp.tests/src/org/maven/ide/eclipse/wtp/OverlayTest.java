@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -22,6 +23,8 @@ public class OverlayTest extends AbstractWTPTestCase {
   public void testArchiveOverlay() throws Exception {
       IProject war = importProject("projects/overlays/war-overlay1/pom.xml");
       waitForJobsToComplete();
+      war.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+      waitForJobsToComplete();
       assertNoErrors(war);
       
       IVirtualComponent comp = ComponentCore.createComponent(war);
@@ -36,7 +39,7 @@ public class OverlayTest extends AbstractWTPTestCase {
       
       IServer server = TestServerUtil.createPreviewServer();
       TestServerUtil.addProjectToServer(war, server);
-      
+      Thread.sleep(500);
       List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
       
       assertTrue("META-INF/MANIFEST.MF is missing from "+ resources, resources.contains("META-INF/MANIFEST.MF"));
