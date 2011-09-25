@@ -67,15 +67,15 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 		}
 		
 		for(IServer server : republishableServers) {
-      /* Looks like clearing the module cache is no longer necessary
-			if (server instanceof Server) {
-			  System.err.println("Clearing "+server.getName() + "'s module cache");
-				synchronized (server) {
-					((Server)server).clearModuleCache();
+			/* Looks like clearing the module cache is no longer necessary
+				if (server instanceof Server) {
+				  System.err.println("Clearing "+server.getName() + "'s module cache");
+					synchronized (server) {
+						((Server)server).clearModuleCache();
+					}
 				}
-			}
-      */
-      //TODO Publish more elegantly (check server status ...)
+			*/
+			//TODO Publish more elegantly (check server status ...)
 			server.publish(IServer.PUBLISH_INCREMENTAL, new NullProgressMonitor());
 		}
 	}
@@ -84,9 +84,9 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 	  boolean isEnabled = new InstanceScope().getNode(OverlayConstants.PLUGIN_ID)
 	                      .getBoolean(OverlayConstants.P_REPUBLISH_ON_PROJECT_CHANGE, true);
 	  return isEnabled;
-  }
+	}
 
-  private Set<IProject> getChangedProjects(IResourceDelta[] projectDeltas) {
+	private Set<IProject> getChangedProjects(IResourceDelta[] projectDeltas) {
 		Set<IProject> projects = new HashSet<IProject>();
 		if (projectDeltas != null) {
 			for (IResourceDelta delta : projectDeltas) {

@@ -39,11 +39,11 @@ public class OverlayTest extends AbstractWTPTestCase {
       
       List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
       
-      assertTrue(resources.contains("META-INF/MANIFEST.MF"));
-      assertTrue(resources.contains("WEB-INF/lib/junit-3.8.2.jar"));
-      assertTrue(resources.contains("index.html"));
-      assertTrue(resources.contains("excluded/included.properties"));
-      assertTrue(resources.contains("excluded/excluded.properties"));
+      assertTrue("META-INF/MANIFEST.MF is missing from "+ resources, resources.contains("META-INF/MANIFEST.MF"));
+      assertTrue("WEB-INF/lib/junit-3.8.2.jar is missing from "+ resources,resources.contains("WEB-INF/lib/junit-3.8.2.jar"));
+      assertTrue("index.html is missing from "+ resources,resources.contains("index.html"));
+      assertTrue("excluded/included.properties is missing from "+ resources, resources.contains("excluded/included.properties"));
+      assertTrue("excluded/excluded.properties is missing from "+ resources, resources.contains("excluded/excluded.properties"));
   }
   
   @Test
@@ -73,11 +73,11 @@ public class OverlayTest extends AbstractWTPTestCase {
       
       List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
       
-      assertTrue("META-INF/MANIFEST.MF is missing", resources.contains("META-INF/MANIFEST.MF"));
-      assertTrue("WEB-INF/lib/junit-3.8.1.jar is missing",resources.contains("WEB-INF/lib/junit-3.8.1.jar"));
-      assertTrue("index.html is missing",resources.contains("index.html"));
-      assertTrue("excluded/included.properties is missing", resources.contains("excluded/included.properties"));
-      assertTrue("excluded/excluded.properties is missing", resources.contains("excluded/excluded.properties"));
+      assertTrue("META-INF/MANIFEST.MF is missing from "+ resources, resources.contains("META-INF/MANIFEST.MF"));
+      assertTrue("WEB-INF/lib/junit-3.8.1.jar is missing from "+ resources,resources.contains("WEB-INF/lib/junit-3.8.1.jar"));
+      assertTrue("index.html is missing from "+ resources,resources.contains("index.html"));
+      assertTrue("excluded/included.properties is missing from "+ resources, resources.contains("excluded/included.properties"));
+      assertTrue("excluded/excluded.properties is missing from "+ resources, resources.contains("excluded/excluded.properties"));
       
       updateProject(overlaid, "pom2.xml");
       assertNoErrors(overlaid);
