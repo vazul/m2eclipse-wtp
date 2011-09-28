@@ -55,7 +55,7 @@ public class FileSystemResourceFilter implements IResourceFilter {
 			excludedFolders =  new HashSet<String>(Arrays.asList(getExcludedDirectories()));
 			
 			completeIncludedFolders();
-			System.out.println(baseDirPath +" includes "+includedFiles.size() +" files");
+			//System.out.println(baseDirPath +" includes "+includedFiles.size() +" files");
 		}
 		
 		private void completeIncludedFolders() {

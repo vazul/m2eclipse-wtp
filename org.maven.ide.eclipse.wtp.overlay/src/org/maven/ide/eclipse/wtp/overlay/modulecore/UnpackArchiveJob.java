@@ -31,6 +31,7 @@ public class UnpackArchiveJob extends WorkspaceJob {
 			throws CoreException {
 		try {
 			if (unpackFolder.exists()) {
+	      System.out.println(getName() +" deleting "+unpackFolder);
 				unpackFolder.delete(true, monitor);
 			}
 			unpack(archive, unpackFolder.getLocation().toOSString(), monitor);
@@ -49,6 +50,7 @@ public class UnpackArchiveJob extends WorkspaceJob {
 
 	protected void unpack(File archive, String unpackFolderPath, IProgressMonitor monitor) throws IOException, CoreException,
 			InterruptedException {
+    System.out.println(getName() +" unpacking "+archive + " to " +unpackFolderPath);
 		File unpackFolder = new File(unpackFolderPath);
 		CompressionUtil.unzip(archive, unpackFolder, monitor);
 		unpackFolder.setLastModified(archive.lastModified());

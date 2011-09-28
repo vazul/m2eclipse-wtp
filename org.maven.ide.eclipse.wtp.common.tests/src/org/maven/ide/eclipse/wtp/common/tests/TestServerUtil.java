@@ -38,6 +38,7 @@ public class TestServerUtil {
     Thread.sleep(1000);
     //Should get the complete members now
     IModuleResource[] resources = d.members();
+    //System.err.println("top resources " + toList(resources));
     List<IModuleResource> all = new ArrayList<IModuleResource>();
     if (resources != null) {
       walk(resources, all);

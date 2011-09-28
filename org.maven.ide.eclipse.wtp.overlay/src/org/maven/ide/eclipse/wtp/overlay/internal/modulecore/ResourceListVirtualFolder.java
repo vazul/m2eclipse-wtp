@@ -68,7 +68,8 @@ public class ResourceListVirtualFolder extends VirtualFolder implements IFiltere
 					children.add(newChildren[i]);
 				}
 			} catch( CoreException ce) {
-				// TODO log
+				// TODO proper log
+			  ce.printStackTrace();
 			}
 		}
 	}
@@ -86,7 +87,6 @@ public class ResourceListVirtualFolder extends VirtualFolder implements IFiltere
 	protected void addChildren(IResource[] resources) {
 		this.children.addAll(Arrays.asList(resources));
 	}
-	
 	
 	public IResource getUnderlyingResource() {
 		return getUnderlyingFolder();
@@ -120,9 +120,10 @@ public class ResourceListVirtualFolder extends VirtualFolder implements IFiltere
 		}
 		boolean isFile =  resource instanceof IFile;
 		String path = resource.getLocation().toPortableString();
-		if( filter != null && !filter.accepts(path, isFile))
-			return;
-		
+		if( filter != null && !filter.accepts(path, isFile)) {
+		  return;
+		}
+			
 		if( isFile) {
 			if( !map.containsKey(resource.getName()) ) {
 				IVirtualFile virtFile = new VirtualFile(getProject(), 
@@ -133,7 +134,6 @@ public class ResourceListVirtualFolder extends VirtualFolder implements IFiltere
 		}// end file
 		else if( resource instanceof IContainer ) {
 			IContainer realContainer = (IContainer) resource;
-			IResource[] realChildResources = realContainer.members(memberFlags);
 			IVirtualResource previousValue = map.get(resource.getName());
 			if( previousValue != null && previousValue instanceof ResourceListVirtualFolder ) {
 				((ResourceListVirtualFolder)previousValue).addUnderlyingResource(realContainer);

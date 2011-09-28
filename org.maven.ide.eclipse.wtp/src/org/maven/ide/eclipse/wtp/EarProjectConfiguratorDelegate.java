@@ -155,6 +155,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
       return;
     }
+
     IVirtualComponent earComponent = ComponentCore.createComponent(project);
     
     Set<IVirtualReference> newRefs = new LinkedHashSet<IVirtualReference>();

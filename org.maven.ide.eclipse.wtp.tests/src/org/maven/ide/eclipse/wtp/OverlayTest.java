@@ -26,21 +26,24 @@ public class OverlayTest extends AbstractWTPTestCase {
       war.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
       waitForJobsToComplete();
       assertNoErrors(war);
-      
+      System.out.println("Build complete"+war);
       IVirtualComponent comp = ComponentCore.createComponent(war);
       assertNotNull(comp);
       
       IVirtualReference[] references = comp.getReferences();
-      
       assertEquals(2, references.length);
-      
       assertEquals(OverlayVirtualArchiveComponent.class, references[0].getReferencedComponent().getClass());
       assertEquals(OverlaySelfComponent.class, references[1].getReferencedComponent().getClass());
+      System.out.println("2 references read for "+war);
       
+      System.out.println("Creating preview server");
       IServer server = TestServerUtil.createPreviewServer();
+      System.out.println("adding project to preview server");
       TestServerUtil.addProjectToServer(war, server);
-      Thread.sleep(500);
+      System.out.println("project added to preview server");
+
       List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
+      System.out.println("server module resources :"+resources.size());
       
       assertTrue("META-INF/MANIFEST.MF is missing from "+ resources, resources.contains("META-INF/MANIFEST.MF"));
       assertTrue("WEB-INF/lib/junit-3.8.2.jar is missing from "+ resources,resources.contains("WEB-INF/lib/junit-3.8.2.jar"));
@@ -201,7 +204,6 @@ public class OverlayTest extends AbstractWTPTestCase {
       assertNotNull(comp);
       
       IVirtualReference[] references = comp.getReferences();
-      
       assertEquals(2, references.length);
       
       assertEquals(OverlayVirtualArchiveComponent.class, references[0].getReferencedComponent().getClass());

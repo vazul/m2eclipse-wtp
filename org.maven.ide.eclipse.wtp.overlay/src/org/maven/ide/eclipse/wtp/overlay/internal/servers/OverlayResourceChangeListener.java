@@ -67,11 +67,11 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 		}
 		
 		for(IServer server : republishableServers) {
-			/* Looks like clearing the module cache is no longer necessary
+			/* Looks like clearing the module cache is no longer necessary 
 				if (server instanceof Server) {
-				  System.err.println("Clearing "+server.getName() + "'s module cache");
+				  //System.err.println("Clearing "+server.getName() + "'s module cache");
 					synchronized (server) {
-						((Server)server).clearModuleCache();
+						//((Server)server).clearModuleCache();
 					}
 				}
 			*/
@@ -127,7 +127,7 @@ public class OverlayResourceChangeListener implements IResourceChangeListener {
 			    if (delta.findMember(componentFilePath) != null) {
 			      return true;
 			    }
-			  } else if (overlaidProject.equals(changedProject)){
+			  } else if (!vc.isBinary() && overlaidProject.equals(changedProject)){
 			    return true;
 			  }
 			}
