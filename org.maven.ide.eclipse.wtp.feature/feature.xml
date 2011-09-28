@@ -2,7 +2,7 @@
 <feature
       id="org.maven.ide.eclipse.wtp.feature"
       label="Maven Integration for WTP"
-      version="0.14.0.qualifier"
+      version="0.14.0.20110928-2045"
       provider-name="JBoss by Red Hat"
       plugin="org.maven.ide.eclipse.wtp">
 
