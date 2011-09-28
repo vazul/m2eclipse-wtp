@@ -33,6 +33,7 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.common.project.facet.JavaFacetUtils;
+import org.eclipse.jst.common.project.facet.core.JavaFacet;
 import org.eclipse.jst.j2ee.application.WebModule;
 import org.eclipse.jst.j2ee.componentcore.util.EARArtifactEdit;
 import org.eclipse.jst.j2ee.internal.J2EEConstants;
@@ -42,7 +43,6 @@ import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.jst.javaee.application.Application;
 import org.eclipse.jst.javaee.application.Module;
-import org.eclipse.jst.javaee.core.SecurityRole;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IProjectConfigurationManager;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
@@ -74,7 +74,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
 
     IResource[] underlyingResources = getUnderlyingResources(project);
     assertEquals(2, underlyingResources.length);
@@ -95,7 +95,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
 
     assertTrue(project.exists(new Path("/src/main/webapp/WEB-INF/lib")));
 }
@@ -106,7 +106,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(DEFAULT_WEB_VERSION, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
   }
 
   @Test
@@ -302,7 +302,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
     //Defaut ejb project should have 2.1 project facet
     assertEquals(IJ2EEFacetConstants.EJB_21, facetedProject.getInstalledVersion(EJB_FACET));
     
@@ -317,8 +317,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
-    assertEquals(JavaFacetUtils.JAVA_50, facetedProject.getInstalledVersion(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
+    assertEquals(JavaFacetUtils.JAVA_50, facetedProject.getInstalledVersion(JavaFacet.FACET));
     assertEquals(IJ2EEFacetConstants.EJB_30, facetedProject.getInstalledVersion(EJB_FACET));
 
     IFolder ejbModuleFolder = project.getFolder("ejbModule"); 
@@ -370,7 +370,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
       assertNotNull(fpEar);
-      assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+      assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET)); //Ears don't have java facet
       assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
 
       IResource[] underlyingResources = getUnderlyingResources(ear);
@@ -396,7 +396,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
       assertNotNull(fpEar);
-      assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+      assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET)); //Ears don't have java facet
       assertEquals(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50, fpEar.getInstalledVersion(EAR_FACET));
 
       IResource[] underlyingResources = getUnderlyingResources(ear);
@@ -450,22 +450,22 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     IFacetedProject fpCore = ProjectFacetsManager.create(core, false, monitor);
     assertNotNull(ProjectFacetsManager.getFacetedProjects().toString(), fpCore);  
-    assertTrue(fpCore.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpCore.hasProjectFacet(JavaFacet.FACET));
     assertEquals(UTILITY_10, fpCore.getInstalledVersion(UTILITY_FACET));
     
     IFacetedProject fpEjb = ProjectFacetsManager.create(ejb);
     assertNotNull(fpEjb);
-    assertTrue(fpEjb.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpEjb.hasProjectFacet(JavaFacet.FACET));
     assertEquals(IJ2EEFacetConstants.EJB_21, fpEjb.getInstalledVersion(EJB_FACET));
 
     IFacetedProject fpWar = ProjectFacetsManager.create(war);
     assertNotNull(fpWar);
-    assertTrue(fpWar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpWar.hasProjectFacet(JavaFacet.FACET));
     assertEquals(WebFacetUtils.WEB_24, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
 
     IFacetedProject fpEar = ProjectFacetsManager.create(ear);
     assertNotNull(fpEar);
-    assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+    assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET)); //Ears don't have java facet
     assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
 
     IVirtualComponent comp = ComponentCore.createComponent(ear);
@@ -619,7 +619,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(DEFAULT_WEB_VERSION, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
     
   }
 
@@ -787,7 +787,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
    
     IFacetedProject fpWar = ProjectFacetsManager.create(war);
     assertNotNull(fpWar);
-    assertTrue(fpWar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpWar.hasProjectFacet(JavaFacet.FACET));
     assertEquals(WebFacetUtils.WEB_24, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
 
     IVirtualComponent comp = ComponentCore.createComponent(ear);
@@ -801,22 +801,15 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(ejbRef);
     assertEquals("ejb-0.0.1-SNAPSHOT.jar",ejbRef.getArchiveName());
     
-    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
-    assertEquals(dumpModules(app.getModules()),3,app.getModules().size());
-    Module webModule = app.getFirstModule(warRef.getArchiveName());
-    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
-    assertEquals("/dummy",webModule.getWeb().getContextRoot());
+    EARArtifactEdit edit = EARArtifactEdit.getEARArtifactEditForRead(ear);
+    assertEquals(3,edit.getApplication().getModules().size());
+    assertEquals("/dummy",edit.getWebContextRoot(war));
 
-    Module coreModule = app.getFirstModule(coreRef.getArchiveName());
-    assertNotNull("missing javaModule "+coreRef.getArchiveName(),coreModule);
+    assertNotNull(coreRef.getArchiveName() + " not found", edit.getApplication().getModule(coreRef.getArchiveName(), null));
 
-    Module ejbModule = app.getFirstModule(ejbRef.getArchiveName());
-    assertNotNull("missing ejbModule "+ejbRef.getArchiveName(),ejbModule);
-    assertNull(ejbModule.getAltDd());
-    
-    List<SecurityRole> roles = app.getSecurityRoles();
-    assertNotNull(roles);
-    assertEquals(2, roles.size());
+    assertNotNull(ejbRef.getArchiveName() + " not found", edit.getApplication().getModule(ejbRef.getArchiveName(), null));
+
+    assertEquals(2, edit.getApplication().getSecurityRoles().size());
 
     /* TODO investigate why the rest of the test fails randomly
     updateProject(ear, "pom.step2.xml", 2000);     
@@ -867,7 +860,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
    
     IFacetedProject fpWar = ProjectFacetsManager.create(war);
     assertNotNull(fpWar);
-    assertTrue(fpWar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpWar.hasProjectFacet(JavaFacet.FACET));
     assertEquals(WebFacetUtils.WEB_24, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
 
     IVirtualComponent comp = ComponentCore.createComponent(ear);
@@ -1054,10 +1047,10 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNoErrors(war);
     
     //check the context root is the same as the one defined as a property in the parent pom
-    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
-    Module webModule = (Module)app.getModules().get(0);
-    assertEquals("specialUri.war", webModule.getUri());
-    assertEquals("/customContextRoot", webModule.getWeb().getContextRoot());
+    EARArtifactEdit edit = EARArtifactEdit.getEARArtifactEditForRead(ear);
+    assertEquals("/customContextRoot",edit.getWebContextRoot(war));
+    IVirtualComponent webComp = ComponentCore.createComponent(war);
+    assertEquals("specialUri.war", edit.getModuleURI(webComp));
  }
 
   @Test
@@ -1084,22 +1077,22 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
    
     IFacetedProject fpWar = ProjectFacetsManager.create(war);
     assertNotNull(fpWar);
-    assertTrue(fpWar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpWar.hasProjectFacet(JavaFacet.FACET));
     assertEquals(WebFacetUtils.WEB_25, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
 
     IFacetedProject fpCore = ProjectFacetsManager.create(core, false, monitor);
     assertNotNull(ProjectFacetsManager.getFacetedProjects().toString(), fpCore);  
-    assertTrue(fpCore.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpCore.hasProjectFacet(JavaFacet.FACET));
     assertEquals(UTILITY_10, fpCore.getInstalledVersion(UTILITY_FACET));
 
     IFacetedProject fpEjb = ProjectFacetsManager.create(ejb);
     assertNotNull(fpEjb);
-    assertTrue(fpEjb.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpEjb.hasProjectFacet(JavaFacet.FACET));
     assertEquals(IJ2EEFacetConstants.EJB_30, fpEjb.getInstalledVersion(EJB_FACET));
 
     IFacetedProject fpEar = ProjectFacetsManager.create(ear);
     assertNotNull(fpEar);
-    assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+    assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET)); //Ears don't have java facet
     assertEquals(IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50, fpEar.getInstalledVersion(EAR_FACET));
     IResource[] underlyingResources = getUnderlyingResources(ear);
     assertEquals(2, underlyingResources.length);
@@ -1140,8 +1133,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
     }
     {
       IJavaProject ejbProject  = JavaCore.create(ejb); 
@@ -1150,14 +1141,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
       assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
-     //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
     }
     {
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
       assertNotNull(fpEar);
-      assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+      assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET));
     }
-    IProjectConfigurationManager configurationManager = MavenPlugin.getDefault().getProjectConfigurationManager();
+    IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
     // update configuration
     configurationManager.updateProjectConfiguration(web, monitor);
     waitForJobsToComplete();
@@ -1212,15 +1202,15 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     IFacetedProject fpEjb = ProjectFacetsManager.create(ejb);
     assertNotNull(fpEjb);
-    assertTrue(fpEjb.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpEjb.hasProjectFacet(JavaFacet.FACET));
 
     IFacetedProject fpWar = ProjectFacetsManager.create(war);
     assertNotNull(fpWar);
-    assertTrue(fpWar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpWar.hasProjectFacet(JavaFacet.FACET));
 
     IFacetedProject fpEar = ProjectFacetsManager.create(ear);
     assertNotNull(fpEar);
-    assertFalse(fpEar.hasProjectFacet(JavaFacetUtils.JAVA_FACET)); //Ears don't have java facet
+    assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET)); //Ears don't have java facet
 
     IProjectFacetVersion expectedWebFacet = null;
     IProjectFacetVersion expectedEjbFacet = null;
@@ -1272,7 +1262,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
    
     IFacetedProject fpWar = ProjectFacetsManager.create(war);
     assertNotNull(fpWar);
-    assertTrue(fpWar.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(fpWar.hasProjectFacet(JavaFacet.FACET));
     assertEquals(WebFacetUtils.WEB_24, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
 
     IVirtualComponent comp = ComponentCore.createComponent(ear);
@@ -1286,20 +1276,15 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(ejbRef);
     assertEquals("specialejb.jar",ejbRef.getArchiveName());
     
-    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
-    assertEquals(3,app.getModules().size());
-    Module webModule = app.getFirstModule(warRef.getArchiveName());
-    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
-    assertEquals("/dummy",webModule.getWeb().getContextRoot());
+    EARArtifactEdit edit = EARArtifactEdit.getEARArtifactEditForRead(ear);
+    assertEquals(3, edit.getApplication().getModules().size());
+    assertEquals(warRef.getArchiveName(),edit.getModuleURI(warRef.getReferencedComponent()));
+    assertEquals("/dummy",edit.getWebContextRoot(war));
 
-    Module coreModule = app.getFirstModule("special/coreproject.zip");
-    assertNotNull("missing javaModule "+coreRef.getArchiveName(),coreModule);
-    assertEquals("special/coreproject.zip", coreModule.getUri());
+    assertEquals("/special/coreproject.zip", edit.getModuleURI(coreRef.getReferencedComponent()));
     assertEquals("/special",coreRef.getRuntimePath().toPortableString());
-    
-    Module ejbModule = app.getFirstModule(ejbRef.getArchiveName());
-    assertNotNull("missing ejbModule "+ejbRef.getArchiveName(),ejbModule);
-    assertNull(ejbModule.getAltDd());
+
+    assertEquals(ejbRef.getArchiveName(), edit.getModuleURI(ejbRef.getReferencedComponent()));
  }
 
 
@@ -1310,7 +1295,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
     //Test blank finalName
     assertEquals("MNGECLIPSE-2279",J2EEProjectUtilities.getServerContextRoot(project));
     assertNoErrors(project);
@@ -1337,7 +1322,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
     //Test blank finalName
     assertEquals("MECLIPSEWTP-43", J2EEProjectUtilities.getServerContextRoot(project));
     assertNoErrors(project);
@@ -1368,7 +1353,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IFacetedProject facetedProject = ProjectFacetsManager.create(web);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
     assertNoErrors(web);
     
     IVirtualComponent webComp = ComponentCore.createComponent(web);
@@ -1395,7 +1380,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     facetedProject = ProjectFacetsManager.create(web);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_24, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
-    assertTrue(facetedProject.hasProjectFacet(JavaFacetUtils.JAVA_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
     assertNoErrors(web);
     
     webResources = rootWeb.getUnderlyingResources();
@@ -1515,11 +1500,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("ejb-1.0-SNAPSHOT-client.jar",ejbRef.getArchiveName());
     assertEquals("/lib",ejbRef.getRuntimePath().toPortableString());
     
-    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
-    assertEquals(1,app.getModules().size());
-    Module webModule = app.getFirstModule(warRef.getArchiveName());
-    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
-    assertEquals("war",webModule.getWeb().getContextRoot());
+    
+    EARArtifactEdit edit = EARArtifactEdit.getEARArtifactEditForRead(ear);
+    assertEquals(1, edit.getApplication().getModules().size());
+    assertEquals(warRef.getArchiveName(),edit.getModuleURI(warRef.getReferencedComponent()));
+    assertEquals("war",edit.getWebContextRoot(war));
   }
 
   @Test
@@ -1591,11 +1576,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(1, fullSkinnyReferences.length);
     assertTrue(fullSkinnyReferences[0].getReferencedComponent().getDeployedName().endsWith("commons-lang-2.4.jar"));  
     
-    Application app = (Application)ModelProviderManager.getModelProvider(ear).getModelObject();
-    assertEquals(1,app.getModules().size());
-    Module webModule = app.getFirstModule(warRef.getArchiveName());
-    assertNotNull("missing webmodule "+warRef.getArchiveName(),webModule);
-    assertEquals("war",webModule.getWeb().getContextRoot());
+    EARArtifactEdit edit = EARArtifactEdit.getEARArtifactEditForRead(ear);
+    assertEquals(1, edit.getApplication().getModules().size());
+    assertEquals("war",edit.getWebContextRoot(war));
   }
 
   @Test

@@ -25,9 +25,9 @@
 
   <properties>
     <tycho-version>0.13.0-SNAPSHOT</tycho-version>
-    <m2eclipse-core.version>1.0.0.201106061504</m2eclipse-core.version>
-    <m2eclipse-core.site>1.0.0/N/${m2eclipse-core.version}</m2eclipse-core.site>
-    <target.platform>m2e-wtp-e37</target.platform>        
+    <m2eclipse-core.version>1.0.100.201108040103</m2eclipse-core.version>
+    <m2eclipse-core.site>1.0.100/N/${m2eclipse-core.version}</m2eclipse-core.site>
+    <target.platform>m2e-wtp-e371</target.platform>        
     <test.timeout>1800</test.timeout><!--  30 mins -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
   </properties>
