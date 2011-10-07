@@ -8,6 +8,8 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import java.util.Collection;
+
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
@@ -16,6 +18,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.jdt.internal.BuildPathManager;
 import org.eclipse.wst.common.componentcore.internal.resources.VirtualArchiveComponent;
@@ -99,6 +102,27 @@ public class ArtifactHelper {
 		  ((DefaultArtifactHandler)artifactHandler).setExtension("jar");
 		  ((DefaultArtifactHandler)artifactHandler).setAddedToClasspath(true);
 	  }
+  }
+  
+  public static Artifact getArtifact(Collection<Artifact> artifacts, ArtifactKey key) {
+    if (artifacts == null || key == null || artifacts.isEmpty()) {
+      return null;
+    }
+    for (Artifact a : artifacts) {
+      ArtifactKey ak = toArtifactKey(a);
+      if (key.equals(ak)) {
+        return a;
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * Gets an ArtifactKey from an Artifact. This method fixes the flawed ArtifactKey(Artifact a) constructor
+   * which doesn't copy the artifact classifier; 
+   */
+  public static ArtifactKey toArtifactKey(Artifact a) {
+    return new ArtifactKey(a.getGroupId(), a.getArtifactId(), a.getBaseVersion(), a.getClassifier());
   }
   
 }

@@ -1707,6 +1707,19 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull(app);
     assertEquals(libDir,app.getLibraryDirectory());
   }
+
+  @Test
+  public void testMECLIPSEWTP184_SameArtifactDifferentClassifier() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-184/pom.xml");
+    
+    IJavaProject javaProject = JavaCore.create(project);
+    IClasspathContainer container = BuildPathManager.getMaven2ClasspathContainer(javaProject);
+    IClasspathEntry[] cp = container.getClasspathEntries();
+
+    assertEquals(2, cp.length);
+    assertEquals("junit-3.8.1.jar", cp[0].getPath().lastSegment());
+    assertEquals("junit-3.8.1-sources.jar", cp[1].getPath().lastSegment());
+  }
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";

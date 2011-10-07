@@ -40,6 +40,7 @@ import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelPropertie
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.ArtifactKey;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IClasspathEntryDescriptor;
@@ -254,8 +255,8 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   
         IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
   		      
-        String artifactKey = ArtifactUtils.versionlessKey(depMavenProject.getArtifact());
-        Artifact artifact = mavenProject.getArtifactMap().get(artifactKey);
+        ArtifactKey artifactKey = ArtifactHelper.toArtifactKey(depMavenProject.getArtifact());
+        Artifact artifact = ArtifactHelper.getArtifact(mavenProject.getArtifacts(), artifactKey);
         ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
         String deployedName = fileNameMapping.mapFileName(artifact);
         
@@ -358,10 +359,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       IClasspathEntryDescriptor descriptor = iter.next();
       IClasspathEntry entry = descriptor.toClasspathEntry();
       String scope = descriptor.getScope();
-      String key = ArtifactUtils.versionlessKey(descriptor.getGroupId(),descriptor.getArtifactId());
-      Artifact artifact = mavenProject.getArtifactMap().get(key);
+      Artifact artifact = ArtifactHelper.getArtifact(mavenProject.getArtifacts(), descriptor.getArtifactKey());
 
-	  ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
+      ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
 
       String deployedName = fileNameMapping.mapFileName(artifact);
     
