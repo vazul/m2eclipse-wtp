@@ -30,6 +30,7 @@
     <target.platform>m2e-wtp-e371</target.platform>        
     <test.timeout>1800</test.timeout><!--  30 mins -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
+    <tycho.test.jvmArgs>-Xmx512m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
   </properties>
 
   <modules>
@@ -122,18 +123,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>sun-jvm</id>
-      <activation>
-        <property>
-          <name>java.vendor.url</name>
-          <value>http://java.sun.com/</value>
-        </property>
-      </activation>
-      <properties>
-        <tycho.test.jvmArgs>-Xmx512m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
-      </properties>
-    </profile>
     <profile>
       <id>osx</id>
       <activation>
