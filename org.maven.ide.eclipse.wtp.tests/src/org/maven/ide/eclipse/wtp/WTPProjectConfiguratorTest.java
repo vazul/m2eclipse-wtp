@@ -71,6 +71,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testSimple01_import() throws Exception {
     IProject project = importProject("projects/simple/p01/pom.xml", new ResolverConfiguration());
     waitForJobsToComplete();
+    project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+    waitForJobsToComplete();
     IFacetedProject facetedProject = ProjectFacetsManager.create(project);
     assertNotNull(facetedProject);
     assertEquals(WebFacetUtils.WEB_23, facetedProject.getInstalledVersion(WebFacetUtils.WEB_FACET));
@@ -114,6 +116,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       IProject ear = importProject("projects/MECLIPSEWTP-161/pom.xml");
       waitForJobsToComplete();
       ear.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+      waitForJobsToComplete();
       assertNoErrors(ear);   
       IResource[] underlyingResources = getUnderlyingResources(ear);
       assertEquals(2, underlyingResources.length);
@@ -185,6 +188,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testNonDefaultWarSourceDirectory() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-627/TestWar/pom.xml", new ResolverConfiguration());
     waitForJobsToComplete();
+    project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    waitForJobsToComplete();
     IVirtualComponent component = ComponentCore.createComponent(project);
     IVirtualFolder root = component.getRootFolder();
     IResource[] underlyingResources = root.getUnderlyingResources();
@@ -197,17 +202,24 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMNGECLIPSE1600_absoluteDirectories() throws Exception {
     IProject[] projects = importProjects("projects/MNGECLIPSE-1600/", new String[] {"test/pom.xml", "testEAR/pom.xml"}, new ResolverConfiguration());
     waitForJobsToComplete();
-    IVirtualComponent warComponent = ComponentCore.createComponent(projects[0]);
+    IProject war = projects[0];
+    IProject ear = projects[1];
+    
+    war.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    ear.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    waitForJobsToComplete();
+    
+    IVirtualComponent warComponent = ComponentCore.createComponent(war);
     IVirtualFolder rootwar = warComponent.getRootFolder();
     IResource[] warResources = rootwar.getUnderlyingResources();
     assertEquals(2, warResources.length);
-    assertEquals(projects[0].getFolder("/WebContent"), warResources[1]);
+    assertEquals(war.getFolder("/WebContent"), warResources[1]);
 
-    IVirtualComponent earComponent = ComponentCore.createComponent(projects[1]);
+    IVirtualComponent earComponent = ComponentCore.createComponent(ear);
     IVirtualFolder rootEar = earComponent.getRootFolder();
     IResource[] earResources = rootEar.getUnderlyingResources();
     assertEquals(2, earResources.length);
-    assertEquals(projects[1].getFolder("/EarContent"), earResources[1]);
+    assertEquals(ear.getFolder("/EarContent"), earResources[1]);
   }
 
   
