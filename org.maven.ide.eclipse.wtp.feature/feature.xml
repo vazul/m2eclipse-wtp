@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.maven.ide.eclipse.wtp.feature"
-      label="Maven Integration for WTP"
+      label="%featureName"
       version="0.15.0.qualifier"
-      provider-name="JBoss by Red Hat"
+      provider-name="%providerName"
       plugin="org.maven.ide.eclipse.wtp">
 
    <description url="http://m2eclipse.sonatype.org/">
-      Project configuration for Eclipse WTP
+      %description
    </description>
 
    <copyright url="http://sonatype.com/">
-      Copyright (c) 2008 Sonatype, Inc.
+      %copyright
    </copyright>
 
-   <license url="http://www.eclipse.org/legal/epl-v10.html">
-      All rights reserved. This program and the accompanying materials
-are made available under the terms of the Eclipse Public License
-v1.0 which accompanies this distribution, and is available at
-http://www.eclipse.org/legal/epl-v10.html
+   <license url="%licenseURL">
+      %license
    </license>
 
    <url>
-      <update label="Maven Integration" url="http://download.jboss.org/jbosstools/updates/m2eclipse-wtp/"/>
+      <update label="%featureName" url="http://download.jboss.org/jbosstools/updates/m2eclipse-wtp/"/>
    </url>
 
    <requires>
