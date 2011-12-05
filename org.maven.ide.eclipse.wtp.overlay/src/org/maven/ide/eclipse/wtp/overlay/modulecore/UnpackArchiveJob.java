@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -24,6 +25,7 @@ public class UnpackArchiveJob extends WorkspaceJob {
 		assert archive != null && archive.exists() && archive.canRead();
 		this.unpackFolder = unpackFolder;
 		this.archive = archive;
+		setRule(unpackFolder);
 	}
 
 	@Override
@@ -32,7 +34,12 @@ public class UnpackArchiveJob extends WorkspaceJob {
 		try {
 			if (unpackFolder.exists()) {
 	      System.out.println(getName() +" deleting "+unpackFolder);
-				unpackFolder.delete(true, monitor);
+	      		//delete members as deleting unpackFolder will use scheduling rule of its parent, so an IllegalArgumentException would be thrown otherwise
+				final IResource[] members = unpackFolder.members(IContainer.INCLUDE_HIDDEN | IContainer.INCLUDE_TEAM_PRIVATE_MEMBERS);
+				for (final IResource member : members)
+				{
+					member.delete(true, monitor);
+				}
 			}
 			unpack(archive, unpackFolder.getLocation().toOSString(), monitor);
 		} catch (IOException e) {
@@ -40,11 +47,18 @@ public class UnpackArchiveJob extends WorkspaceJob {
 		} catch (InterruptedException e) {
 			return new Status(IStatus.ERROR, OverlayPluginActivator.PLUGIN_ID, "Unpacking "+archive.getName() + " was interrupted", e);
 		}
+		
+		//will run in scheduling rule of parent of unpackfolder, so should be run in a different job
+		new WorkspaceJob(unpackFolder.getLocation().toString() + " refresher") {
 
-		IContainer parent = unpackFolder.getParent();
-		if (parent != null) {
-			parent.refreshLocal(IFolder.DEPTH_INFINITE, monitor);
-		}
+			@Override
+			public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException
+			{
+				unpackFolder.refreshLocal(IFolder.DEPTH_INFINITE, null);
+				return Status.OK_STATUS;
+			}
+		}.schedule();
+
 		return Status.OK_STATUS;
 	}
 
