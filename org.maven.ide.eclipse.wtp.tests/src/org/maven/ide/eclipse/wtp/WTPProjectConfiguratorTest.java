@@ -1732,6 +1732,18 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", cp[0].getPath().lastSegment());
     assertEquals("junit-3.8.1-sources.jar", cp[1].getPath().lastSegment());
   }
+
+
+  @Test
+  public void testMECLIPSEWTP204_warPluginExecutionsNotCovered() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-204/pom.xml");
+    project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    List<IMarker> markers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertHasMarker("maven-war-plugin goals \"inplace\", \"exploded\", \"manifest\" are ignored by m2e", markers);
+  }
+  
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";

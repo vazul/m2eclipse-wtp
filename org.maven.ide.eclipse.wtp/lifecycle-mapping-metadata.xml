@@ -52,6 +52,23 @@
             </configurator>
           </action>
         </pluginExecution>        
+        <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <versionRange>[1.0,)</versionRange>
+            <goals>
+              <goal>inplace</goal>
+              <goal>exploded</goal>
+              <goal>manifest</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+          	<ignore>
+          		<message>maven-war-plugin goals "inplace", "exploded", "manifest" are ignored by m2e</message>
+          	</ignore>
+          </action>
+        </pluginExecution>
       </pluginExecutions>
     </lifecycleMapping>
     <lifecycleMapping>
