@@ -1744,6 +1744,14 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertHasMarker("maven-war-plugin goals \"inplace\", \"exploded\", \"manifest\" are ignored by m2e", markers);
   }
   
+  @Test
+  public void testMECLIPSEWTP191_warPluginVersionNotSupported() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-191/pom.xml");
+    waitForJobsToComplete();
+    List<IMarker> markers = findMarkers(project, IMarker.SEVERITY_ERROR);
+    String error = "maven-war-plugin prior to 2.0.1 is not supported by m2e-wtp. Use maven-war-plugin version 2.0.1 or later";
+    assertHasMarker(error, markers);
+  }
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";

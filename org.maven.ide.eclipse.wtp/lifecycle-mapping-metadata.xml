@@ -11,7 +11,7 @@
           <pluginExecutionFilter>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-            <versionRange>[1.0,)</versionRange>
+            <versionRange>[2.0.1,)</versionRange>
             <goals>
               <goal>war</goal>
             </goals>
@@ -26,7 +26,7 @@
           <pluginExecutionFilter>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-            <versionRange>[1.0,)</versionRange>
+            <versionRange>[2.0.1,)</versionRange>
             <goals>
               <goal>war</goal>
             </goals>
@@ -37,11 +37,26 @@
             </configurator>
           </action>
         </pluginExecution>           
+        <pluginExecution>
+          <pluginExecutionFilter>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <versionRange>[0.0.1,2.0.1)</versionRange>
+            <goals>
+              <goal>war</goal>
+            </goals>
+          </pluginExecutionFilter>
+          <action>
+          	<error>
+          		<message>maven-war-plugin prior to 2.0.1 is not supported by m2e-wtp. Use maven-war-plugin version 2.0.1 or later</message>
+          	</error>
+          </action>
+        </pluginExecution>           
 		<pluginExecution>
           <pluginExecutionFilter>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
-            <versionRange>[1.0,)</versionRange>
+            <versionRange>[2.0.1,)</versionRange>
             <goals>
               <goal>war</goal>
             </goals>
