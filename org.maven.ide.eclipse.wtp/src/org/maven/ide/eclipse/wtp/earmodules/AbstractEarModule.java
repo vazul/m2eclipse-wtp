@@ -97,6 +97,9 @@ public abstract class AbstractEarModule implements EarModule {
       } else {
         if(!bd.endsWith("/")) {
           bd = bd + "/";
+        } 
+        if (bd.startsWith("/")) {
+          bd = bd.substring(1);
         }
         uri =  bd + getBundleFileName();
       }
