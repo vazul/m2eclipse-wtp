@@ -83,12 +83,14 @@ public final class EarModuleFactory {
    * @param javaEEVersion 
    * @return an ear module for this artifact
    */
-  public EarModule newEarModule(Artifact artifact, String defaultLibBundleDir, IProjectFacetVersion javaEEVersion) throws UnknownArtifactTypeException {
+  public EarModule newEarModule(Artifact artifact, String defaultLibBundleDir, IProjectFacetVersion javaEEVersion, 
+      boolean defaultIncludeInApplicationXml) throws UnknownArtifactTypeException {
     // Get the standard artifact type based on default config and user-defined mapping(s)
     final String artifactType = artifactTypeMappingService.getStandardType(artifact.getType());
     AbstractEarModule earModule = null;
     if("jar".equals(artifactType)) {
       earModule = new JarModule(artifact);
+      ((JarModule)earModule).setIncludeInApplicationXml(defaultIncludeInApplicationXml);
       ((JarModule)earModule).setLibBundleDir(defaultLibBundleDir);
     } else if("ejb".equals(artifactType) || "ejb3".equals(artifactType)) {
       earModule  = new EjbModule(artifact);
@@ -122,7 +124,7 @@ public final class EarModuleFactory {
 
   }
 
-  public EarModule newEarModule(Xpp3Dom domModule, String defaultLibBundleDir, IProjectFacetVersion javaEEVersion) throws EarPluginException {
+  public EarModule newEarModule(Xpp3Dom domModule, String defaultLibBundleDir, IProjectFacetVersion javaEEVersion, boolean defaultIncludeInApplicationXml) throws EarPluginException {
     String artifactType = domModule.getName();
     String groupId      = getChildValue(domModule, "groupId");
     String artifactId   = getChildValue(domModule, "artifactId");
@@ -133,7 +135,12 @@ public final class EarModuleFactory {
     if ( "jarModule".equals(artifactType) || "javaModule".equals(artifactType)) {
       JarModule jarModule = new JarModule();
       jarModule.setBundleDir(defaultLibBundleDir);
-      jarModule.setIncludeInApplicationXml(getBooleanChildValue(domModule, "includeInApplicationXml"));
+      
+      if (domModule.getChild("includeInApplicationXml") == null) {
+        jarModule.setIncludeInApplicationXml(defaultIncludeInApplicationXml);
+      } else {
+        jarModule.setIncludeInApplicationXml(getBooleanChildValue(domModule, "includeInApplicationXml"));  
+      }
       earModule = jarModule;
     } 
     else if ( "ejbModule".equals(artifactType) || "ejb3Module".equals(artifactType)) {

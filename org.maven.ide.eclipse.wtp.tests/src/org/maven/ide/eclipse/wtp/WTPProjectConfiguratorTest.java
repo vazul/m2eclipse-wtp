@@ -1735,6 +1735,24 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
 
 
   @Test
+  public void testMECLIPSEWTP202_includeLibInApplicationXml() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-202/parent1/", new String[]{"pom.xml", "ear/pom.xml", "ejb/pom.xml"}, new ResolverConfiguration());
+    waitForJobsToComplete();
+    IProject ear = projects[1];
+    ear.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, new NullProgressMonitor());
+    assertNoErrors(ear);
+    
+    EARArtifactEdit edit = EARArtifactEdit.getEARArtifactEditForRead(ear);
+    assertEquals(5,edit.getApplication().getModules().size());
+    assertNull("lib/log4j-1.2.13.jar should not be found", edit.getApplication().getModule("lib/log4j-1.2.13.jar", null));
+    assertNotNull("ejb-0.0.1-SNAPSHOT.jar not found", edit.getApplication().getModule("ejb-0.0.1-SNAPSHOT.jar", null));
+    assertNotNull("lib/junit-3.8.1.jar not found", edit.getApplication().getModule("lib/junit-3.8.1.jar", null));
+    assertNotNull("lib/commons-beanutils-1.6.jar not found", edit.getApplication().getModule("lib/commons-beanutils-1.6.jar", null));
+    assertNotNull("lib/commons-logging-1.0.jar not found", edit.getApplication().getModule("lib/commons-logging-1.0.jar", null));
+    assertNotNull("lib/commons-collections-2.0.jar not found", edit.getApplication().getModule("lib/commons-collections-2.0.jar", null));
+  }
+  
+  @Test
   public void testMECLIPSEWTP204_warPluginExecutionsNotCovered() throws Exception {
     IProject project = importProject("projects/MECLIPSEWTP-204/pom.xml");
     project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);

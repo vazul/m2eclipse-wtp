@@ -172,10 +172,27 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     if (earModules == null) {
       //Lazy load modules
       earModules = collectEarModules();
+      
+      //Remove excluded artifacts 
+      Iterator<EarModule> modulesIterator = earModules.iterator();
+      while (modulesIterator.hasNext())
+      {
+        EarModule module = modulesIterator.next();
+        if (module.isExcluded())
+        {
+          modulesIterator.remove();  
+        }
+      }
+
+      earModules = Collections.unmodifiableSet(earModules);
     }
     return earModules;
   }
-  
+
+  public Set<EarModule> getAllEarModules() throws EarPluginException {
+     return Collections.unmodifiableSet(collectEarModules());
+  }
+
   private Set<EarModule> collectEarModules() throws EarPluginException {
     Set<Artifact> artifacts = mavenProject.getArtifacts();
     if(artifacts == null || artifacts.isEmpty()) {
@@ -202,28 +219,17 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
         continue;
       }
 
+      boolean isIncludedInApplicationXml = isIncludeLibInApplicationXml();
       // Artifact is not yet registered and it has neither test, nor a
       // provided scope, nor is it optional
       if(!isArtifactRegistered(artifact, earModules) && filter.include(artifact) && !artifact.isOptional()) {
-        EarModule module = earModuleFactory.newEarModule(artifact, defaultBundleDir, javaEEVersion);
+        EarModule module = earModuleFactory.newEarModule(artifact, defaultBundleDir, javaEEVersion, isIncludedInApplicationXml);
         if(module != null) {
           earModules.add(module);
         }
       }
     }
-    
-    //Remove excluded artifacts 
-    Iterator<EarModule> modulesIterator = earModules.iterator();
-    while (modulesIterator.hasNext())
-    {
-      EarModule module = modulesIterator.next();
-      if (module.isExcluded())
-      {
-        modulesIterator.remove();  
-      }
-    }
-
-    return Collections.unmodifiableSet(earModules);
+    return earModules;
   }
 
   private String getMainArtifactId() {
@@ -275,8 +281,9 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
       return earModules;
     }
     
+    boolean isIncludedInApplicationXml = isIncludeLibInApplicationXml();
     for(Xpp3Dom domModule : domModules) {
-      EarModule earModule = earModuleFactory.newEarModule(domModule, defaultBundleDir, javaEEVersion);
+      EarModule earModule = earModuleFactory.newEarModule(domModule, defaultBundleDir, javaEEVersion, isIncludedInApplicationXml);
       if(earModule != null) {
         earModules.add(earModule);
       }
@@ -340,4 +347,15 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
   protected String getFilteringAttribute() {
     return "filtering";
   }
+
+  public boolean isIncludeLibInApplicationXml() {
+    Xpp3Dom configuration = getConfiguration();
+    if(configuration == null) {
+      return false;
+    }
+    
+    boolean isIncluded = DomUtils.getBooleanChildValue(configuration, "includeLibInApplicationXml");
+    return isIncluded;
+  }
+  
 }
