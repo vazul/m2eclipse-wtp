@@ -43,29 +43,13 @@
     <module>org.maven.ide.eclipse.wtp.feature</module>
     <module>org.maven.ide.eclipse.wtp.site</module>
   </modules>
-  
-  <repositories>
-    <!--
-    <repository>
-      <id>helios</id>
-      <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/helios</url>
-    </repository>
     
-    <repository>
-      <id>m2e</id>
-      <layout>p2</layout>
-      <url>http://repository.sonatype.org/content/sites/forge-sites/m2e/${m2eclipse-core.site}</url>
-    </repository>
-	-->
-  </repositories>
-  
   <pluginRepositories>
     <pluginRepository>
       <id>tycho</id>
       <url>http://repository.sonatype.org/content/groups/sonatype-public-grid</url>
       <snapshots>
-	<enabled>true</enabled>
+        <enabled>true</enabled>
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
@@ -84,12 +68,12 @@
         <version>${tycho-version}</version>
         <configuration>
           <resolver>p2</resolver>
-	  <target>
+            <target>
             <artifact>
-	      <groupId>org.maven.ide.eclipse.wtp</groupId>
-	      <artifactId>org.maven.ide.eclipse.wtp.target-platform</artifactId>
-              <version>${project.version}</version>
-              <classifier>${target.platform}</classifier>
+                <groupId>org.maven.ide.eclipse.wtp</groupId>
+                <artifactId>org.maven.ide.eclipse.wtp.target-platform</artifactId>
+                <version>${project.version}</version>
+                <classifier>${target.platform}</classifier>
             </artifact>
           </target>
           <ignoreTychoRepositories>true</ignoreTychoRepositories>

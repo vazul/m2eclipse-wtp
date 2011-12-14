@@ -1750,8 +1750,14 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertNotNull("lib/commons-beanutils-1.6.jar not found", edit.getApplication().getModule("lib/commons-beanutils-1.6.jar", null));
     assertNotNull("lib/commons-logging-1.0.jar not found", edit.getApplication().getModule("lib/commons-logging-1.0.jar", null));
     assertNotNull("lib/commons-collections-2.0.jar not found", edit.getApplication().getModule("lib/commons-collections-2.0.jar", null));
+
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    assertEquals(6,comp.getReferences().length);
+    
+    IVirtualReference log4jRef = comp.getReference("var/M2_REPO/log4j/log4j/1.2.13/log4j-1.2.13.jar");
+    assertNotNull(log4jRef);
   }
-  
+
   @Test
   public void testMECLIPSEWTP204_warPluginExecutionsNotCovered() throws Exception {
     IProject project = importProject("projects/MECLIPSEWTP-204/pom.xml");

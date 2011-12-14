@@ -121,7 +121,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
     // Fix for http://jira.codehaus.org/browse/MEAR-116?focusedCommentId=232316&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_232316
     // affecting maven-ear-plugin version < 2.4.3
     if(!VALID_EAR_PLUGIN_RANGE.containsVersion(new DefaultArtifactVersion(genConfigMojo.getVersion()))) {
-    	System.err.println("overriding modules for ear plugin "+genConfigMojo.getVersion());
+    	//System.err.println("overriding modules for ear plugin "+genConfigMojo.getVersion());
       overrideModules(configuration, plugin.getAllEarModules());
     }
 
