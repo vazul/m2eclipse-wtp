@@ -1800,6 +1800,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     String error = "maven-war-plugin prior to 2.0.1 is not supported by m2e-wtp. Use maven-war-plugin version 2.0.1 or later";
     assertHasMarker(error, markers);
   }
+
+  @Test
+  public void testMECLIPSEWTP205_useWorkDirectory() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-205/pom.xml");
+    project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+    waitForJobsToComplete();
+    assertTrue("application.xml is missing from target/m2e-wtp/ear-resources/META-INF/", 
+        project.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml").exists());
+    assertFalse("target/MECLIPSEWTP-205-0.0.1-SNAPSHOT/META-INF/application.xml has been created",
+        project.getFile("target/MECLIPSEWTP-205-0.0.1-SNAPSHOT/META-INF/application.xml").exists());
+  }
   
   private static String dumpModules(List<Module> modules) {
     if (modules == null) return "Null modules";

@@ -104,19 +104,33 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       genConfigMojo.setConfiguration(configuration);
     }
     
-    File generatedDescriptorLocation;
+    File tempDirectory;
     try {
-      generatedDescriptorLocation = getTempDirectory();
+      tempDirectory = getTempDirectory();
     } catch(IOException ex) {
       IStatus status = new Status(IStatus.ERROR, MavenWtpPlugin.ID, ex.getLocalizedMessage(), ex);
       throw new CoreException(status);
     }
+
+    // Some old maven-ear-plugin have a dependency on an old plexus-util version that prevents
+    // using workdirectory == generatedDescriptorLocation, so we keep them separated 
+    File generatedDescriptorLocation = new File(tempDirectory, "generatedDescriptorLocation");
+    File workDirectory = new File(tempDirectory, "workDirectory");
+    
+    Xpp3Dom workDirectoryDom = configuration.getChild("workDirectory");
+    if(workDirectoryDom == null) {
+      workDirectoryDom = new Xpp3Dom("workDirectory");
+      configuration.addChild(workDirectoryDom);
+    }
+    workDirectoryDom.setValue(workDirectory.getAbsolutePath());
+
     Xpp3Dom genDescriptorLocationDom = configuration.getChild("generatedDescriptorLocation");
     if(genDescriptorLocationDom == null) {
       genDescriptorLocationDom = new Xpp3Dom("generatedDescriptorLocation");
       configuration.addChild(genDescriptorLocationDom);
     }
     genDescriptorLocationDom.setValue(generatedDescriptorLocation.getAbsolutePath());
+    
 
     // Fix for http://jira.codehaus.org/browse/MEAR-116?focusedCommentId=232316&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#action_232316
     // affecting maven-ear-plugin version < 2.4.3
@@ -152,7 +166,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
     
     IFolder metaInfFolder = targetFolder.getFolder("/META-INF/");
 
-    if(files.length > 0) {
+    if(files != null && files.length > 0) {
       //We generated something
       try {
         ImportOperation op = new ImportOperation(metaInfFolder.getFullPath(), generatedDescriptorLocation,
