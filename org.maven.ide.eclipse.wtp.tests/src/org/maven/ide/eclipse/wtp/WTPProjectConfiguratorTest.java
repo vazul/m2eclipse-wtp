@@ -1805,6 +1805,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   public void testMECLIPSEWTP205_useWorkDirectory() throws Exception {
     IProject project = importProject("projects/MECLIPSEWTP-205/pom.xml");
     project.build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+    project.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
     waitForJobsToComplete();
     assertNoErrors(project);
     project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
