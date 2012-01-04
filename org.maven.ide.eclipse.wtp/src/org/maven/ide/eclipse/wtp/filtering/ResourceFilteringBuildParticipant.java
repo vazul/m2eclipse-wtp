@@ -125,6 +125,8 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       Map<String, List<Message>> map = eclipseContext.getMessages();
       if (map == null || map.isEmpty()) {
         eclipseContext.addMessage(null, 0, 0, "dummy", 0, null);
+        //adding a message initializes the map 
+        map = eclipseContext.getMessages();
         id = map.keySet().iterator().next();
         map.clear();
       } else {
