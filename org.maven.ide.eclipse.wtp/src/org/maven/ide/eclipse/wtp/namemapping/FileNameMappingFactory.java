@@ -82,8 +82,8 @@ public class FileNameMappingFactory
         }
         try
         {
-            final Class c = Class.forName( nameOrClass );
-            return (FileNameMapping) c.newInstance();
+            final Class<? extends FileNameMapping> c = Class.forName( nameOrClass ).asSubclass(FileNameMapping.class);
+            return c.newInstance();
         }
         catch ( ClassNotFoundException e )
         {
