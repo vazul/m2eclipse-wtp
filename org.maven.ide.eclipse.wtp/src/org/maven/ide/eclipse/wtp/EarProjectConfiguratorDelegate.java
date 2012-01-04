@@ -44,8 +44,6 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -57,8 +55,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
-  private static final Logger log = LoggerFactory.getLogger(EarProjectConfiguratorDelegate.class);
-  
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     
@@ -115,7 +111,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     List<IPath> sourcePaths = new ArrayList<IPath>();
     sourcePaths.add(contentDirPath);
     
-    if (useBuildDirectory && earComponent != null) {
+    if (useBuildDirectory) {
       IPath m2eclipseWtpFolderPath = new Path("/").append(ProjectUtils.getM2eclipseWtpFolder(mavenProject, project));
       ProjectUtils.hideM2eclipseWtpFolder(mavenProject, project);
       IPath generatedResourcesPath = m2eclipseWtpFolderPath.append(Path.SEPARATOR+MavenWtpConstants.EAR_RESOURCES_FOLDER);
