@@ -216,4 +216,30 @@ public class OverlayTest extends AbstractWTPTestCase {
       
       assertTrue(resources.contains("junit/framework/Assert.class"));
   }
+  
+
+  @Test
+  public void testArchiveOverlayInclusion() throws Exception {
+      IProject war = importProject("projects/overlays/war-overlay5/pom.xml");
+      waitForJobsToComplete();
+      war.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+      waitForJobsToComplete();
+      assertNoErrors(war);
+      
+      IServer server = TestServerUtil.createPreviewServer();
+      TestServerUtil.addProjectToServer(war, server);
+
+      List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
+      System.out.println("server module resources :"+resources);
+      
+      assertTrue("META-INF/MANIFEST.MF is missing from "+ resources, resources.contains("META-INF/MANIFEST.MF"));
+      assertFalse("WEB-INF/lib/junit-3.8.2.jar should be missing from "+ resources,resources.contains("WEB-INF/lib/junit-3.8.2.jar"));
+      assertFalse("index.html should be missing from "+ resources,resources.contains("index.html"));
+      assertTrue("excluded/included.properties is missing from "+ resources, resources.contains("excluded/included.properties"));
+      assertFalse("excluded/excluded.properties should be missing from "+ resources, resources.contains("excluded/excluded.properties"));
+      assertTrue("META-INF/maven/test.overlays/war-archive-overlay/pom.properties is missing from "+ resources, resources.contains("META-INF/maven/test.overlays/war-archive-overlay/pom.properties"));
+      assertTrue("META-INF/maven/test.overlays/war-archive-overlay/pom.xml is missing from "+ resources, resources.contains("META-INF/maven/test.overlays/war-archive-overlay/pom.xml"));
+  }
+  
+  
 }
