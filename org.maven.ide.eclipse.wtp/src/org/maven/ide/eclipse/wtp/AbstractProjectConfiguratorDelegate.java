@@ -25,6 +25,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathAttribute;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
@@ -43,6 +45,8 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -53,6 +57,8 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
  */
 abstract class AbstractProjectConfiguratorDelegate implements IProjectConfiguratorDelegate {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractProjectConfiguratorDelegate.class); 
+  
   static final IClasspathAttribute NONDEPENDENCY_ATTRIBUTE = JavaCore.newClasspathAttribute(
       IClasspathDependencyConstants.CLASSPATH_COMPONENT_NON_DEPENDENCY, "");
 
@@ -107,16 +113,24 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
        || WTPProjectsUtil.isQualifiedAsWebFragment(facade)) {
       return;
     }
-
-    boolean isDebugEnabled = DebugUtilities.isDebugEnabled();
-    if (isDebugEnabled) {
-      DebugUtilities.debug(DebugUtilities.dumpProjectState("Before configuration ",project));
-    }
     
     //MECLIPSEWTP-66 delete extra MANIFEST.MF
     // 1 - predict where the MANIFEST.MF will be created
     IFolder firstInexistentfolder = null;
     IPath[] sourceRoots = MavenProjectUtils.getSourceLocations(project, mavenProject.getCompileSourceRoots());
+    IPath[] resourceRoots = MavenProjectUtils.getResourceLocations(project, mavenProject.getResources());
+    
+    //MECLIPSEWTP-182 check if the Java Project configurator has been successfully run before doing anything : 
+    if (!checkJavaConfiguration(project, sourceRoots, resourceRoots)) {
+      LOG.warn("{} Utility Facet configuration is aborted as the Java Configuration is inconsistent", project.getName());
+      return;
+    }
+
+    boolean isDebugEnabled = DebugUtilities.isDebugEnabled();
+    if (isDebugEnabled) {
+      DebugUtilities.debug(DebugUtilities.dumpProjectState("Before configuration ",project));
+    }
+
     IPath sourceFolder = null;
     if ((sourceRoots == null || sourceRoots.length == 0) || !project.getFolder(sourceRoots[0]).exists()) {
       sourceRoots = MavenProjectUtils.getResourceLocations(project, mavenProject.getResources());
@@ -173,6 +187,39 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
 
     WTPProjectsUtil.removeWTPClasspathContainer(project);
+  }
+
+  /**
+   * Checks the maven source folders are correctly added to the project classpath
+   */
+  private boolean checkJavaConfiguration(IProject project, IPath[] sourceRoots, IPath[] resourceRoots) throws JavaModelException {
+    IJavaProject javaProject = JavaCore.create(project);
+    if (javaProject == null) {
+      return false;
+    }
+    IClasspathEntry[] cpEntries = javaProject.getRawClasspath();
+    if (cpEntries == null) {
+      return false;
+    }
+    Set<IPath> currentPaths = new HashSet<IPath>();
+    for (IClasspathEntry entry  : cpEntries) {
+      if (IClasspathEntry.CPE_SOURCE == entry.getEntryKind()){
+        currentPaths.add(entry.getPath().makeRelativeTo(project.getFullPath()));
+      }
+    }
+    for(IPath mavenSource : sourceRoots) {
+        IFolder sourceFolder = project.getFolder(mavenSource);
+        if (sourceFolder.exists() && !currentPaths.contains(mavenSource)) {
+          return false;
+        }
+    }
+    for(IPath mavenSource : resourceRoots) {
+      IFolder resourceFolder = project.getFolder(mavenSource);
+      if (resourceFolder.exists() && !currentPaths.contains(mavenSource)) {
+        return false;
+      }
+  }
+    return true;
   }
 
   /**

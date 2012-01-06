@@ -214,7 +214,7 @@ public class OverlayTest extends AbstractWTPTestCase {
       
       List<String> resources = TestServerUtil.toList(TestServerUtil.getServerModuleResources(war));
       
-      assertTrue(resources.contains("junit/framework/Assert.class"));
+      assertTrue("Assert.class is missing from " + resources, resources.contains("junit/framework/Assert.class"));
   }
   
 
