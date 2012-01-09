@@ -1794,6 +1794,28 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertHasMarker(error, markers);
   }
 
+  @Test
+  public void testMECLIPSEWTP212_EarDeployedName() throws Exception {
+    IProject ear = importProject("projects/MECLIPSEWTP-212/pom.xml");
+    waitForJobsToComplete();
+    IVirtualComponent earComp;
+    
+    earComp= ComponentCore.createComponent(ear);
+    assertNotNull("EAR component is null" , earComp);
+    assertEquals("MECLIPSEWTP-212-0.0.1-SNAPSHOT", earComp.getDeployedName());
+
+    updateProject(ear, "pom2.xml");
+    earComp= ComponentCore.createComponent(ear);
+    assertNotNull("EAR component is null" , earComp);
+    assertEquals("ear", earComp.getDeployedName());
+    
+    updateProject(ear, "pom3.xml");
+    earComp= ComponentCore.createComponent(ear);
+    assertNotNull("EAR component is null" , earComp);
+    assertEquals("ear-1.0", earComp.getDeployedName());
+  }
+  
+  
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

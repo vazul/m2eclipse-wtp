@@ -133,7 +133,11 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);
 
-    //configureDeployedName(project, mavenProject.getBuild().getFinalName());
+    String finalName = mavenProject.getBuild().getFinalName();
+    if (!finalName.endsWith(".ear")) {
+      finalName += ".ear";
+    }
+    configureDeployedName(project, finalName);
     project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 
   }
