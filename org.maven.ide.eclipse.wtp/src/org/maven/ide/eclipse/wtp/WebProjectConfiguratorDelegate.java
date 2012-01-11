@@ -8,6 +8,8 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -121,6 +123,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IProjectFacetVersion webFv = config.getWebFacetVersion(project);
     IDataModel webModelCfg = getWebModelConfig(warSourceDirectory, contextRoot);
     if(!facetedProject.hasProjectFacet(WebFacetUtils.WEB_FACET)) {
+      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, webFv, webModelCfg));
     } else {
       IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WebFacetUtils.WEB_FACET);     

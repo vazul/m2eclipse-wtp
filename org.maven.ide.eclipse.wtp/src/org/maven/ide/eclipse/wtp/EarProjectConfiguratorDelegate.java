@@ -9,6 +9,8 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -77,6 +79,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     IProjectFacetVersion earFv = config.getEarFacetVersion();
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
+      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, earFv, getEarModel(contentDir)));
     } else {
       //MECLIPSEWTP-37 : don't uninstall the EAR Facet, as it causes constraint failures when used with RAD

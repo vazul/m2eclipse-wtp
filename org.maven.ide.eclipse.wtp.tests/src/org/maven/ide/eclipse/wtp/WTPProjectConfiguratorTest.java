@@ -11,7 +11,6 @@ package org.maven.ide.eclipse.wtp;
 import static org.maven.ide.eclipse.wtp.MavenWtpConstants.EAR_RESOURCES_FOLDER;
 import static org.maven.ide.eclipse.wtp.MavenWtpConstants.M2E_WTP_FOLDER;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -55,6 +54,7 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualFile;
 import org.eclipse.wst.common.componentcore.resources.IVirtualFolder;
 import org.eclipse.wst.common.componentcore.resources.IVirtualReference;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
+import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.junit.Test;
@@ -1815,6 +1815,38 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("ear-1.0", earComp.getDeployedName());
   }
   
+  @Test
+  public void testMECLIPSEWTP213_removeUtilityFacet() throws Exception {
+    testRemoveUtilityFacet("ejbPom.xml", WTPProjectsUtil.EJB_FACET);
+    testRemoveUtilityFacet("warPom.xml", WTPProjectsUtil.DYNAMIC_WEB_FACET);
+  }
+
+  protected void testRemoveUtilityFacet(String newPom, IProjectFacet expectedFacet) throws Exception {
+    String utilityProjectName = "chimera";
+    deleteProject(utilityProjectName);
+    waitForJobsToComplete();
+    assertFalse(utilityProjectName + "was not deleted", workspace.getRoot().getProject(utilityProjectName).exists());
+    IProject chimera = createExisting(utilityProjectName, "projects/MECLIPSEWTP-213/"+utilityProjectName);
+    waitForJobsToComplete();
+    assertNoErrors(chimera);
+    
+    IFacetedProject facetedProject = ProjectFacetsManager.create(chimera);
+    assertNotNull(facetedProject);
+    assertEquals(2, facetedProject.getProjectFacets().size());
+    assertTrue(facetedProject.hasProjectFacet(WTPProjectsUtil.UTILITY_FACET));
+    assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
+    
+    updateProject(chimera, newPom);
+    waitForJobsToComplete();
+    
+    assertNoErrors(chimera);
+    
+    facetedProject = ProjectFacetsManager.create(chimera);
+    assertNotNull(facetedProject);
+    assertFalse("Utility facet should be missing", facetedProject.hasProjectFacet(WTPProjectsUtil.UTILITY_FACET));
+    assertTrue(expectedFacet + " is missing", facetedProject.hasProjectFacet(expectedFacet));
+    assertTrue("Java Facet is missing", facetedProject.hasProjectFacet(JavaFacet.FACET));
+  }
   
   private static String dumpModules(List<Module> modules) {
     if(modules == null)

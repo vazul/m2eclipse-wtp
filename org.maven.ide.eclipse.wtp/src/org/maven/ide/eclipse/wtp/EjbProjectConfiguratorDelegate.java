@@ -8,6 +8,8 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -54,6 +56,7 @@ class EjbProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IProjectFacetVersion ejbFv = config.getEjbFacetVersion();
     
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EJB_FACET)) {
+      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, ejbFv, getEjbDataModel(contentDir)));
     } else {
       IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WTPProjectsUtil.EJB_FACET);     
