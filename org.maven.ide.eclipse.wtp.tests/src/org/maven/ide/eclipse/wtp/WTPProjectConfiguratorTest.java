@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.apache.maven.artifact.Artifact;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
@@ -1847,6 +1848,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertTrue(expectedFacet + " is missing", facetedProject.hasProjectFacet(expectedFacet));
     assertTrue("Java Facet is missing", facetedProject.hasProjectFacet(JavaFacet.FACET));
   }
+
+  @Test
+  public void testMECLIPSEWTP215_SnapshotDependency() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-215/pom.xml");
+    waitForJobsToComplete();
+    IJavaProject javaProject = JavaCore.create(project);
+    IClasspathContainer container = BuildPathManager.getMaven2ClasspathContainer(javaProject);
+    IClasspathEntry[] cp = container.getClasspathEntries();
+
+    assertEquals(1, cp.length);
+    assertEquals("MNGECLIPSE-1045-DEP-0.0.1-SNAPSHOT.jar", cp[0].getPath().lastSegment());
+    Artifact a = MavenPlugin.getMavenProjectRegistry().getProject(project).getMavenProject().getArtifacts().iterator().next();
+    assertEquals(a.getFile().getPath(), cp[0].getPath().toOSString());
+  }  
   
   private static String dumpModules(List<Module> modules) {
     if(modules == null)

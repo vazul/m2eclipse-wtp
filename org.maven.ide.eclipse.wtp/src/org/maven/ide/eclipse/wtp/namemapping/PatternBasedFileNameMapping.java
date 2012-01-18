@@ -23,7 +23,10 @@ public class PatternBasedFileNameMapping implements FileNameMapping {
   
   public PatternBasedFileNameMapping(String pattern) {
     if (pattern == null || pattern.trim().length() == 0) {
-      pattern = "@{artifactId}@-@{version}@@{dashClassifier?}@.@{extension}@";
+      //pattern = "@{artifactId}@-@{version}@@{dashClassifier?}@.@{extension}@";
+      //MECLIPSEWTP-215 temporary fix until https://bugs.eclipse.org/bugs/show_bug.cgi?id=359385 is fixed
+      //Then we'll switch back to using @{version}
+      pattern = "@{artifactId}@-@{baseVersion}@@{dashClassifier?}@.@{extension}@";
     }
     this.pattern = pattern;
   }
