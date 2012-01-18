@@ -136,10 +136,10 @@
          <delegate class="org.maven.ide.eclipse.wtp.facets.RarVersionChangeDelegate"/>
       </action>
       <action type="uninstall" facet="jst.appclient" version="[1.0-6.0]">
-         <delegate class="org.maven.ide.eclipse.wtp.facets.AcrUninstallDelegate"/>
+         <delegate class="org.maven.ide.eclipse.wtp.facets.AppClientUninstallDelegate"/>
       </action>
       <action type="version-change" facet="jst.appclient" version="[1.0-6.0]">
-         <delegate class="org.maven.ide.eclipse.wtp.facets.AcrVersionChangeDelegate"/>
+         <delegate class="org.maven.ide.eclipse.wtp.facets.AppClientVersionChangeDelegate"/>
       </action>
    </extension>
    

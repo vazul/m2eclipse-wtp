@@ -30,6 +30,7 @@
     <target.platform>m2e-wtp-e371</target.platform>        
     <test.timeout>1800</test.timeout><!--  30 mins -->       
     <m2e.site-compressed>http://repository.sonatype.org/service/local/repositories/forge-sites/content-compressed/</m2e.site-compressed>
+    <tycho.test.jvmArgs>-Xmx512m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
   </properties>
 
   <modules>
@@ -42,29 +43,13 @@
     <module>org.maven.ide.eclipse.wtp.feature</module>
     <module>org.maven.ide.eclipse.wtp.site</module>
   </modules>
-  
-  <repositories>
-    <!--
-    <repository>
-      <id>helios</id>
-      <layout>p2</layout>
-      <url>http://download.eclipse.org/releases/helios</url>
-    </repository>
     
-    <repository>
-      <id>m2e</id>
-      <layout>p2</layout>
-      <url>http://repository.sonatype.org/content/sites/forge-sites/m2e/${m2eclipse-core.site}</url>
-    </repository>
-	-->
-  </repositories>
-  
   <pluginRepositories>
     <pluginRepository>
       <id>tycho</id>
       <url>http://repository.sonatype.org/content/groups/sonatype-public-grid</url>
       <snapshots>
-	<enabled>true</enabled>
+        <enabled>true</enabled>
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
@@ -83,12 +68,12 @@
         <version>${tycho-version}</version>
         <configuration>
           <resolver>p2</resolver>
-	  <target>
+            <target>
             <artifact>
-	      <groupId>org.maven.ide.eclipse.wtp</groupId>
-	      <artifactId>org.maven.ide.eclipse.wtp.target-platform</artifactId>
-              <version>${project.version}</version>
-              <classifier>${target.platform}</classifier>
+                <groupId>org.maven.ide.eclipse.wtp</groupId>
+                <artifactId>org.maven.ide.eclipse.wtp.target-platform</artifactId>
+                <version>${project.version}</version>
+                <classifier>${target.platform}</classifier>
             </artifact>
           </target>
           <ignoreTychoRepositories>true</ignoreTychoRepositories>
@@ -108,6 +93,7 @@
               <include>**/*Test.java</include>
             </includes>
             <argLine>${tycho.test.jvmArgs}</argLine>
+            <appArgLine>-pluginCustomization ${basedir}/plugin_customization.ini</appArgLine>
             <!-- kill test JVM if tests take more than X seconds to finish -->
             <forkedProcessTimeoutInSeconds>${test.timeout}</forkedProcessTimeoutInSeconds>
           </configuration>
@@ -122,18 +108,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>sun-jvm</id>
-      <activation>
-        <property>
-          <name>java.vendor.url</name>
-          <value>http://java.sun.com/</value>
-        </property>
-      </activation>
-      <properties>
-        <tycho.test.jvmArgs>-Xmx512m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
-      </properties>
-    </profile>
     <profile>
       <id>osx</id>
       <activation>

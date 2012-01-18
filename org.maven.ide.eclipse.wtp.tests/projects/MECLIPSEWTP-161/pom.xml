@@ -11,7 +11,8 @@
   			<artifactId>maven-ear-plugin</artifactId>
   			<configuration>
 				<version>5</version>
-				<defaultLibBundleDir>lib</defaultLibBundleDir>  			
+				<defaultLibBundleDir>lib</defaultLibBundleDir>
+				<generateApplicationXml>false</generateApplicationXml>  			
   			</configuration>
   		</plugin>
   	</plugins>

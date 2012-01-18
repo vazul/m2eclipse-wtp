@@ -97,6 +97,9 @@ public abstract class AbstractEarModule implements EarModule {
       } else {
         if(!bd.endsWith("/")) {
           bd = bd + "/";
+        } 
+        if (bd.startsWith("/")) {
+          bd = bd.substring(1);
         }
         uri =  bd + getBundleFileName();
       }
@@ -287,6 +290,9 @@ public abstract class AbstractEarModule implements EarModule {
     Xpp3Dom altDdDom = new Xpp3Dom("altDeploymentDescriptor");
     altDdDom.setValue(getAltDeploymentDescriptor());  
     moduleDom.addChild(altDdDom);
+    Xpp3Dom excludedDom = new Xpp3Dom("excluded");
+    excludedDom.setValue(Boolean.toString(isExcluded()));  
+    moduleDom.addChild(excludedDom);
     setCustomValues(moduleDom);
     return moduleDom;
   }

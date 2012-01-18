@@ -33,16 +33,35 @@ public class FileSystemResourceFilter implements IResourceFilter {
 	}
 	
 	class SimpleScanner extends DirectoryScanner {
+
+		@Override
+		public synchronized void setIncludes(String[] includes) {
+			super.setIncludes(setFileSeparator(includes));
+		}
 		
-		private IPath baseDirPath;
+		@Override
+		public synchronized void setExcludes(String[] excludes) {
+			super.setExcludes(setFileSeparator(excludes));
+		}
+		
+		private String[] setFileSeparator(String[] patterns) {
+			if (patterns != null) {
+				for (int i = 0; i < patterns.length ; i++) {
+					patterns[i] = PathUtil.useSystemSeparator(patterns[i]);
+				}
+			}
+			return patterns;
+		}
+
+		private String baseDirAsString;
 		private Set<String> includedFiles;
 		private Set<String> excludedFiles;
 		private Set<String> includedFolders;
 		private Set<String> excludedFolders;
 		
 		public SimpleScanner(IPath baseDirPath) {
-			this.baseDirPath = baseDirPath;
-			setBasedir(baseDirPath.toPortableString());
+			this.baseDirAsString = baseDirPath.toOSString();
+			setBasedir(baseDirAsString);
 		}
 
 		@Override
@@ -59,7 +78,20 @@ public class FileSystemResourceFilter implements IResourceFilter {
 		}
 		
 		private void completeIncludedFolders() {
-			
+			Set<String> missingParentFolders = new HashSet<String>();
+			for(String folder : includedFolders) {
+			  IPath filePath = new Path(folder);
+			  IPath parentPath = filePath.removeLastSegments(1);
+			  while (parentPath.segmentCount()>0) {
+	    		String pathAsString = parentPath.toOSString(); 
+	    		if (!includedFolders.contains(pathAsString)) {
+	    		  missingParentFolders.add(pathAsString);
+	    		}
+	    		parentPath = parentPath.removeLastSegments(1);
+	    	  }
+			}
+    		includedFolders.addAll(missingParentFolders);
+    		
 	    	for(String file : includedFiles) {
 	    		//For /some/foo/bar/file.ext, we need to add 
 	    		// /some/foo/bar/
@@ -70,7 +102,7 @@ public class FileSystemResourceFilter implements IResourceFilter {
 	    		IPath filePath = new Path(file);
 	    		IPath parentPath = filePath.removeLastSegments(1);
 	    		while (parentPath.segmentCount()>0) {
-	    			if (includedFolders.add(parentPath.toPortableString())) {
+	    			if (includedFolders.add(parentPath.toOSString())) {
 	    				parentPath = parentPath.removeLastSegments(1);
 	    			} else {
 	    				//Parent hierarchy already added
@@ -79,21 +111,21 @@ public class FileSystemResourceFilter implements IResourceFilter {
 	    		}
 	    	}
 		}
-
+		
 		protected boolean accepts(String name, boolean isFile) {
 			
-			if (name.startsWith(baseDirPath.toPortableString())) {
-				name = name.substring(baseDirPath.toPortableString().length()+1);
+			name = PathUtil.useSystemSeparator(name);
+			if (name.startsWith(baseDirAsString)) {
+				name = name.substring(baseDirAsString.length()+1);
 			}
 			
 			boolean res;
-			name = PathUtil.useSystemSeparator(name);
 			if (isFile) {
 				res = includedFiles.contains(name) && !excludedFiles.contains(name);
 			} else {
 				res = includedFolders.contains(name) && !excludedFolders.contains(name);
 			}
-			//if (!res) System.err.println(name + (res?" included": " excluded"));
+			//System.err.println(name + (res?" included": " excluded"));
 			return res;
 		}
 	}

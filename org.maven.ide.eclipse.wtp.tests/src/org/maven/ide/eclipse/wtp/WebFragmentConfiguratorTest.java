@@ -110,6 +110,15 @@ public class WebFragmentConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(2, facetedProject.getProjectFacets().size());
     assertTrue(facetedProject.hasProjectFacet(WTPProjectsUtil.WEB_FRAGMENT_FACET));
     assertTrue(facetedProject.hasProjectFacet(JavaFacet.FACET));
-    
+  }
+
+  @Test
+  public void testMECLIPSEWTP193_NPEWithExternalResource() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-193/", 
+        new String[]{"war/pom.xml", "util/pom.xml", "jar/pom.xml"}, 
+        new ResolverConfiguration());
+    waitForJobsToComplete();
+    IProject jar = projects[1];
+    assertNoErrors(jar);
   }
 }

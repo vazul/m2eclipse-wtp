@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.navigator.ICommonContentExtensionSite;
-import org.eclipse.ui.navigator.ICommonContentProvider;
 import org.eclipse.ui.navigator.IPipelinedTreeContentProvider;
 import org.eclipse.ui.navigator.PipelinedShapeModification;
 import org.eclipse.ui.navigator.PipelinedViewerUpdate;
@@ -33,7 +32,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Eugene Kuleshov
  */
-public class WTPResourcesContentProvider extends BaseWorkbenchContentProvider implements ICommonContentProvider, IPipelinedTreeContentProvider {
+public class WTPResourcesContentProvider extends BaseWorkbenchContentProvider implements IPipelinedTreeContentProvider {
 
   private static final Logger log = LoggerFactory.getLogger(WTPResourcesContentProvider.class); 
   
@@ -59,7 +58,7 @@ public class WTPResourcesContentProvider extends BaseWorkbenchContentProvider im
   public void getPipelinedElements(Object element, Set currentElements) {
   }
   
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public void getPipelinedChildren(Object parent, Set currentChildren) {
     if (parent instanceof IProject) {
       IProject project = (IProject) parent;

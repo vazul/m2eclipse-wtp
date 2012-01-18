@@ -112,7 +112,7 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
         return ;
       }
     }
-    fail(expectedMessage + " is not a marker. Existing markers are :"+toString(markers));
+    fail("[" + expectedMessage + "] is not a marker. Existing markers are :"+toString(markers));
   }
 
   protected void assertNotDeployable(IClasspathEntry entry) {

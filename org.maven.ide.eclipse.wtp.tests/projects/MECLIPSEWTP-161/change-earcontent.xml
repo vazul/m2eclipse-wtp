@@ -12,7 +12,8 @@
   			<configuration>
 				<version>5</version>
 				<earSourceDirectory>EarContent</earSourceDirectory>
-				<defaultLibBundleDir>lib</defaultLibBundleDir>  			
+				<defaultLibBundleDir>lib</defaultLibBundleDir>
+				<generateApplicationXml>false</generateApplicationXml>  			
   			</configuration>
   		</plugin>
   	</plugins>

@@ -459,7 +459,7 @@ public class WTPProjectsUtil {
         //fall back : iterate over the resource folders
         IProject project = facade.getProject();
         for (IPath resourceFolderPath : facade.getResourceLocations()) {
-          if (project.exists(resourceFolderPath.append("META-INF/web-fragment.xml"))) {
+          if (resourceFolderPath != null && project.exists(resourceFolderPath.append("META-INF/web-fragment.xml"))) {
             return true;
           }
         }
