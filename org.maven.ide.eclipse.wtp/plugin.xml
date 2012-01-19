@@ -126,9 +126,6 @@
       <action type="version-change" facet="jst.web" version="[2.2-3.0]" >
          <delegate class="org.maven.ide.eclipse.wtp.facets.WarVersionChangeDelegate"/>
       </action>
-      <action type="uninstall" facet="jst.java" version="[1.3-6.0]">
-         <delegate class="org.maven.ide.eclipse.wtp.facets.JavaUninstallDelegate"/>
-      </action>
       <action type="uninstall" facet="jst.connector" version="[1.0-1.6]">
          <delegate class="org.maven.ide.eclipse.wtp.facets.RarUninstallDelegate"/>
       </action>
