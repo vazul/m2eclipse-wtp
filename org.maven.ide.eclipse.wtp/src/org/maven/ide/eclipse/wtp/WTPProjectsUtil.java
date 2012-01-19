@@ -411,14 +411,23 @@ public class WTPProjectsUtil {
     }
   }
 
-
-  /**
-   * @param actions
-   * @param utilityFacet
-   */
-  public static void removeFacets(Set<Action> actions, IProjectFacetVersion ... facetVersions) {
-    for (IProjectFacetVersion facetVersion : facetVersions) {
-      actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL, facetVersion, null));
+ /**
+  * Adds uninstall actions of facets from the faceted project that conflict with the given facetVersion. 
+  */
+  public static void removeConflictingFacets(IFacetedProject project, IProjectFacetVersion facetVersion, Set<Action> actions) {
+    if (project == null) {
+      throw new IllegalArgumentException("project can not be null");
+    }
+    if (facetVersion == null) {
+      throw new IllegalArgumentException("Facet version can not be null");
+    }
+    if (actions == null) {
+      throw new IllegalArgumentException("actions can not be null");
+    }
+    for (IProjectFacetVersion existingFacetVersion : project.getProjectFacets()) {
+      if (facetVersion.conflictsWith(existingFacetVersion)) {
+        actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL, existingFacetVersion, null));
+      }
     }
   }
 

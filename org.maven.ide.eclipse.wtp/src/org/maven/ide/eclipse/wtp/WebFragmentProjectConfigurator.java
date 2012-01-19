@@ -11,7 +11,7 @@ package org.maven.ide.eclipse.wtp;
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.hasWebFragmentFacet;
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.installJavaFacet;
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.isQualifiedAsWebFragment;
-import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -79,8 +79,8 @@ public class WebFragmentProjectConfigurator extends AbstractProjectConfigurator 
     addFilesToClean(fileCleaner, facade.getResourceLocations());
     addFilesToClean(fileCleaner, facade.getCompileSourceLocations());
     
-    removeFacets(actions, WTPProjectsUtil.UTILITY_10);
-    
+    removeConflictingFacets(facetedProject, WTPProjectsUtil.WEB_FRAGMENT_3_0, actions);
+     
     try {
       //Install or update the java facet
       installJavaFacet(actions, project, facetedProject);

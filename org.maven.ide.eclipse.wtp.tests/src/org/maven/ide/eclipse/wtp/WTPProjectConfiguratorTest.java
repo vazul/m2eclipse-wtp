@@ -1818,11 +1818,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   
   @Test
   public void testMECLIPSEWTP213_removeUtilityFacet() throws Exception {
-    testRemoveUtilityFacet("ejbPom.xml", WTPProjectsUtil.EJB_FACET);
-    testRemoveUtilityFacet("warPom.xml", WTPProjectsUtil.DYNAMIC_WEB_FACET);
+    testRemoveConflictingFacets("ejbPom.xml", WTPProjectsUtil.EJB_FACET);
+    testRemoveConflictingFacets("warPom.xml", WTPProjectsUtil.DYNAMIC_WEB_FACET);
   }
-
-  protected void testRemoveUtilityFacet(String newPom, IProjectFacet expectedFacet) throws Exception {
+  
+  protected void testRemoveConflictingFacets(String newPom, IProjectFacet expectedFacet) throws Exception {
     String utilityProjectName = "chimera";
     deleteProject(utilityProjectName);
     waitForJobsToComplete();

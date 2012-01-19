@@ -8,7 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -74,7 +74,6 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     installJavaFacet(actions, project, facetedProject);
 
     RarPluginConfiguration config = new RarPluginConfiguration(mavenProject);
-    // WTP doesn't allow facet versions changes for JEE facets 
     
     IFile manifest = null;
     IFolder firstInexistentfolder = null;
@@ -97,7 +96,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       rarModelCfg.setProperty(IConnectorFacetInstallDataModelProperties.GENERATE_DD, false);
 
       IProjectFacetVersion connectorFv = config.getConnectorFacetVersion(project);
-      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
+      removeConflictingFacets(facetedProject, connectorFv, actions);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, connectorFv, rarModelCfg));
     }
 
