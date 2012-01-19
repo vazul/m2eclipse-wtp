@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate{
 
-  private static final Logger log = LoggerFactory.getLogger(ConnectorProjectConfiguratorDelegate.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectorProjectConfiguratorDelegate.class);
 
   public static final ArtifactFilter SCOPE_FILTER_RUNTIME = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
 
@@ -66,7 +66,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
         facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
             facetedProject.getInstalledVersion(WTPProjectsUtil.JCA_FACET), null)), monitor);
       } catch(Exception ex) {
-        log.error("Error removing JCA facet", ex);
+        LOG.error("Error removing JCA facet", ex);
       }
     }
     

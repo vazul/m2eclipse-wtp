@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WTPResourcesContentProvider extends BaseWorkbenchContentProvider implements IPipelinedTreeContentProvider {
 
-  private static final Logger log = LoggerFactory.getLogger(WTPResourcesContentProvider.class); 
+  private static final Logger LOG = LoggerFactory.getLogger(WTPResourcesContentProvider.class); 
   
   public void init(ICommonContentExtensionSite config) {
   }
@@ -75,7 +75,7 @@ public class WTPResourcesContentProvider extends BaseWorkbenchContentProvider im
             currentChildren.addAll(newChildren);
           }
         } catch(CoreException ex) {
-          log.error("Error getting pipelined children", ex);
+          LOG.error("Error getting pipelined children", ex);
         }
       }
     }

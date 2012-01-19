@@ -14,7 +14,7 @@ import org.maven.ide.eclipse.wtp.MavenWtpPlugin;
 /**
  * Maven WTP preferences constants 
  */
-public class MavenWtpPreferencesConstants {
+public final class MavenWtpPreferencesConstants {
   
   /**
    * 

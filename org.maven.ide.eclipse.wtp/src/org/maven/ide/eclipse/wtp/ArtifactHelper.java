@@ -34,7 +34,7 @@ import org.eclipse.wst.common.componentcore.internal.resources.VirtualArchiveCom
 @SuppressWarnings("restriction")
 public class ArtifactHelper {
 
-  private static String M2_REPO_PREFIX = VirtualArchiveComponent.VARARCHIVETYPE + IPath.SEPARATOR
+  private static final String M2_REPO_PREFIX = VirtualArchiveComponent.VARARCHIVETYPE + IPath.SEPARATOR
   + BuildPathManager.M2_REPO + IPath.SEPARATOR;
 
   /**

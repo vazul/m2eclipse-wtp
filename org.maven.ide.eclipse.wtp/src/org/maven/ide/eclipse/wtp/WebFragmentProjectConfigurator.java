@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WebFragmentProjectConfigurator extends AbstractProjectConfigurator {
 
-  private static final Logger log = LoggerFactory.getLogger(WebFragmentProjectConfigurator.class); 
+  private static final Logger LOG = LoggerFactory.getLogger(WebFragmentProjectConfigurator.class); 
 
   /**
    * Adds the Java and Web fragment facets to jar projects qualified as web-fragments, i.e, 
@@ -105,7 +105,7 @@ public class WebFragmentProjectConfigurator extends AbstractProjectConfigurator 
         //Remove any WTP created files (extras fragment descriptor and manifest) 
         fileCleaner.cleanUp();
       } catch (CoreException cex) {
-        log.error("Error while cleaning up WTP's created files", cex);
+        LOG.error("Error while cleaning up WTP's created files", cex);
       }
     }
     

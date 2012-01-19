@@ -35,7 +35,7 @@ public class ExtensionReader {
 
   public static final String EXTENSION_DEPENDENCY_CONFIGURATORS = "org.maven.ide.eclipse.wtp.dependencyConfigurators";
   
-  private static final Logger log = LoggerFactory.getLogger(ExtensionReader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ExtensionReader.class);
       
   private static final String ELEMENT_CONFIGURATOR = "configurator";
   
@@ -64,7 +64,7 @@ public class ExtensionReader {
                 
                 dependencyConfigurators.add(projectConfigurator);
               } catch(CoreException ex) {
-                log.error("Error configuring dependency configurator", ex);
+                LOG.error("Error configuring dependency configurator", ex);
               }
             }
           }

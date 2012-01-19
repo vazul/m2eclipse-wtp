@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 class EjbPluginConfiguration {
   
-  private static final Logger log = LoggerFactory.getLogger(EjbPluginConfiguration.class); 
+  private static final Logger LOG = LoggerFactory.getLogger(EjbPluginConfiguration.class); 
 
   /**
    * Maven defaults ejb version to 2.1
@@ -65,7 +65,7 @@ class EjbPluginConfiguration {
       try {
         return WTPProjectsUtil.EJB_FACET.getVersion(ejbVersion);
       } catch (Exception e) {
-        log.warn(e.getMessage());
+        LOG.warn(e.getMessage());
         //If ejbVersion > 3.0 and WTP < 3.2, then downgrade to ejb facet 3.0
         if (ejbVersion.startsWith("3.")){
           return IJ2EEFacetConstants.EJB_30;

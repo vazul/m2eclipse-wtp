@@ -39,7 +39,7 @@ package org.maven.ide.eclipse.wtp.namemapping;
  * @author <a href="snicoll@apache.org">Stephane Nicoll</a>
  * @version $Id: FileNameMappingFactory.java 992847 2010-09-05 18:16:55Z snicoll $
  */
-public class FileNameMappingFactory
+public final class FileNameMappingFactory
 {
     static final String STANDARD_FILE_NAME_MAPPING = "standard";
 

@@ -16,6 +16,8 @@ import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences;
 import org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferencesManager;
 import org.maven.ide.eclipse.wtp.preferences.MavenWtpPreferencesConstants;
 import org.osgi.service.prefs.BackingStoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An implementation of IMavenWtpPreferencesManager
@@ -24,6 +26,7 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public class MavenWtpPreferencesManagerImpl implements IMavenWtpPreferencesManager {
 
+  private static Logger LOG = LoggerFactory.getLogger(MavenWtpPreferencesManagerImpl.class);
   /**
    * @see org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferencesManager#getPreferences(org.eclipse.core.resources.IProject)
    */
@@ -76,7 +79,7 @@ public class MavenWtpPreferencesManagerImpl implements IMavenWtpPreferencesManag
     try {
       eclipsePrefs.flush();
     } catch (BackingStoreException e) { 
-      System.err.println("can't store references");
+      LOG.error("can't store m2e-wtp preferences", e);
     } 
   }
   

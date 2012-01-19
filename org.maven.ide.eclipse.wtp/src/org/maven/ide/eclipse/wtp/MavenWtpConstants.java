@@ -15,7 +15,7 @@ import org.eclipse.m2e.core.internal.IMavenConstants;
  *
  * @author Fred Bricon
  */
-public class MavenWtpConstants {
+public final class MavenWtpConstants {
   
   private MavenWtpConstants() {} 
 
