@@ -492,15 +492,41 @@ public class WTPProjectsUtil {
   public static void removeTestFolderLinks(IProject project, MavenProject mavenProject, IProgressMonitor monitor,
       String folder) throws CoreException {
     IVirtualComponent component = ComponentCore.createComponent(project);
-    if (component != null){
-      IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
-      for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
-        if (location == null) continue;
-        jsrc.removeLink(location, 0, monitor);
+    if (component == null){
+      return;
+    }
+    IVirtualFolder jsrc = component.getRootFolder().getFolder(folder);
+    for(IPath location : MavenProjectUtils.getSourceLocations(project, mavenProject.getTestCompileSourceRoots())) {
+      if (location == null) continue;
+      jsrc.removeLink(location, 0, monitor);
+    }
+    for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
+      if (location == null) continue;
+      jsrc.removeLink(location, 0, monitor);
+    }
+
+    //MECLIPSEWTP-217 : exclude other test source folders, added by build-helper for instance
+    if (project.hasNature(JavaCore.NATURE_ID)) {
+      IJavaProject javaProject = JavaCore.create(project);
+      if (javaProject == null) {
+        return;
       }
-      for(IPath location : MavenProjectUtils.getResourceLocations(project, mavenProject.getTestResources())) {
-        if (location == null) continue;
-        jsrc.removeLink(location, 0, monitor);
+      IPath testOutputDirPath = MavenProjectUtils.getProjectRelativePath(project, mavenProject.getBuild().getTestOutputDirectory());
+      if (testOutputDirPath == null) {
+        return;
+      }
+      IPath testPath = project.getFullPath().append(testOutputDirPath);
+      IClasspathEntry[] cpes = javaProject.getRawClasspath();
+      IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+      for (IClasspathEntry cpe : cpes) {
+        if (cpe.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+          if (cpe.getOutputLocation().equals(testPath)) {
+            IPath sourcePath = root.getFolder(cpe.getPath()).getProjectRelativePath();
+            if (sourcePath != null) {
+              jsrc.removeLink(sourcePath, 0, monitor);
+            }
+          }
+        }
       }
     }
   }
