@@ -11,7 +11,7 @@ package org.maven.ide.eclipse.wtp;
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.hasWebFragmentFacet;
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.installJavaFacet;
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.isQualifiedAsWebFragment;
-import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WebFragmentProjectConfigurator extends AbstractProjectConfigurator {
 
-  private static final Logger log = LoggerFactory.getLogger(WebFragmentProjectConfigurator.class); 
+  private static final Logger LOG = LoggerFactory.getLogger(WebFragmentProjectConfigurator.class); 
 
   /**
    * Adds the Java and Web fragment facets to jar projects qualified as web-fragments, i.e, 
@@ -79,8 +79,8 @@ public class WebFragmentProjectConfigurator extends AbstractProjectConfigurator 
     addFilesToClean(fileCleaner, facade.getResourceLocations());
     addFilesToClean(fileCleaner, facade.getCompileSourceLocations());
     
-    removeFacets(actions, WTPProjectsUtil.UTILITY_10);
-    
+    removeConflictingFacets(facetedProject, WTPProjectsUtil.WEB_FRAGMENT_3_0, actions);
+     
     try {
       //Install or update the java facet
       installJavaFacet(actions, project, facetedProject);
@@ -105,7 +105,7 @@ public class WebFragmentProjectConfigurator extends AbstractProjectConfigurator 
         //Remove any WTP created files (extras fragment descriptor and manifest) 
         fileCleaner.cleanUp();
       } catch (CoreException cex) {
-        log.error("Error while cleaning up WTP's created files", cex);
+        LOG.error("Error while cleaning up WTP's created files", cex);
       }
     }
     

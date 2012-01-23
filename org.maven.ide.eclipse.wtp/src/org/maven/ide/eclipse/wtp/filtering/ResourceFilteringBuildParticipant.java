@@ -62,10 +62,10 @@ import org.sonatype.plexus.build.incremental.ThreadBuildContext;
 @SuppressWarnings("restriction")
 public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant {
   
-  private static final Logger log = LoggerFactory.getLogger(ResourceFilteringBuildParticipant.class );
+  private static final Logger LOG = LoggerFactory.getLogger(ResourceFilteringBuildParticipant.class );
 
   //Need to duplicate org.maven.ide.eclipse.internal.builder.MavenBuilder.BUILD_CONTEXT_KEY since it's not accessible 
-  private static QualifiedName BUILD_CONTEXT_KEY = new QualifiedName(IMavenConstants.PLUGIN_ID, "BuildContext");
+  private static final QualifiedName BUILD_CONTEXT_KEY = new QualifiedName(IMavenConstants.PLUGIN_ID, "BuildContext");
   
   private EclipseBuildContext forceCopyBuildContext; 
   
@@ -89,7 +89,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       forceCopyBuildContext = null;
       List<String> filters = configuration.getFilters();
       if (changeRequiresForcedCopy(facade, filters, delta)) {
-        log.info("Changed resources require a complete clean of filtered resources of {}",project.getName());
+        LOG.info("Changed resources require a complete clean of filtered resources of {}",project.getName());
         Map<String, Object> contextState = new HashMap<String, Object>();
         project.setSessionProperty(BUILD_CONTEXT_KEY, contextState);
         //String id = "" + "-" + getClass().getName();
@@ -98,7 +98,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
         ThreadBuildContext.setThreadBuildContext(forceCopyBuildContext);
       }
       if (forceCopyBuildContext != null || hasResourcesChanged(facade, delta, resources)) {
-        log.info("Executing resource filtering for {}",project.getName());
+        LOG.info("Executing resource filtering for {}",project.getName());
         executeCopyResources(facade, configuration, targetFolder, resources, monitor);
         //FIXME deal with absolute paths
         IFolder destFolder = project.getFolder(targetFolder);
@@ -189,7 +189,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
     IFolder targetFolder = project.getFolder(targetFolderPath);
     if (targetFolder.exists()) {
       IContainer parent = targetFolder.getParent(); 
-      log.info("Cleaning filtered folder for "+project.getName());
+      LOG.info("Cleaning filtered folder for "+project.getName());
       IProgressMonitor monitor =new NullProgressMonitor();
       targetFolder.delete(true, monitor);
       if (parent != null) {

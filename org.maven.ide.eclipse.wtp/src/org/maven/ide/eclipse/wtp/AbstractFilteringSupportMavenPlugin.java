@@ -49,7 +49,7 @@ public abstract class AbstractFilteringSupportMavenPlugin {
         return extensionsNode.getChildren();
       }
     }
-    return null;
+    return new Xpp3Dom[0];
   }
   
   public Collection<String> getFilters() {

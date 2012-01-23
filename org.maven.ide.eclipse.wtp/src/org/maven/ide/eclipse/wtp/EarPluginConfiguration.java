@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  */
 public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin {
 
-  private static final Logger log = LoggerFactory.getLogger(EarPluginConfiguration.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EarPluginConfiguration.class);
 
   //Careful : This has a different meaning from the default library directory (/lib)
   private static final String EAR_DEFAULT_BUNDLE_DIR = "/"; 
@@ -100,13 +100,13 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
           return WTPProjectsUtil.EAR_FACET.getVersion(sVersion);
         } catch (Exception e) {
           //If Ear Version > 5.0 and WTP < 3.2, downgrade to Ear facet 5.0
-          log.warn(e.getMessage());
+          LOG.warn(e.getMessage());
           if (version > 5.0){
             return WTPProjectsUtil.EAR_FACET.getVersion("5.0");
           }
         }
         } catch(NumberFormatException nfe) {
-        log.error("unable to read ear version : " + sVersion, nfe);
+        LOG.error("unable to read ear version : " + sVersion, nfe);
         return DEFAULT_EAR_FACET;
       }
     }

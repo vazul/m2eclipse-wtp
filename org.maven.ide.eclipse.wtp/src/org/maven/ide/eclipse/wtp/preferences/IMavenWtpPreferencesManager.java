@@ -18,12 +18,12 @@ import org.eclipse.core.resources.IProject;
  */
 public interface IMavenWtpPreferencesManager {
 
-  public abstract IMavenWtpPreferences getPreferences(IProject project);
+  IMavenWtpPreferences getPreferences(IProject project);
 
-  public abstract IMavenWtpPreferences createNewPreferences();
+  IMavenWtpPreferences createNewPreferences();
 
-  public abstract IMavenWtpPreferences getWorkspacePreferences();
+  IMavenWtpPreferences getWorkspacePreferences();
 
-  public abstract void savePreferences(IMavenWtpPreferences preferences, IProject project);
+  void savePreferences(IMavenWtpPreferences preferences, IProject project);
 
 }

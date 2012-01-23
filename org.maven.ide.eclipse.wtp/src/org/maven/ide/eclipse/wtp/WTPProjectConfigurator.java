@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WTPProjectConfigurator extends AbstractProjectConfigurator implements IJavaProjectConfigurator {
 
-  private static final Logger log = LoggerFactory.getLogger(WTPProjectConfigurator.class); 
+  private static final Logger LOG = LoggerFactory.getLogger(WTPProjectConfigurator.class); 
       
   @Override
   public void configure(ProjectConfigurationRequest request, IProgressMonitor monitor)
@@ -53,7 +53,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
       try {
         configuratorDelegate.configureProject(project, mavenProject, monitor);
       } catch(MarkedException ex) {
-        log.error(ex.getMessage(), ex);
+        LOG.error(ex.getMessage(), ex);
       }
     }
   }
@@ -94,7 +94,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
       try {
         configuratorDelegate.configureClasspath(project, mavenProject, classpath, monitor);
       } catch(CoreException ex) {
-        log.error(ex.getMessage(), ex);
+        LOG.error(ex.getMessage(), ex);
       }
     }
   }

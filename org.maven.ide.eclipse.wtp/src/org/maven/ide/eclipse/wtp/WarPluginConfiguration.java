@@ -90,7 +90,7 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
         return resources;
       }
     }
-    return null;
+    return new Xpp3Dom[0];
   }
 
   public String getWarSourceDirectory() {
@@ -114,9 +114,25 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
   }
 
   public String[] getPackagingExcludes() {
+    return getPatternsAsArray("packagingExcludes");
+  }
+
+  public String[] getPackagingIncludes() {
+    return getPatternsAsArray("packagingIncludes");
+  }
+
+  public String[] getWarSourceExcludes() {
+    return getPatternsAsArray("warSourceExcludes");
+  }
+
+  public String[] getWarSourceIncludes() {
+    return getPatternsAsArray("warSourceIncludes");
+  }
+
+  private String[] getPatternsAsArray(String patternParameterName) {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
-        Xpp3Dom excl = config.getChild("packagingExcludes");
+        Xpp3Dom excl = config.getChild(patternParameterName);
         if(excl != null) {
           return StringUtils.tokenizeToStringArray(excl.getValue(), ",");
         }
@@ -124,17 +140,7 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     return new String[0];
   }
 
-  public String[] getPackagingIncludes() {
-    Xpp3Dom config = getConfiguration();
-    if(config != null) {
-      Xpp3Dom incl = config.getChild("packagingIncludes");
-      if(incl != null && incl.getValue() != null) {
-        return StringUtils.tokenizeToStringArray(incl.getValue(), ",");
-      }
-    }
-    return new String[0];
-  }
-
+  
   public boolean isAddManifestClasspath() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {
@@ -269,7 +275,6 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     return DomUtils.getChildValue(getConfiguration(), "dependentWarExcludes", "META-INF/MANIFEST.MF");
   }
 
-  
   public List<Overlay> getConfiguredOverlays() {
     Xpp3Dom config = getConfiguration();
     if(config != null) {

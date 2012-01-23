@@ -8,7 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate{
 
-  private static final Logger log = LoggerFactory.getLogger(ConnectorProjectConfiguratorDelegate.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConnectorProjectConfiguratorDelegate.class);
 
   public static final ArtifactFilter SCOPE_FILTER_RUNTIME = new ScopeArtifactFilter(Artifact.SCOPE_RUNTIME);
 
@@ -66,7 +66,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
         facetedProject.modify(Collections.singleton(new IFacetedProject.Action(IFacetedProject.Action.Type.UNINSTALL,
             facetedProject.getInstalledVersion(WTPProjectsUtil.JCA_FACET), null)), monitor);
       } catch(Exception ex) {
-        log.error("Error removing JCA facet", ex);
+        LOG.error("Error removing JCA facet", ex);
       }
     }
     
@@ -74,7 +74,6 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
     installJavaFacet(actions, project, facetedProject);
 
     RarPluginConfiguration config = new RarPluginConfiguration(mavenProject);
-    // WTP doesn't allow facet versions changes for JEE facets 
     
     IFile manifest = null;
     IFolder firstInexistentfolder = null;
@@ -97,7 +96,7 @@ public class ConnectorProjectConfiguratorDelegate extends AbstractProjectConfigu
       rarModelCfg.setProperty(IConnectorFacetInstallDataModelProperties.GENERATE_DD, false);
 
       IProjectFacetVersion connectorFv = config.getConnectorFacetVersion(project);
-      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
+      removeConflictingFacets(facetedProject, connectorFv, actions);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, connectorFv, rarModelCfg));
     }
 

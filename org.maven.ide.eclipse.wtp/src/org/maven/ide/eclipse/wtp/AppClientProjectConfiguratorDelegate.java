@@ -8,7 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -57,7 +57,7 @@ class AppClientProjectConfiguratorDelegate extends AbstractProjectConfiguratorDe
     IProjectFacetVersion fv = config.getFacetVersion();
     
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.APP_CLIENT_FACET)) {
-      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
+      removeConflictingFacets(facetedProject, fv, actions);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, fv, getAppClientDataModel(contentDir)));
     } else {
       IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WTPProjectsUtil.APP_CLIENT_FACET);     

@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WTPResourcesNode implements IWorkbenchAdapter {
 
-  private static final Logger log = LoggerFactory.getLogger(WTPResourcesNode.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WTPResourcesNode.class);
 
   private final IProject project;
 
@@ -44,7 +44,7 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
       try {
         return folders[0].members();
       } catch(CoreException ex) {
-        log.error("Error getting WTP resources",ex);
+        LOG.error("Error getting WTP resources",ex);
       }
     }
 
@@ -71,7 +71,7 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
         return WTPResourcesImages.APP_RESOURCES;
       }
     } catch(CoreException ex) {
-      log.error("Cannot retrieve the project facet",ex);
+      LOG.error("Cannot retrieve the project facet",ex);
     }    
     return WTPResourcesImages.WEB_RESOURCES;
   }
@@ -108,7 +108,7 @@ public class WTPResourcesNode implements IWorkbenchAdapter {
 //        return "Application Resources";
 //      }
 //    } catch(CoreException ex) {
-//      log.error("Cannot retrieve the project facet",ex);
+//      LOG.error("Cannot retrieve the project facet",ex);
 //    }    
     return "Deployed Resources";
   }

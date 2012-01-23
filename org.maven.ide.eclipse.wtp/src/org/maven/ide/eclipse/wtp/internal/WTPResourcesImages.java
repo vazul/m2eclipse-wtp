@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WTPResourcesImages {
 
-  private static final Logger log = LoggerFactory.getLogger(WTPResourcesImages.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WTPResourcesImages.class);
 
   // descriptors
   public static final ImageDescriptor WEB_RESOURCES = create("web-resources.gif");
@@ -41,7 +41,7 @@ public class WTPResourcesImages {
         return imageDescriptor;
       }
     } catch(Exception ex) {
-      log.error("Error creating ImageDescriptor {}",key, ex);
+      LOG.error("Error creating ImageDescriptor {}",key, ex);
     }
     return null;
   }

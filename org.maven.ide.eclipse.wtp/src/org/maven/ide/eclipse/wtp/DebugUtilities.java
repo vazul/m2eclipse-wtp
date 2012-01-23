@@ -22,6 +22,8 @@ import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -31,6 +33,8 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
  */
 public class DebugUtilities {
 
+  private static final Logger LOG = LoggerFactory.getLogger(DebugUtilities.class);
+  
   public static String SEP = System.getProperty("line.separator");
 
   /**
@@ -125,7 +129,7 @@ public class DebugUtilities {
    */
   public static void debug(String text) {
     if(isDebugEnabled()) {
-      System.out.println(text);
+      LOG.warn(text);
     }
   }
 

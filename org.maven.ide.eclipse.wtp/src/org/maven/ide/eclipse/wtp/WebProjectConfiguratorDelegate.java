@@ -8,7 +8,7 @@
 
 package org.maven.ide.eclipse.wtp;
 
-import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeFacets;
+import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -77,7 +76,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   public static final String WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED = "Current Maven Archiver output settings are ignored " +
   		                                                                        "as web resource filtering is currently used";
 
-  private static final Logger log = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
   
   /**
    * See http://wiki.eclipse.org/ClasspathEntriesPublishExportSupport
@@ -123,7 +122,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IProjectFacetVersion webFv = config.getWebFacetVersion(project);
     IDataModel webModelCfg = getWebModelConfig(warSourceDirectory, contextRoot);
     if(!facetedProject.hasProjectFacet(WebFacetUtils.WEB_FACET)) {
-      removeFacets(actions, WTPProjectsUtil.UTILITY_10);
+      removeConflictingFacets(facetedProject, webFv, actions);
       actions.add(new IFacetedProject.Action(IFacetedProject.Action.Type.INSTALL, webFv, webModelCfg));
     } else {
       IProjectFacetVersion projectFacetVersion = facetedProject.getProjectFacetVersion(WebFacetUtils.WEB_FACET);     
@@ -276,7 +275,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       } catch(RuntimeException ex) {
         //Should probably be NPEs at this point
         String dump = DebugUtilities.dumpProjectState("An error occured while configuring a dependency of  "+project.getName()+DebugUtilities.SEP, dependency.getProject());
-        log.error(dump); 
+        LOG.error(dump); 
         throw ex;
       }
     }
@@ -307,8 +306,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         }
       }
     }
+    
   }
-  
+
   /**
    * Get the context root from a maven web project
    * @param mavenProject
@@ -422,7 +422,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         return Path.fromOSString(dst.getCanonicalPath());
       }
     } catch(IOException ex) {
-      log.error("File copy failed", ex);
+      LOG.error("File copy failed", ex);
     }
     return null;
   }
