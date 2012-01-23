@@ -519,8 +519,9 @@ public class WTPProjectsUtil {
       IClasspathEntry[] cpes = javaProject.getRawClasspath();
       IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
       for (IClasspathEntry cpe : cpes) {
-        if (cpe.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-          if (cpe.getOutputLocation().equals(testPath)) {
+        if (cpe != null && cpe.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+          IPath outputLocation = cpe.getOutputLocation();
+          if (testPath.equals(outputLocation)) {
             IPath sourcePath = root.getFolder(cpe.getPath()).getProjectRelativePath();
             if (sourcePath != null) {
               jsrc.removeLink(sourcePath, 0, monitor);
