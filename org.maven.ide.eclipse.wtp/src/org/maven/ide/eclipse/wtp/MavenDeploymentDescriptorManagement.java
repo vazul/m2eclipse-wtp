@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.emf.ecore.EValidator.ValidationDelegate;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.internal.IMavenConstants;
@@ -139,7 +138,7 @@ public class MavenDeploymentDescriptorManagement implements DeploymentDescriptor
       overrideModules(configuration, plugin.getAllEarModules());
     }
 
-    //Execute our hacked mojo 
+    //Execute our hacked mojo
     maven.execute(session, genConfigMojo, monitor);
     
     if (session.getResult().hasExceptions()){

@@ -391,7 +391,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
       useBuildDirforGeneratingFiles(false);
 
       IProject ear = importProject("projects/MNGECLIPSE-688/ear21-1/pom.xml", new ResolverConfiguration());
-
+      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+      waitForJobsToComplete();
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
       assertNotNull(fpEar);
       assertFalse(fpEar.hasProjectFacet(JavaFacet.FACET)); //Ears don't have java facet
@@ -1863,6 +1864,24 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(a.getFile().getPath(), cp[0].getPath().toOSString());
   }  
   
+  @Test
+  public void testMECLIPSEWTP216_removeApplicationXml() throws Exception {
+
+      IProject ear = importProject("projects/MECLIPSEWTP-216/pom.xml");
+      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+      waitForJobsToComplete();
+      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
+      assertNotNull(fpEar);
+      assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
+
+      IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml");
+      assertFalse(applicationXml + " shouldn't exist",applicationXml.exists());
+
+      IFile generatedApplicationXml = ear.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml");
+      assertTrue(generatedApplicationXml + " is missing", generatedApplicationXml.exists());
+
+  }
+
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";
