@@ -1865,9 +1865,9 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }  
   
   @Test
-  public void testMECLIPSEWTP216_removeApplicationXml() throws Exception {
+  public void testMECLIPSEWTP220_removeApplicationXml() throws Exception {
 
-      IProject ear = importProject("projects/MECLIPSEWTP-216/pom.xml");
+      IProject ear = importProject("projects/MECLIPSEWTP-220/pom.xml");
       ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
       waitForJobsToComplete();
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
