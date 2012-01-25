@@ -17,7 +17,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jst.j2ee.internal.web.plugin.WebPlugin;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEModuleFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.web.project.facet.IWebFacetInstallDataModelProperties;
 import org.eclipse.wst.common.componentcore.ComponentCore;
@@ -29,6 +28,8 @@ import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -37,6 +38,8 @@ import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
  * @author Fred Bricon
  */
 public class WarVersionChangeDelegate implements IDelegate {
+
+  private static final Logger LOG = LoggerFactory.getLogger(WarVersionChangeDelegate.class);
 
   public void execute(IProject project, IProjectFacetVersion fv, Object cfg, IProgressMonitor monitor)
       throws CoreException {
@@ -74,7 +77,7 @@ public class WarVersionChangeDelegate implements IDelegate {
           }
         }
       } catch (ExecutionException e) {
-        WebPlugin.logError(e);
+        LOG.error("Unable to notify Dynamic Web version change", e);
       }
       
       if (monitor != null) {
