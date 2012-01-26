@@ -19,7 +19,6 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -27,12 +26,15 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jst.j2ee.earcreation.IEarFacetInstallDataModelProperties;
 import org.eclipse.jst.j2ee.internal.earcreation.EarFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.internal.project.J2EEProjectUtilities;
 import org.eclipse.jst.j2ee.model.IEARModelProvider;
 import org.eclipse.jst.j2ee.model.ModelProviderManager;
 import org.eclipse.jst.javaee.application.Application;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.ModuleCoreNature;
@@ -46,6 +48,8 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -57,25 +61,25 @@ import org.maven.ide.eclipse.wtp.earmodules.EarModule;
 @SuppressWarnings("restriction")
 class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
+  private static final Logger LOG = LoggerFactory.getLogger(EarProjectConfiguratorDelegate.class); 
+
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     
     monitor.setTaskName("Configuring EAR project " + project.getName());
     
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
-
+    IMavenProjectFacade facade = MavenPlugin.getMavenProjectRegistry().create(project.getFile(IMavenConstants.POM_FILE_NAME), true, monitor);
+    
     EarPluginConfiguration config = new EarPluginConfiguration(mavenProject);
     Set<Action> actions = new LinkedHashSet<Action>();
-    // WTP doesn't allow facet versions changes for JEE facets
+
     String contentDir = config.getEarContentDirectory(project);
-  
-    IFolder firstInexistentfolder = null;
     IFolder contentFolder = project.getFolder(contentDir);
-    IFile manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
-    boolean manifestAlreadyExists =manifest.exists(); 
-    if (!manifestAlreadyExists) {
-      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
-    }   
+
+    ResourceCleaner fileCleaner = new ResourceCleaner(project);
+    addFilesToClean(fileCleaner, facade.getResourceLocations());
+    fileCleaner.addFiles(contentFolder.getFile("META-INF/application.xml").getProjectRelativePath());
 
     IProjectFacetVersion earFv = config.getEarFacetVersion();
     if(!facetedProject.hasProjectFacet(WTPProjectsUtil.EAR_FACET)) {
@@ -89,10 +93,19 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       } 
     }
     
-    if(!actions.isEmpty()) {
-      facetedProject.modify(actions, monitor);
+    try {
+      if(!actions.isEmpty()) {
+        facetedProject.modify(actions, monitor);
+      }
     }
-
+    finally {
+      try {
+        //Remove any WTP created files (extras application.xml and manifest) 
+        fileCleaner.cleanUp();
+      } catch (CoreException cex) {
+        LOG.error("Error while cleaning up WTP's created files", cex);
+      }
+    }
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
     fixMissingModuleCoreNature(project, monitor);
     
@@ -107,10 +120,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //MECLIPSEWTP-56 : application.xml should not be generated in the source directory
     boolean useBuildDirectory = MavenWtpPlugin.getDefault().getMavenWtpPreferencesManager().getPreferences(project).isApplicationXmGeneratedInBuildDirectory();
 
-    if (!manifestAlreadyExists && manifest.exists()) {
-      manifest.delete(true, monitor);
-    }
-    
     List<IPath> sourcePaths = new ArrayList<IPath>();
     sourcePaths.add(contentDirPath);
     
@@ -122,11 +131,6 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       if (!WTPProjectsUtil.hasLink(project, ROOT_PATH, generatedResourcesPath, monitor)) {
         WTPProjectsUtil.insertLinkBefore(project, generatedResourcesPath, contentDirPath, ROOT_PATH, monitor);      
       }
-
-      if (firstInexistentfolder != null && firstInexistentfolder.exists())
-      {
-        firstInexistentfolder.delete(true, monitor);
-      }
      }
 
     //MECLIPSEWTP-161 remove stale source paths
@@ -134,7 +138,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     removeTestFolderLinks(project, mavenProject, monitor, "/");
     
-    ProjectUtils.removeNature(project, "org.eclipse.jdt.core.javanature", monitor);
+    ProjectUtils.removeNature(project, JavaCore.NATURE_ID, monitor);
 
     String finalName = mavenProject.getBuild().getFinalName();
     if (!finalName.endsWith(".ear")) {
