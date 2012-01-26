@@ -1475,7 +1475,24 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
     assertEquals("utility2", mavenContainerEntries[5].getPath().lastSegment());
   }
+  
+  @Test
+  public void testMECLIPSEWTP220_removeApplicationXml() throws Exception {
 
+      IProject ear = importProject("projects/MECLIPSEWTP-220/pom.xml");
+      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+      waitForJobsToComplete();
+      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
+      assertNotNull(fpEar);
+      assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
+
+      IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml");
+      assertFalse(applicationXml + " shouldn't exist",applicationXml.exists());
+
+      IFile generatedApplicationXml = ear.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml");
+      assertTrue(generatedApplicationXml + " is missing", generatedApplicationXml.exists());
+  }
+  
   @Test
   public void testMECLIPSEWTP73_EjbClientInLib_JavaEE5() throws Exception {
     IProject[] projects = importProjects("projects/MECLIPSEWTP-73/", //
@@ -1863,24 +1880,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     Artifact a = MavenPlugin.getMavenProjectRegistry().getProject(project).getMavenProject().getArtifacts().iterator().next();
     assertEquals(a.getFile().getPath(), cp[0].getPath().toOSString());
   }  
-  
-  @Test
-  public void testMECLIPSEWTP220_removeApplicationXml() throws Exception {
-
-      IProject ear = importProject("projects/MECLIPSEWTP-220/pom.xml");
-      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
-      waitForJobsToComplete();
-      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
-      assertNotNull(fpEar);
-      assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
-
-      IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml");
-      assertFalse(applicationXml + " shouldn't exist",applicationXml.exists());
-
-      IFile generatedApplicationXml = ear.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml");
-      assertTrue(generatedApplicationXml + " is missing", generatedApplicationXml.exists());
-
-  }
 
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
