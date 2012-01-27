@@ -1881,6 +1881,36 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(a.getFile().getPath(), cp[0].getPath().toOSString());
   }  
 
+  @Test
+  public void testMECLIPSEWTP224_customArtifactTypeMapping() throws Exception {
+
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-224/", //
+        new String[] {"javaEE/pom.xml", "javaEE/ear/pom.xml", "javaEE/core/pom.xml", "javaEE/ejb/pom.xml"}, new ResolverConfiguration());
+
+    waitForJobsToComplete();
+
+    assertEquals(4, projects.length);
+    IProject ear = projects[1];
+    IProject core = projects[2];
+    IProject ejb = projects[3];
+
+    assertNoErrors(core);
+    assertNoErrors(ejb);
+    assertNoErrors(ear);
+
+    ear.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, new NullProgressMonitor());
+    assertNoErrors(ear);
+
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference[] references =comp.getReferences(); 
+    assertEquals(4, references.length);
+    assertEquals("ejb-0.0.1-SNAPSHOT.jar", references[0].getArchiveName());
+    assertEquals("core-0.0.1-SNAPSHOT.jar", references[1].getArchiveName());
+    assertEquals("core-0.0.1-SNAPSHOT-tests.jar", references[2].getArchiveName());
+    assertEquals("junit-3.8.1.jar", references[3].getArchiveName());
+  }
+
+  
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

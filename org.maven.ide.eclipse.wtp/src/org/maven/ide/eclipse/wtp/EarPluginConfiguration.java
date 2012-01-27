@@ -239,7 +239,12 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
 
   private ArtifactTypeMappingService getArtifactTypeMappingService() throws EarPluginException {
     if(typeMappingService == null) {
-      typeMappingService = new ArtifactTypeMappingService(getConfiguration());
+      Xpp3Dom config = getConfiguration();
+      Xpp3Dom artifactTypeMappingConfig = null;
+      if (config != null) {
+        artifactTypeMappingConfig = config.getChild("artifactTypeMappings");
+      }
+      typeMappingService = new ArtifactTypeMappingService(artifactTypeMappingConfig);
     }
     return typeMappingService;
   }
