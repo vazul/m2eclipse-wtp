@@ -1475,7 +1475,24 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", mavenContainerEntries[4].getPath().lastSegment());
     assertEquals("utility2", mavenContainerEntries[5].getPath().lastSegment());
   }
+  
+  @Test
+  public void testMECLIPSEWTP220_removeApplicationXml() throws Exception {
 
+      IProject ear = importProject("projects/MECLIPSEWTP-220/pom.xml");
+      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+      waitForJobsToComplete();
+      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
+      assertNotNull(fpEar);
+      assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
+
+      IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml");
+      assertFalse(applicationXml + " shouldn't exist",applicationXml.exists());
+
+      IFile generatedApplicationXml = ear.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml");
+      assertTrue(generatedApplicationXml + " is missing", generatedApplicationXml.exists());
+  }
+  
   @Test
   public void testMECLIPSEWTP73_EjbClientInLib_JavaEE5() throws Exception {
     IProject[] projects = importProjects("projects/MECLIPSEWTP-73/", //
@@ -1863,25 +1880,37 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     Artifact a = MavenPlugin.getMavenProjectRegistry().getProject(project).getMavenProject().getArtifacts().iterator().next();
     assertEquals(a.getFile().getPath(), cp[0].getPath().toOSString());
   }  
-  
+
   @Test
-  public void testMECLIPSEWTP220_removeApplicationXml() throws Exception {
+  public void testMECLIPSEWTP224_customArtifactTypeMapping() throws Exception {
 
-      IProject ear = importProject("projects/MECLIPSEWTP-220/pom.xml");
-      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
-      waitForJobsToComplete();
-      IFacetedProject fpEar = ProjectFacetsManager.create(ear);
-      assertNotNull(fpEar);
-      assertEquals(DEFAULT_EAR_FACET, fpEar.getInstalledVersion(EAR_FACET));
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-224/", //
+        new String[] {"javaEE/pom.xml", "javaEE/ear/pom.xml", "javaEE/core/pom.xml", "javaEE/ejb/pom.xml"}, new ResolverConfiguration());
 
-      IFile applicationXml = ear.getFile("src/main/application/META-INF/application.xml");
-      assertFalse(applicationXml + " shouldn't exist",applicationXml.exists());
+    waitForJobsToComplete();
 
-      IFile generatedApplicationXml = ear.getFile("target/m2e-wtp/ear-resources/META-INF/application.xml");
-      assertTrue(generatedApplicationXml + " is missing", generatedApplicationXml.exists());
+    assertEquals(4, projects.length);
+    IProject ear = projects[1];
+    IProject core = projects[2];
+    IProject ejb = projects[3];
 
+    assertNoErrors(core);
+    assertNoErrors(ejb);
+    assertNoErrors(ear);
+
+    ear.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, new NullProgressMonitor());
+    assertNoErrors(ear);
+
+    IVirtualComponent comp = ComponentCore.createComponent(ear);
+    IVirtualReference[] references =comp.getReferences(); 
+    assertEquals(4, references.length);
+    assertEquals("ejb-0.0.1-SNAPSHOT.jar", references[0].getArchiveName());
+    assertEquals("core-0.0.1-SNAPSHOT.jar", references[1].getArchiveName());
+    assertEquals("core-0.0.1-SNAPSHOT-tests.jar", references[2].getArchiveName());
+    assertEquals("junit-3.8.1.jar", references[3].getArchiveName());
   }
 
+  
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

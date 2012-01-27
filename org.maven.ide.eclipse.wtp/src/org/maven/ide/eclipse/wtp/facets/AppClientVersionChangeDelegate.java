@@ -14,7 +14,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jst.j2ee.internal.plugin.J2EEPlugin;
 import org.eclipse.jst.j2ee.project.facet.IAppClientFacetInstallDataModelProperties;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.datamodel.FacetDataModelProvider;
@@ -25,6 +24,8 @@ import org.eclipse.wst.common.frameworks.datamodel.IDataModelOperation;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application Client Facet version change delegate
@@ -32,6 +33,8 @@ import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
  * @author Fred Bricon
  */
 public class AppClientVersionChangeDelegate implements IDelegate {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AppClientVersionChangeDelegate.class);
 
   public void execute(IProject project, IProjectFacetVersion fv, Object cfg, IProgressMonitor monitor)
       throws CoreException {
@@ -62,7 +65,7 @@ public class AppClientVersionChangeDelegate implements IDelegate {
       try {
         ((IDataModelOperation) model.getProperty(FacetDataModelProvider.NOTIFICATION_OPERATION)).execute(monitor, null);
       } catch(ExecutionException e) {
-        J2EEPlugin.logError(e);
+        LOG.error("Unable to notify Application Client version change", e);
       }
     }
 
