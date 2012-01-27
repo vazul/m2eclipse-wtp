@@ -117,7 +117,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IVirtualComponent component = ComponentCore.createComponent(project, true);
     
     //MNGECLIPSE-2279 get the context root from the final name of the project, or artifactId by default.
-    String contextRoot = getContextRoot(mavenProject);
+    String contextRoot = getContextRoot(mavenProject, config.getWarName());
     
     IProjectFacetVersion webFv = config.getWebFacetVersion(project);
     IDataModel webModelCfg = getWebModelConfig(warSourceDirectory, contextRoot);
@@ -312,14 +312,15 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   /**
    * Get the context root from a maven web project
    * @param mavenProject
+   * @param warName 
    * @return the final name of the project if it exists, or the project's artifactId.
    */
-  protected String getContextRoot(MavenProject mavenProject) {
+  protected String getContextRoot(MavenProject mavenProject, String warName) {
     String contextRoot;
 	//MECLIPSEWTP-43 : Override with maven property
    String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
    if (StringUtils.isEmpty(property)) {
-  		String finalName = mavenProject.getBuild().getFinalName();
+  		String finalName = warName;
   		if (StringUtils.isBlank(finalName) 
   		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
   		  contextRoot = mavenProject.getArtifactId();

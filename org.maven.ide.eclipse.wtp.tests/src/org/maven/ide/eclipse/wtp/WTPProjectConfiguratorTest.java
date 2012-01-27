@@ -1295,7 +1295,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(ejbRef.getArchiveName(), edit.getModuleURI(ejbRef.getReferencedComponent()));
   }
 
-  //Test disabled as the fix breaks default behavior
   @Test
   public void testMNGECLIPSE2279_finalNameAsContextRoot() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-2279/pom.xml", new ResolverConfiguration());
@@ -1910,6 +1909,12 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", references[3].getArchiveName());
   }
 
+  @Test
+  public void testMECLIPSEWTP223_warNameAsContextRoot() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-223/pom.xml");
+    assertNoErrors(project);
+    assertEquals("webapp", J2EEProjectUtilities.getServerContextRoot(project));
+  }
   
   private static String dumpModules(List<Module> modules) {
     if(modules == null)

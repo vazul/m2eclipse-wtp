@@ -358,4 +358,16 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
   protected String getFilteringAttribute() {
     return "filteringDeploymentDescriptors";
   }
+  
+  public String getWarName() {
+    Xpp3Dom config = getConfiguration();
+    String warName = null;
+    if (config != null) {
+      warName = DomUtils.getChildValue(config, "warName");
+    }
+    if (StringUtils.nullOrEmpty(warName)) {
+      warName = mavenProject.getBuild().getFinalName();
+    }
+    return warName;
+  }
 }
