@@ -48,6 +48,7 @@ import org.eclipse.m2e.core.project.IProjectConfigurationManager;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.jdt.internal.BuildPathManager;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.util.ComponentUtilities;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -1909,6 +1910,45 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", references[3].getArchiveName());
   }
 
+
+  @Test
+  public void testMECLIPSEWTP219_unsupportedDependencies() throws Exception {
+
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-219/javaEE", //
+        new String[] {"pom.xml", "ear/pom.xml", "core/pom.xml", "ejb/pom.xml", "war/pom.xml"}, new ResolverConfiguration());
+
+    waitForJobsToComplete();
+
+    assertEquals(5, projects.length);
+    IProject parent = projects[0];
+    IProject ear = projects[1];
+    IProject core = projects[2];
+    IProject ejb = projects[3];
+    IProject war = projects[4];
+
+    String ejbClientWarning = NLS.bind(Messages.markers_unsupported_dependencies_warning, "ejb", "ejb-client"); 
+    String testJarWarning = NLS.bind(Messages.markers_unsupported_dependencies_warning, "core", "test-jar"); 
+
+    List<IMarker> markers = findMarkers(ear, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(markers), 2, markers.size());
+    assertHasMarker(ejbClientWarning, markers);
+    assertHasMarker(testJarWarning, markers);
+    
+    markers = findMarkers(war, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(markers), 2, markers.size());
+    assertHasMarker(ejbClientWarning, markers);
+    assertHasMarker(testJarWarning, markers);        
+
+    markers = findMarkers(ejb, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(markers), 1, markers.size());
+    assertHasMarker(testJarWarning, markers);        
+
+    assertEquals("parent project shouldn't have any warning", 0, findMarkers(parent, IMarker.SEVERITY_WARNING).size());
+    assertEquals("core project shouldn't have any warning", 0, findMarkers(core, IMarker.SEVERITY_WARNING).size());
+  }
+
+  
+  
   @Test
   public void testMECLIPSEWTP223_warNameAsContextRoot() throws Exception {
     IProject project = importProject("projects/MECLIPSEWTP-223/pom.xml");

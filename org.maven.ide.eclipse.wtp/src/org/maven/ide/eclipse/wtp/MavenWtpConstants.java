@@ -29,7 +29,7 @@ public final class MavenWtpConstants {
 
   public static final String WTP_MARKER_GENERATE_APPLICATIONXML_ERROR = WTP_MARKER_ID + ".filteringError"; //$NON-NLS-1$
 
-  public static final String WTP_MARKER_MANIFEST_ERROR = WTP_MARKER_ID + ".manifestError"; //$NON-NLS-1$
+  public static final String WTP_MARKER_UNSUPPORTED_DEPENDENCY_PROBLEM = WTP_MARKER_ID + ".unsupportedDependencyProblem"; //$NON-NLS-1$
 
   public static final String M2E_WTP_FOLDER = "m2e-wtp";
   
