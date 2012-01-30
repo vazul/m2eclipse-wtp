@@ -38,5 +38,18 @@ public final class MavenWtpConstants {
   public static final String EAR_RESOURCES_FOLDER = "ear-resources";
   
   public static final String ROOT_FOLDER = "/";
+  
+
+  /**
+   * Provisional name of component property used by WTP server adapters to exclude resources from deployment.
+   * Only known consumer is JBoss AS adapter.
+   */
+  public static final String COMPONENT_EXCLUSION_PATTERNS = "component.exclusion.patterns";
+  
+  /**
+   * Provisional name of component property used by WTP server adapters to include resources in deployment.
+   * Only known consumer is JBoss AS adapter.
+   */
+  public static final String COMPONENT_INCLUSION_PATTERNS = "component.inclusion.patterns";
 
 }

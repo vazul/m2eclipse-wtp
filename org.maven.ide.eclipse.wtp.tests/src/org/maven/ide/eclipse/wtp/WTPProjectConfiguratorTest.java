@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -1952,9 +1953,36 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMECLIPSEWTP223_warNameAsContextRoot() throws Exception {
     IProject project = importProject("projects/MECLIPSEWTP-223/pom.xml");
+    waitForJobsToComplete();
     assertNoErrors(project);
     assertEquals("webapp", J2EEProjectUtilities.getServerContextRoot(project));
   }
+  
+  @Test
+  public void testMECLIPSEWTP214_exclusionPatterns() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-214/pom.xml");
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertHasMarker(Messages.markers_inclusion_patterns_problem, severityMarkers);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(project);
+    Properties p = comp.getMetaProperties();
+    assertEquals("packagingIncludes1,packagingIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("warSourceExcludes1,warSourceExcludes2,packagingExcludes1,packagingExcludes2", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+
+    //Remove the warning
+    updateProject(project, "pom2.xml");
+    
+    comp = ComponentCore.createComponent(project);
+    severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(severityMarkers), 0, severityMarkers.size());
+
+    p = comp.getMetaProperties();
+    assertEquals("warSourceIncludes1,warSourceIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+    
+  }  
   
   private static String dumpModules(List<Module> modules) {
     if(modules == null)

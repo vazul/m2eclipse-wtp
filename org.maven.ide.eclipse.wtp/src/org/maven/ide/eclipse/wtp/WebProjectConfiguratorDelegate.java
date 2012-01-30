@@ -13,10 +13,12 @@ import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -27,6 +29,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,6 +45,8 @@ import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ArtifactKey;
+import org.eclipse.m2e.core.internal.markers.SourceLocation;
+import org.eclipse.m2e.core.internal.markers.SourceLocationHelper;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IClasspathEntryDescriptor;
@@ -77,7 +82,6 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   		                                                                        "as web resource filtering is currently used";
 
   private static final Logger LOG = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
-  
   /**
    * See http://wiki.eclipse.org/ClasspathEntriesPublishExportSupport
    */
@@ -88,6 +92,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   * Name of maven property that overrides WTP context root.
   */
   private static final String M2ECLIPSE_WTP_CONTEXT_ROOT = "m2eclipse.wtp.contextRoot";
+  
 
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
@@ -207,6 +212,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
     
     WTPProjectsUtil.removeWTPClasspathContainer(project);
+
+    //MECLIPSEWTP-214 : add (in|ex)clusion patterns as .component metadata
+    addComponentExclusionPatterns(component, config);
   }
 
   private IDataModel getWebModelConfig(String warSourceDirectory, String contextRoot) {
@@ -258,7 +266,12 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
   		      
         ArtifactKey artifactKey = ArtifactHelper.toArtifactKey(depMavenProject.getArtifact());
+        //Get artifact using the proper classifier
         Artifact artifact = ArtifactHelper.getArtifact(mavenProject.getArtifacts(), artifactKey);
+        if (artifact == null) {
+          //could not map key to artifact
+          artifact = depMavenProject.getArtifact();
+        }
         ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
         String deployedName = fileNameMapping.mapFileName(artifact);
         
@@ -319,7 +332,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     String contextRoot;
 	//MECLIPSEWTP-43 : Override with maven property
    String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
-   if (StringUtils.isEmpty(property)) {
+   if (StringUtils.isBlank(property)) {
   		String finalName = warName;
   		if (StringUtils.isBlank(finalName) 
   		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
@@ -445,5 +458,53 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     return src.length() != dst.length() 
         || src.lastModified() != dst.lastModified();
+  }
+
+  /**
+   * Add inclusion/exclusion patterns to .component metadata. WTP server adapters can use that information to 
+   * include/exclude resources from deployment accordingly. This is currently implemented in the JBoss AS server adapter.
+   * @throws CoreException 
+   */
+  private void addComponentExclusionPatterns(IVirtualComponent component, WarPluginConfiguration config)  {
+    String[] warSourceIncludes = config.getWarSourceIncludes();
+    String[] packagingIncludes = config.getPackagingIncludes();
+    String[] warSourceExcludes = config.getWarSourceExcludes();
+    String[] packagingExcludes = config.getPackagingExcludes();
+    
+    if (warSourceIncludes.length > 0 && packagingIncludes.length >0) {
+      IResource pomFile = component.getProject().getFile("pom.xml");
+      // We might get bad pattern overlapping (**/* + **/*.html would return everything, 
+      // when maven would only package html files) . 
+      // So we arbitrary (kinda) keep the packaging patterns only. But this can lead to other funny discrepancies 
+      // things like **/pages/** + **/*.html should return only html files from the pages directory, but here, will return
+      // every html files.
+      SourceLocation sourceLocation = SourceLocationHelper.findLocation(config.getPlugin(), "warSourceIncludes");
+      mavenMarkerManager.addMarker(pomFile, 
+                                   MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID,
+                                   Messages.markers_inclusion_patterns_problem, 
+                                   sourceLocation.getLineNumber(), 
+                                   IMarker.SEVERITY_WARNING);
+      warSourceIncludes = null;
+    }
+    String componentInclusions = joinAsString(warSourceIncludes, packagingIncludes);
+    String componentExclusions = joinAsString(warSourceExcludes, packagingExcludes);
+    Properties props = component.getMetaProperties();
+    if (!componentInclusions.equals(props.getProperty(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS, ""))) {
+      component.setMetaProperty(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS, componentInclusions);
+    }
+    if (!componentExclusions.equals(props.getProperty(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS, ""))) {
+      component.setMetaProperty(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS, componentExclusions);
+    }
+  }
+
+  private static String joinAsString(String[] ... someArrays) {
+    Set<String> stringSet = new LinkedHashSet<String>();
+    if (someArrays != null) {
+      for (String[] strings : someArrays)
+        if (strings != null) {
+          stringSet.addAll(Arrays.asList(strings));
+        }
+    }
+    return StringUtils.join(stringSet.iterator(), ",");
   }
 }

@@ -269,7 +269,6 @@
       <super type="org.eclipse.m2e.core.maven2Problem"/>
       <persistent value="true"/>
    </extension>
-      
    <extension point="org.eclipse.core.resources.markers"
          id="org.eclipse.m2e.core.maven2Problem.wtp.unsupportedDependencyProblem"
          name="Maven WTP Dependency Problem">

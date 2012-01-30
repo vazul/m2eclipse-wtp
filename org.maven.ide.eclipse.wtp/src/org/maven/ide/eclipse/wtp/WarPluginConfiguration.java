@@ -56,10 +56,14 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
   private MavenProject mavenProject;
 
   public WarPluginConfiguration(MavenProject mavenProject, IProject project) {
-    Plugin plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-war-plugin");
     this.project = project;
     this.mavenProject = mavenProject;
+    Plugin plugin = getPlugin();
     setConfiguration((Xpp3Dom)plugin.getConfiguration());
+  }
+
+  public Plugin getPlugin() {
+    return mavenProject.getPlugin("org.apache.maven.plugins:maven-war-plugin");
   }
 
   static boolean isWarProject(MavenProject mavenProject) {
