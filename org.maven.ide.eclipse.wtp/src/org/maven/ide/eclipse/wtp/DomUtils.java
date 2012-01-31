@@ -47,4 +47,29 @@ public class DomUtils {
       node.removeChild(i);
     }
   }
+  
+  public static String[] getChildrenAsStringArray(Xpp3Dom root, String childName) {
+    String[] values = null;
+    if (root != null) {
+      Xpp3Dom[] children = root.getChildren(childName); 
+      if (children != null) {
+        values = new String[children.length];
+        int i = 0;
+        for (Xpp3Dom child : children) {
+          values[i++] = child.getValue();
+        }
+      }
+    }
+    return values;
+  }  
+  
+  public static String[] getPatternsAsArray(Xpp3Dom config, String patternParameterName) {
+    if(config != null) {
+        Xpp3Dom excl = config.getChild(patternParameterName);
+        if(excl != null) {
+          return org.maven.ide.eclipse.wtp.internal.StringUtils.tokenizeToStringArray(excl.getValue(), ",");
+        }
+    }
+    return new String[0];
+  }  
 }

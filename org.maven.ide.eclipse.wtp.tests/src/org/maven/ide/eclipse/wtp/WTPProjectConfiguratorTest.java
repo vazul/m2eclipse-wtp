@@ -1984,6 +1984,33 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
   }  
   
+  @Test
+  public void testMECLIPSEWTP221_exclusionPatterns() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-221/pom.xml");
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertHasMarker(Messages.markers_inclusion_patterns_problem, severityMarkers);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(project);
+    Properties p = comp.getMetaProperties();
+    assertEquals("packagingIncludes1,packagingIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("earSourceExcludes1,earSourceExcludes2,packagingExcludes1,packagingExcludes2", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+
+    //Remove the warning
+    updateProject(project, "pom2.xml");
+    
+    comp = ComponentCore.createComponent(project);
+    severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(severityMarkers), 0, severityMarkers.size());
+
+    p = comp.getMetaProperties();
+    assertEquals("earSourceIncludes1,earSourceIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+    
+  }  
+  
+
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

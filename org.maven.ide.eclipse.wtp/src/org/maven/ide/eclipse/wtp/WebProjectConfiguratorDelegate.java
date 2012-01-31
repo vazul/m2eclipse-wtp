@@ -9,11 +9,11 @@
 package org.maven.ide.eclipse.wtp;
 
 import static org.maven.ide.eclipse.wtp.WTPProjectsUtil.removeConflictingFacets;
+import static org.maven.ide.eclipse.wtp.internal.StringUtils.joinAsString;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -77,9 +77,6 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("restriction")
 class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
-
-  public static final String WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED = "Current Maven Archiver output settings are ignored " +
-  		                                                                        "as web resource filtering is currently used";
 
   private static final Logger LOG = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
   /**
@@ -188,7 +185,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         
         if (!useBuildDir && useWebresourcefiltering) {
           mavenMarkerManager.addMarker(project, MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID, 
-                                      WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED, -1, IMarker.SEVERITY_WARNING);
+                                      Messages.markers_mavenarchiver_output_settings_ignored_warning, -1, IMarker.SEVERITY_WARNING);
         }
         sourcePaths.add(filteredFolder);
         WTPProjectsUtil.insertLinkBefore(project, filteredFolder, warPath, new Path("/"), monitor);
@@ -238,7 +235,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     DebugUtilities.debug("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
-    WarPackagingOptions opts = new WarPackagingOptions(config);
+    IPackagingConfiguration opts = new PackagingConfiguration(config.getPackagingIncludes(), config.getPackagingExcludes());
     FileNameMapping fileNameMapping = config.getFileNameMapping();
     
     List<AbstractDependencyConfigurator> depConfigurators = ExtensionReader.readDependencyConfiguratorExtensions(projectManager, 
@@ -275,7 +272,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
         String deployedName = fileNameMapping.mapFileName(artifact);
         
-        boolean isDeployed = !artifact.isOptional() && opts.isPackaged(deployedName);
+        boolean isDeployed = !artifact.isOptional() && opts.isPackaged("WEB-INF/lib/"+deployedName);
           
     		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
     		if (isDeployed) {
@@ -354,7 +351,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //similar to mvn eclipse:eclipse 
     //http://maven.apache.org/plugins/maven-war-plugin/examples/skinny-wars.html
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
-    WarPackagingOptions opts = new WarPackagingOptions(config);
+    IPackagingConfiguration opts = new PackagingConfiguration(config.getPackagingIncludes(), config.getPackagingExcludes());
 
     /*
      * Need to take care of three separate cases
@@ -384,7 +381,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
       boolean isDeployed = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope)) 
     		  				&& !descriptor.isOptionalDependency() 
-    		  				&& opts.isPackaged(deployedName)
+    		  				&& opts.isPackaged("WEB-INF/lib/"+deployedName)
     		  				&& !isWorkspaceProject(artifact);
       
       // add non-dependency attribute if this classpathentry is not meant to be deployed
@@ -459,52 +456,5 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     return src.length() != dst.length() 
         || src.lastModified() != dst.lastModified();
   }
-
-  /**
-   * Add inclusion/exclusion patterns to .component metadata. WTP server adapters can use that information to 
-   * include/exclude resources from deployment accordingly. This is currently implemented in the JBoss AS server adapter.
-   * @throws CoreException 
-   */
-  private void addComponentExclusionPatterns(IVirtualComponent component, WarPluginConfiguration config)  {
-    String[] warSourceIncludes = config.getWarSourceIncludes();
-    String[] packagingIncludes = config.getPackagingIncludes();
-    String[] warSourceExcludes = config.getWarSourceExcludes();
-    String[] packagingExcludes = config.getPackagingExcludes();
-    
-    if (warSourceIncludes.length > 0 && packagingIncludes.length >0) {
-      IResource pomFile = component.getProject().getFile("pom.xml");
-      // We might get bad pattern overlapping (**/* + **/*.html would return everything, 
-      // when maven would only package html files) . 
-      // So we arbitrary (kinda) keep the packaging patterns only. But this can lead to other funny discrepancies 
-      // things like **/pages/** + **/*.html should return only html files from the pages directory, but here, will return
-      // every html files.
-      SourceLocation sourceLocation = SourceLocationHelper.findLocation(config.getPlugin(), "warSourceIncludes");
-      mavenMarkerManager.addMarker(pomFile, 
-                                   MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID,
-                                   Messages.markers_inclusion_patterns_problem, 
-                                   sourceLocation.getLineNumber(), 
-                                   IMarker.SEVERITY_WARNING);
-      warSourceIncludes = null;
-    }
-    String componentInclusions = joinAsString(warSourceIncludes, packagingIncludes);
-    String componentExclusions = joinAsString(warSourceExcludes, packagingExcludes);
-    Properties props = component.getMetaProperties();
-    if (!componentInclusions.equals(props.getProperty(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS, ""))) {
-      component.setMetaProperty(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS, componentInclusions);
-    }
-    if (!componentExclusions.equals(props.getProperty(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS, ""))) {
-      component.setMetaProperty(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS, componentExclusions);
-    }
-  }
-
-  private static String joinAsString(String[] ... someArrays) {
-    Set<String> stringSet = new LinkedHashSet<String>();
-    if (someArrays != null) {
-      for (String[] strings : someArrays)
-        if (strings != null) {
-          stringSet.addAll(Arrays.asList(strings));
-        }
-    }
-    return StringUtils.join(stringSet.iterator(), ",");
-  }
+ 
 }

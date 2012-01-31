@@ -222,7 +222,7 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
       waitForJobsToComplete();
       List<IMarker> markers = findMarkers(project, IMarker.SEVERITY_WARNING);
       assertFalse("Should have some markers",markers.isEmpty());
-      assertHasMarker(WebProjectConfiguratorDelegate.WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED, markers);
+      assertHasMarker(Messages.markers_mavenarchiver_output_settings_ignored_warning, markers);
       
       assertTrue(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/MANIFEST.MF")));
       assertTrue(project.exists(new Path("/target/m2e-wtp/web-resources/META-INF/maven/")));

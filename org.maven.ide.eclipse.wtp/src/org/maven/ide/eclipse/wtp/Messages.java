@@ -22,6 +22,8 @@ public class Messages extends NLS {
   public static String markers_inclusion_patterns_problem;
   
   public static String markers_unsupported_dependencies_warning;
+
+  public static String markers_mavenarchiver_output_settings_ignored_warning;
 	
   static {
 		// initialize resource bundle
