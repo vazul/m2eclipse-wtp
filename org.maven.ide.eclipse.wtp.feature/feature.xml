@@ -2,7 +2,7 @@
 <feature
       id="org.maven.ide.eclipse.wtp.feature"
       label="%featureName"
-      version="0.15.0.qualifier"
+      version="0.16.0-SNASPHOT"
       provider-name="%providerName"
       plugin="org.maven.ide.eclipse.wtp">
 
