@@ -391,7 +391,10 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     if (plugin == null) {
       return null;
     }
-    return SourceLocationHelper.findLocation(plugin, "earSourceIncludes");
+    return SourceLocationHelper.findLocation(plugin, "configuration");
   }
 
+  public String getSourceIncludeParameterName() {
+    return "earSourceIncludes";
+  }
 }

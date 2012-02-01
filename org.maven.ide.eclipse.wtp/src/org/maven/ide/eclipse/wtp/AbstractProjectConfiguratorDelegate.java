@@ -44,6 +44,7 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
@@ -395,7 +396,7 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       if (sourceLocation != null) {
         mavenMarkerManager.addMarker(pomFile, 
                                    MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID,
-                                   Messages.markers_inclusion_patterns_problem, 
+                                   NLS.bind(Messages.markers_inclusion_patterns_problem, filter.getSourceIncludeParameterName()), 
                                    sourceLocation.getLineNumber(), 
                                    IMarker.SEVERITY_WARNING);
       }

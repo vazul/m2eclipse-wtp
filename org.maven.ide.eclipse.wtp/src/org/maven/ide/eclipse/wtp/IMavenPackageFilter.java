@@ -42,5 +42,10 @@ public interface IMavenPackageFilter {
    * @return the source location of the maven plugin
    */
   public SourceLocation getSourceLocation();
+
+  /**
+   * @return the name of the *SourceInclude parameter
+   */
+  public String getSourceIncludeParameterName();
   
 }

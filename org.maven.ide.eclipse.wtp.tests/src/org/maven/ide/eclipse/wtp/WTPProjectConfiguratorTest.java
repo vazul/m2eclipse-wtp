@@ -1964,7 +1964,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     waitForJobsToComplete();
     assertNoErrors(project);
     List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
-    assertHasMarker(Messages.markers_inclusion_patterns_problem, severityMarkers);
+    assertHasMarker(NLS.bind(Messages.markers_inclusion_patterns_problem, "warSourceIncludes"), severityMarkers);
     
     IVirtualComponent comp = ComponentCore.createComponent(project);
     Properties p = comp.getMetaProperties();
@@ -1990,7 +1990,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     waitForJobsToComplete();
     assertNoErrors(project);
     List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
-    assertHasMarker(Messages.markers_inclusion_patterns_problem, severityMarkers);
+    assertHasMarker(NLS.bind(Messages.markers_inclusion_patterns_problem, "earSourceIncludes"), severityMarkers);
     
     IVirtualComponent comp = ComponentCore.createComponent(project);
     Properties p = comp.getMetaProperties();

@@ -348,8 +348,13 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     Plugin plugin = getPlugin();
     if (plugin == null) {
       return null;
-    }    
-    return SourceLocationHelper.findLocation(plugin, "warSourceIncludes");
+    }
+    return SourceLocationHelper.findLocation(plugin, "configuration");
   }
+
+  public String getSourceIncludeParameterName() {
+    return "warSourceIncludes";
+  }
+
   
 }
