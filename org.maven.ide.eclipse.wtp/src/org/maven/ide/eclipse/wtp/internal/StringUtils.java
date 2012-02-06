@@ -9,7 +9,10 @@
 package org.maven.ide.eclipse.wtp.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
@@ -79,5 +82,21 @@ public class StringUtils {
       }
     }
     return tokens.toArray(new String[tokens.size()]);
+  }
+  
+  /**
+   * Joins a String[] to a single String using a comma delimiter
+   * @param someArrays
+   * @return a non-null String
+   */
+  public static String joinAsString(String[] ... someArrays) {
+    Set<String> stringSet = new LinkedHashSet<String>();
+    if (someArrays != null) {
+      for (String[] strings : someArrays)
+        if (strings != null) {
+          stringSet.addAll(Arrays.asList(strings));
+        }
+    }
+    return org.codehaus.plexus.util.StringUtils.join(stringSet.iterator(), ",");
   }
 }

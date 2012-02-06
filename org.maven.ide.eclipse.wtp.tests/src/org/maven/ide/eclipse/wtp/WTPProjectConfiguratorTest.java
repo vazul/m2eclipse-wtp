@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -48,6 +49,7 @@ import org.eclipse.m2e.core.project.IProjectConfigurationManager;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.eclipse.m2e.jdt.internal.BuildPathManager;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.util.ComponentUtilities;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
@@ -1295,7 +1297,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(ejbRef.getArchiveName(), edit.getModuleURI(ejbRef.getReferencedComponent()));
   }
 
-  //Test disabled as the fix breaks default behavior
   @Test
   public void testMNGECLIPSE2279_finalNameAsContextRoot() throws Exception {
     IProject project = importProject("projects/MNGECLIPSE-2279/pom.xml", new ResolverConfiguration());
@@ -1910,7 +1911,106 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-3.8.1.jar", references[3].getArchiveName());
   }
 
+
+  @Test
+  public void testMECLIPSEWTP219_unsupportedDependencies() throws Exception {
+
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-219/javaEE", //
+        new String[] {"pom.xml", "ear/pom.xml", "core/pom.xml", "ejb/pom.xml", "war/pom.xml"}, new ResolverConfiguration());
+
+    waitForJobsToComplete();
+
+    assertEquals(5, projects.length);
+    IProject parent = projects[0];
+    IProject ear = projects[1];
+    IProject core = projects[2];
+    IProject ejb = projects[3];
+    IProject war = projects[4];
+
+    String ejbClientWarning = NLS.bind(Messages.markers_unsupported_dependencies_warning, "ejb", "ejb-client"); 
+    String testJarWarning = NLS.bind(Messages.markers_unsupported_dependencies_warning, "core", "test-jar"); 
+
+    List<IMarker> markers = findMarkers(ear, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(markers), 2, markers.size());
+    assertHasMarker(ejbClientWarning, markers);
+    assertHasMarker(testJarWarning, markers);
+    
+    markers = findMarkers(war, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(markers), 2, markers.size());
+    assertHasMarker(ejbClientWarning, markers);
+    assertHasMarker(testJarWarning, markers);        
+
+    markers = findMarkers(ejb, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(markers), 1, markers.size());
+    assertHasMarker(testJarWarning, markers);        
+
+    assertEquals("parent project shouldn't have any warning", 0, findMarkers(parent, IMarker.SEVERITY_WARNING).size());
+    assertEquals("core project shouldn't have any warning", 0, findMarkers(core, IMarker.SEVERITY_WARNING).size());
+  }
+
   
+  
+  @Test
+  public void testMECLIPSEWTP223_warNameAsContextRoot() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-223/pom.xml");
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    assertEquals("webapp", J2EEProjectUtilities.getServerContextRoot(project));
+  }
+  
+  @Test
+  public void testMECLIPSEWTP214_exclusionPatterns() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-214/pom.xml");
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertHasMarker(NLS.bind(Messages.markers_inclusion_patterns_problem, "warSourceIncludes"), severityMarkers);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(project);
+    Properties p = comp.getMetaProperties();
+    assertEquals("packagingIncludes1,packagingIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("warSourceExcludes1,warSourceExcludes2,packagingExcludes1,packagingExcludes2", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+
+    //Remove the warning
+    updateProject(project, "pom2.xml");
+    
+    comp = ComponentCore.createComponent(project);
+    severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(severityMarkers), 0, severityMarkers.size());
+
+    p = comp.getMetaProperties();
+    assertEquals("warSourceIncludes1,warSourceIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+    
+  }  
+  
+  @Test
+  public void testMECLIPSEWTP221_exclusionPatterns() throws Exception {
+    IProject project = importProject("projects/MECLIPSEWTP-221/pom.xml");
+    waitForJobsToComplete();
+    assertNoErrors(project);
+    List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertHasMarker(NLS.bind(Messages.markers_inclusion_patterns_problem, "earSourceIncludes"), severityMarkers);
+    
+    IVirtualComponent comp = ComponentCore.createComponent(project);
+    Properties p = comp.getMetaProperties();
+    assertEquals("packagingIncludes1,packagingIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("earSourceExcludes1,earSourceExcludes2,packagingExcludes1,packagingExcludes2", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+
+    //Remove the warning
+    updateProject(project, "pom2.xml");
+    
+    comp = ComponentCore.createComponent(project);
+    severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
+    assertEquals(toString(severityMarkers), 0, severityMarkers.size());
+
+    p = comp.getMetaProperties();
+    assertEquals("earSourceIncludes1,earSourceIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
+    assertEquals("", p.get(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS));
+    
+  }  
+  
+
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

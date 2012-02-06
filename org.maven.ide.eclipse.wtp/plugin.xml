@@ -106,6 +106,24 @@
           />
     </extension>     
 
+  	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.java.unsupportedDependencyTypeConfigurator"
+          class="org.maven.ide.eclipse.wtp.UnsupportedDependencyTypeProjectConfigurator"
+          name="Unsupported Dependency Type Project Configurator - for Java projects" 
+          secondaryTo="org.eclipse.m2e.jdt.javaConfigurator"
+          />
+    </extension>
+    <!-- This one is used for EAR projects that don't have a java nature -->  
+  	<extension point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator 
+          id="org.maven.ide.eclipse.configuration.wtp.nonjava.unsupportedDependencyTypeConfigurator"
+          class="org.maven.ide.eclipse.wtp.UnsupportedDependencyTypeProjectConfigurator"
+          name="Unsupported Dependency Type Project Configurator - for non-Java projects" 
+          secondaryTo="org.maven.ide.eclipse.configuration.wtp.configurator"
+          />
+    </extension>  
+
    <!-- A workaround to allow to uninstall WTP facets -->   
    <extension point="org.eclipse.wst.common.project.facet.core.facets">
       <action type="uninstall" facet="jst.ear" version="[1.2-6.0]">
@@ -250,5 +268,11 @@
          name="Maven WTP Configuration Problem">
       <super type="org.eclipse.m2e.core.maven2Problem"/>
       <persistent value="true"/>
+   </extension>
+   <extension point="org.eclipse.core.resources.markers"
+         id="org.eclipse.m2e.core.maven2Problem.wtp.unsupportedDependencyProblem"
+         name="Maven WTP Dependency Problem">
+      <super type="org.eclipse.m2e.core.maven2Problem"/>
+      <persistent value="true"/>      
    </extension>
 </plugin>

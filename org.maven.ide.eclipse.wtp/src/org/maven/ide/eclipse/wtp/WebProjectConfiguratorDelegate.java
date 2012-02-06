@@ -73,11 +73,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("restriction")
 class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate {
 
-  public static final String WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED = "Current Maven Archiver output settings are ignored " +
-  		                                                                        "as web resource filtering is currently used";
-
   private static final Logger LOG = LoggerFactory.getLogger(WebProjectConfiguratorDelegate.class);
-  
   /**
    * See http://wiki.eclipse.org/ClasspathEntriesPublishExportSupport
    */
@@ -88,6 +84,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   * Name of maven property that overrides WTP context root.
   */
   private static final String M2ECLIPSE_WTP_CONTEXT_ROOT = "m2eclipse.wtp.contextRoot";
+  
 
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
@@ -117,7 +114,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     IVirtualComponent component = ComponentCore.createComponent(project, true);
     
     //MNGECLIPSE-2279 get the context root from the final name of the project, or artifactId by default.
-    String contextRoot = getContextRoot(mavenProject);
+    String contextRoot = getContextRoot(mavenProject, config.getWarName());
     
     IProjectFacetVersion webFv = config.getWebFacetVersion(project);
     IDataModel webModelCfg = getWebModelConfig(warSourceDirectory, contextRoot);
@@ -183,7 +180,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         
         if (!useBuildDir && useWebresourcefiltering) {
           mavenMarkerManager.addMarker(project, MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID, 
-                                      WARNING_MAVEN_ARCHIVER_OUTPUT_SETTINGS_IGNORED, -1, IMarker.SEVERITY_WARNING);
+                                      Messages.markers_mavenarchiver_output_settings_ignored_warning, -1, IMarker.SEVERITY_WARNING);
         }
         sourcePaths.add(filteredFolder);
         WTPProjectsUtil.insertLinkBefore(project, filteredFolder, warPath, new Path("/"), monitor);
@@ -207,6 +204,9 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     }
     
     WTPProjectsUtil.removeWTPClasspathContainer(project);
+
+    //MECLIPSEWTP-214 : add (in|ex)clusion patterns as .component metadata
+    addComponentExclusionPatterns(component, config);
   }
 
   private IDataModel getWebModelConfig(String warSourceDirectory, String contextRoot) {
@@ -230,7 +230,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
     DebugUtilities.debug("==============Processing "+project.getName()+" dependencies ===============");
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
-    WarPackagingOptions opts = new WarPackagingOptions(config);
+    IPackagingConfiguration opts = new PackagingConfiguration(config.getPackagingIncludes(), config.getPackagingExcludes());
     FileNameMapping fileNameMapping = config.getFileNameMapping();
     
     List<AbstractDependencyConfigurator> depConfigurators = ExtensionReader.readDependencyConfiguratorExtensions(projectManager, 
@@ -258,11 +258,16 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         IVirtualComponent depComponent = ComponentCore.createComponent(dependency.getProject());
   		      
         ArtifactKey artifactKey = ArtifactHelper.toArtifactKey(depMavenProject.getArtifact());
+        //Get artifact using the proper classifier
         Artifact artifact = ArtifactHelper.getArtifact(mavenProject.getArtifacts(), artifactKey);
+        if (artifact == null) {
+          //could not map key to artifact
+          artifact = depMavenProject.getArtifact();
+        }
         ArtifactHelper.fixArtifactHandler(artifact.getArtifactHandler());
         String deployedName = fileNameMapping.mapFileName(artifact);
         
-        boolean isDeployed = !artifact.isOptional() && opts.isPackaged(deployedName);
+        boolean isDeployed = !artifact.isOptional() && opts.isPackaged("WEB-INF/lib/"+deployedName);
           
     		//an artifact in mavenProject.getArtifacts() doesn't have the "optional" value as depMavenProject.getArtifact();  
     		if (isDeployed) {
@@ -312,14 +317,15 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   /**
    * Get the context root from a maven web project
    * @param mavenProject
+   * @param warName 
    * @return the final name of the project if it exists, or the project's artifactId.
    */
-  protected String getContextRoot(MavenProject mavenProject) {
+  protected String getContextRoot(MavenProject mavenProject, String warName) {
     String contextRoot;
 	//MECLIPSEWTP-43 : Override with maven property
    String property = mavenProject.getProperties().getProperty(M2ECLIPSE_WTP_CONTEXT_ROOT);
-   if (StringUtils.isEmpty(property)) {
-  		String finalName = mavenProject.getBuild().getFinalName();
+   if (StringUtils.isBlank(property)) {
+  		String finalName = warName;
   		if (StringUtils.isBlank(finalName) 
   		   || finalName.equals(mavenProject.getArtifactId() + "-" + mavenProject.getVersion())) {
   		  contextRoot = mavenProject.getArtifactId();
@@ -340,7 +346,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     //similar to mvn eclipse:eclipse 
     //http://maven.apache.org/plugins/maven-war-plugin/examples/skinny-wars.html
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
-    WarPackagingOptions opts = new WarPackagingOptions(config);
+    IPackagingConfiguration opts = new PackagingConfiguration(config.getPackagingIncludes(), config.getPackagingExcludes());
 
     /*
      * Need to take care of three separate cases
@@ -370,7 +376,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     
       boolean isDeployed = (Artifact.SCOPE_COMPILE.equals(scope) || Artifact.SCOPE_RUNTIME.equals(scope)) 
     		  				&& !descriptor.isOptionalDependency() 
-    		  				&& opts.isPackaged(deployedName)
+    		  				&& opts.isPackaged("WEB-INF/lib/"+deployedName)
     		  				&& !isWorkspaceProject(artifact);
       
       // add non-dependency attribute if this classpathentry is not meant to be deployed
@@ -445,4 +451,5 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     return src.length() != dst.length() 
         || src.lastModified() != dst.lastModified();
   }
+ 
 }

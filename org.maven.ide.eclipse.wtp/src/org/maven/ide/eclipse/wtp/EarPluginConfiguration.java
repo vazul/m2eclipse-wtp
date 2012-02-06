@@ -22,6 +22,8 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
+import org.eclipse.m2e.core.internal.markers.SourceLocation;
+import org.eclipse.m2e.core.internal.markers.SourceLocationHelper;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.maven.ide.eclipse.wtp.earmodules.ArtifactTypeMappingService;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
@@ -42,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Fred Bricon
  */
-public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin {
+public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin implements IMavenPackageFilter {
 
   private static final Logger LOG = LoggerFactory.getLogger(EarPluginConfiguration.class);
 
@@ -74,9 +76,14 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     }
 
     this.mavenProject = mavenProject;
-    Plugin plugin = mavenProject.getPlugin("org.apache.maven.plugins:maven-ear-plugin");
+    Plugin plugin = getPlugin();
     setConfiguration((Xpp3Dom)plugin.getConfiguration());
   }
+
+  public Plugin getPlugin() {
+    return mavenProject.getPlugin("org.apache.maven.plugins:maven-ear-plugin");
+  }
+
 
   /**
    * Gets an IProjectFacetVersion version from maven-ear-plugin configuration.
@@ -362,5 +369,32 @@ public class EarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
     boolean isIncluded = DomUtils.getBooleanChildValue(configuration, "includeLibInApplicationXml");
     return isIncluded;
   }
+
+  public String[] getPackagingExcludes() {
+    return DomUtils.getPatternsAsArray(getConfiguration(),"packagingExcludes");
+  }
+
+  public String[] getPackagingIncludes() {
+    return DomUtils.getPatternsAsArray(getConfiguration(),"packagingIncludes");
+  }
   
+  public String[] getSourceExcludes() {
+    return DomUtils.getPatternsAsArray(getConfiguration(),"earSourceExcludes");
+  }
+
+  public String[] getSourceIncludes() {
+    return DomUtils.getPatternsAsArray(getConfiguration(),"earSourceIncludes");
+  }  
+  
+  public SourceLocation getSourceLocation() {
+    Plugin plugin = getPlugin();
+    if (plugin == null) {
+      return null;
+    }
+    return SourceLocationHelper.findLocation(plugin, "configuration");
+  }
+
+  public String getSourceIncludeParameterName() {
+    return "earSourceIncludes";
+  }
 }

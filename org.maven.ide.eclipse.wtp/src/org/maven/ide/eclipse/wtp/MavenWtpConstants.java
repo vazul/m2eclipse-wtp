@@ -29,7 +29,7 @@ public final class MavenWtpConstants {
 
   public static final String WTP_MARKER_GENERATE_APPLICATIONXML_ERROR = WTP_MARKER_ID + ".filteringError"; //$NON-NLS-1$
 
-  public static final String WTP_MARKER_MANIFEST_ERROR = WTP_MARKER_ID + ".manifestError"; //$NON-NLS-1$
+  public static final String WTP_MARKER_UNSUPPORTED_DEPENDENCY_PROBLEM = WTP_MARKER_ID + ".unsupportedDependencyProblem"; //$NON-NLS-1$
 
   public static final String M2E_WTP_FOLDER = "m2e-wtp";
   
@@ -38,5 +38,18 @@ public final class MavenWtpConstants {
   public static final String EAR_RESOURCES_FOLDER = "ear-resources";
   
   public static final String ROOT_FOLDER = "/";
+  
+
+  /**
+   * Provisional name of component property used by WTP server adapters to exclude resources from deployment.
+   * Only known consumer is JBoss AS adapter.
+   */
+  public static final String COMPONENT_EXCLUSION_PATTERNS = "component.exclusion.patterns";
+  
+  /**
+   * Provisional name of component property used by WTP server adapters to include resources in deployment.
+   * Only known consumer is JBoss AS adapter.
+   */
+  public static final String COMPONENT_INCLUSION_PATTERNS = "component.inclusion.patterns";
 
 }

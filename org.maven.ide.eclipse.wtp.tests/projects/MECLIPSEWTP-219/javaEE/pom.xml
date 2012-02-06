@@ -1,0 +1,70 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+  
+	<groupId>test.project</groupId>
+	<artifactId>javaEE</artifactId>
+	<packaging>pom</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+	
+  <modules>
+		<module>core</module>
+		<module>ejb</module>
+		<module>war</module>
+		<module>ear</module>
+	</modules>
+	
+  <build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+  <dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>test.project</groupId>
+				<artifactId>core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>test.project</groupId>
+				<artifactId>core</artifactId>
+				<type>test-jar</type>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>test.project</groupId>
+				<artifactId>ejb</artifactId>
+				<version>${project.version}</version>
+				<type>ejb</type>
+			</dependency>
+			<dependency>
+				<groupId>test.project</groupId>
+				<artifactId>ejb</artifactId>
+				<type>ejb-client</type>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>test.project</groupId>
+				<artifactId>war</artifactId>
+				<version>${project.version}</version>
+				<type>war</type>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>3.8.1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>

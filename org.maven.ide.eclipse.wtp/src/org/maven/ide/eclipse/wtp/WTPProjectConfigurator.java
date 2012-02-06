@@ -80,7 +80,7 @@ public class WTPProjectConfigurator extends AbstractProjectConfigurator implemen
   }
 
   protected static boolean isWTPProject(IProject project) {
-    return ModuleCoreNature.getModuleCoreNature(project) != null;
+    return ModuleCoreNature.isFlexibleProject(project);
   }
 
   public void configureClasspath(IMavenProjectFacade facade, IClasspathDescriptor classpath, IProgressMonitor monitor)

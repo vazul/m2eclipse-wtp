@@ -8,10 +8,13 @@
 
 package org.maven.ide.eclipse.wtp;
 
+import static org.maven.ide.eclipse.wtp.internal.StringUtils.joinAsString;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -19,7 +22,9 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,12 +36,15 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jst.j2ee.classpathdep.IClasspathDependencyConstants;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.internal.markers.IMavenMarkerManager;
+import org.eclipse.m2e.core.internal.markers.SourceLocation;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import org.eclipse.m2e.core.project.MavenProjectUtils;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.internal.StructureEdit;
 import org.eclipse.wst.common.componentcore.internal.WorkbenchComponent;
@@ -365,4 +373,44 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
   }
 
+  
+  /**
+   * Add inclusion/exclusion patterns to .component metadata. WTP server adapters can use that information to 
+   * include/exclude resources from deployment accordingly. This is currently implemented in the JBoss AS server adapter.
+   * @throws CoreException 
+   */
+  protected void addComponentExclusionPatterns(IVirtualComponent component, IMavenPackageFilter filter)  {
+    String[] warSourceIncludes = filter.getSourceIncludes();
+    String[] packagingIncludes = filter.getPackagingIncludes();
+    String[] warSourceExcludes = filter.getSourceExcludes();
+    String[] packagingExcludes = filter.getPackagingExcludes();
+    
+    if (warSourceIncludes.length > 0 && packagingIncludes.length >0) {
+      IResource pomFile = component.getProject().getFile(IMavenConstants.POM_FILE_NAME);
+      // We might get bad pattern overlapping (**/* + **/*.html would return everything, 
+      // when maven would only package html files) . 
+      // So we arbitrary (kinda) keep the packaging patterns only. But this can lead to other funny discrepancies 
+      // things like **/pages/** + **/*.html should return only html files from the pages directory, but here, will return
+      // every html files.
+      SourceLocation sourceLocation = filter.getSourceLocation();
+      if (sourceLocation != null) {
+        mavenMarkerManager.addMarker(pomFile, 
+                                   MavenWtpConstants.WTP_MARKER_CONFIGURATION_ERROR_ID,
+                                   NLS.bind(Messages.markers_inclusion_patterns_problem, filter.getSourceIncludeParameterName()), 
+                                   sourceLocation.getLineNumber(), 
+                                   IMarker.SEVERITY_WARNING);
+      }
+      warSourceIncludes = null;
+    }
+    String componentInclusions = joinAsString(warSourceIncludes, packagingIncludes);
+    String componentExclusions = joinAsString(warSourceExcludes, packagingExcludes);
+    Properties props = component.getMetaProperties();
+    if (!componentInclusions.equals(props.getProperty(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS, ""))) {
+      component.setMetaProperty(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS, componentInclusions);
+    }
+    if (!componentExclusions.equals(props.getProperty(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS, ""))) {
+      component.setMetaProperty(MavenWtpConstants.COMPONENT_EXCLUSION_PATTERNS, componentExclusions);
+    }
+  }
+  
 }

@@ -147,6 +147,9 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     configureDeployedName(project, finalName);
     project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 
+    
+    //MECLIPSEWTP-221 : add (in|ex)clusion patterns as .component metadata
+    addComponentExclusionPatterns(earComponent, config);
   }
 
   private IDataModel getEarModel(String contentDir) {
@@ -175,6 +178,8 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
 
     updateLibDir(project, libBundleDir, monitor);
     
+    IPackagingConfiguration packagingConfig = new PackagingConfiguration(config.getPackagingIncludes(), config.getPackagingExcludes());
+    
     for(EarModule earModule : earModules) {
 
       Artifact artifact = earModule.getArtifact();
@@ -195,7 +200,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         depComponent = createDependencyComponent(earComponent, earModule.getArtifact());
       }
       
-      if (depComponent != null) {
+      if (depComponent != null && packagingConfig.isPackaged(earModule.getUri())) {
         IVirtualReference depRef = ComponentCore.createReference(earComponent, depComponent);
         String bundleDir = (StringUtils.isBlank(earModule.getBundleDir()))?"/":earModule.getBundleDir();
         depRef.setRuntimePath(new Path(bundleDir));
