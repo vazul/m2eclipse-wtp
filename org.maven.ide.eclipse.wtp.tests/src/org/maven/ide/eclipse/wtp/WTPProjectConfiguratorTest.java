@@ -2011,6 +2011,23 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   }  
   
 
+  @Test
+  public void testMECLIPSEWTP227_invalidResourceInUtility() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-227", //
+        new String[] {"pom.xml", "webapp/pom.xml", "utility/pom.xml"}, new ResolverConfiguration());
+    waitForJobsToComplete();
+    IProject web = projects[1];
+    IProject jar = projects[2];
+    
+    assertNoErrors(web);
+    assertNoErrors(jar);
+    
+    IFacetedProject jarFp = ProjectFacetsManager.create(jar);
+    assertNotNull(jar.getName() + " is not a faceted project", jarFp);
+
+    assertEquals(JavaFacet.VERSION_1_5, jarFp.getProjectFacetVersion(JavaFacet.FACET));
+  }
+
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

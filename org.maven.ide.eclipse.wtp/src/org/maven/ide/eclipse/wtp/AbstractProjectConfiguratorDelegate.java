@@ -216,15 +216,19 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       }
     }
     for(IPath mavenSource : sourceRoots) {
-        IFolder sourceFolder = project.getFolder(mavenSource);
-        if (sourceFolder.exists() && !currentPaths.contains(mavenSource)) {
-          return false;
+        if (mavenSource != null && !mavenSource.isEmpty()) {
+          IFolder sourceFolder = project.getFolder(mavenSource);
+          if (sourceFolder.exists() && !currentPaths.contains(mavenSource)) {
+            return false;
+          }
         }
     }
     for(IPath mavenSource : resourceRoots) {
-      IFolder resourceFolder = project.getFolder(mavenSource);
-      if (resourceFolder.exists() && !currentPaths.contains(mavenSource)) {
-        return false;
+      if (mavenSource != null && !mavenSource.isEmpty()) {
+        IFolder resourceFolder = project.getFolder(mavenSource);
+        if (resourceFolder.exists() && !currentPaths.contains(mavenSource)) {
+          return false;
+        }
       }
   }
     return true;
