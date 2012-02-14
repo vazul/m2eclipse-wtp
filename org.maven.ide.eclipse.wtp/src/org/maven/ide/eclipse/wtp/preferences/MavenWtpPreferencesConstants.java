@@ -27,6 +27,8 @@ public final class MavenWtpPreferencesConstants {
 
   public static final String P_WEB_MAVENARCHIVER_IN_BUILD_DIR = PREFIX + ".war.archiverFilesInBuilDir";
 
+  public static final String P_WAR_OVERLAY_WITH_LINKED_FOLDERS = PREFIX + ".war.overlaysWithLinkedFolders";
+
   public static final String P_ENABLED_PROJECT_SPECIFIC__PREFS = PREFIX + ".enabledProjectSpecificPrefs";
 
   /**

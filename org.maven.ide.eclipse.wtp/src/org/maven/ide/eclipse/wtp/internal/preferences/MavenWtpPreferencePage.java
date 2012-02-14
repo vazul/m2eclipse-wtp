@@ -68,6 +68,8 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
   private Group warPrefGroup;
 
   private Button warMavenArchiverButton;
+  
+  private Button warOverlaysUsesLinkedFolder;
 
   public MavenWtpPreferencePage() {
     setTitle("WTP Integration Settings");
@@ -149,6 +151,10 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     warMavenArchiverButton = new Button(warPrefGroup, SWT.CHECK);
     warMavenArchiverButton.setText("Maven Archiver generates files under the build directory");
     warMavenArchiverButton.setToolTipText("The build directory will always be used if Web resource filtering is enabled");
+    
+    warOverlaysUsesLinkedFolder = new Button(warPrefGroup, SWT.CHECK);
+    warOverlaysUsesLinkedFolder.setText("War overlays should use linked folders instead of overlay modules");
+    warOverlaysUsesLinkedFolder.setToolTipText("Overlay artifacts will be mapped using linked folders instead of referenced overlay module components with consume dependency type");
   }
 
   private Link createLink(Composite composite, String text) {
@@ -179,6 +185,9 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     if (warMavenArchiverButton != null) {
       warMavenArchiverButton.setEnabled(isEnabled);
     }
+    if(warOverlaysUsesLinkedFolder != null) {
+      warOverlaysUsesLinkedFolder.setEnabled(isEnabled);
+    }
   }
 
   private void fillValues(IMavenWtpPreferences preferences) {
@@ -194,6 +203,9 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     }
     if (warMavenArchiverButton != null) {
       warMavenArchiverButton.setSelection(preferences.isWebMavenArchiverUsesBuildDirectory());
+    }
+    if(warOverlaysUsesLinkedFolder != null) {
+      warOverlaysUsesLinkedFolder.setSelection(preferences.isWarOverlaysUsesLinkedFolders());
     }
   }
 
@@ -229,6 +241,9 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     if (warMavenArchiverButton != null) {
       newPreferences.setWebMavenArchiverUsesBuildDirectory(warMavenArchiverButton.getSelection());
     }
+    if(warOverlaysUsesLinkedFolder != null) {
+      newPreferences.setWarOverlaysUsesLinkedFolders(warOverlaysUsesLinkedFolder.getSelection());
+    }
 
     if(!newPreferences.equals(preferences)) {
       preferencesManager.savePreferences(newPreferences, getProject());
@@ -255,6 +270,7 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     if(project == null) {
       workspacePreferences.setApplicationXmGeneratedInBuildDirectory(true);
       workspacePreferences.setWebMavenArchiverUsesBuildDirectory(true);
+      workspacePreferences.setWarOverlaysUsesLinkedFolders(false);
     }
 
     fillValues(workspacePreferences);

@@ -24,6 +24,8 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
   
   private boolean isWebMavenArchiverUsesBuildDirectory;
   
+  private boolean isWarOverlaysUsesLinkedFolders;
+
   public boolean isApplicationXmGeneratedInBuildDirectory() {
     return isApplicationXmGeneratedInBuildDirectory;
   }
@@ -64,6 +66,20 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
   }
 
   /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences#isWarOverlaysUsesLinkedFolders()
+   */
+  public boolean isWarOverlaysUsesLinkedFolders() {
+    return isWarOverlaysUsesLinkedFolders;
+  }
+
+  /* (non-Javadoc)
+   * @see org.maven.ide.eclipse.wtp.preferences.IMavenWtpPreferences#setWarOverlaysUsesLinkedFolders(boolean)
+   */
+  public void setWarOverlaysUsesLinkedFolders(boolean isEnabled) {
+    isWarOverlaysUsesLinkedFolders = isEnabled;
+  }
+
+  /* (non-Javadoc)
    * @see java.lang.Object#hashCode()
    */
   public int hashCode() {
@@ -72,6 +88,7 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
     result = prime * result + (isApplicationXmGeneratedInBuildDirectory ? 1231 : 1237);
     result = prime * result + (isEnabledProjectSpecificSettings ? 1231 : 1237);
     result = prime * result + (isWebMavenArchiverUsesBuildDirectory ? 1231 : 1237);
+    result = prime * result + (isWarOverlaysUsesLinkedFolders ? 1231 : 1237);
     return result;
   }
 
@@ -91,6 +108,8 @@ public class MavenWtpPreferencesImpl implements IMavenWtpPreferences {
     if(isEnabledProjectSpecificSettings != other.isEnabledProjectSpecificSettings)
       return false;
     if(isWebMavenArchiverUsesBuildDirectory != other.isWebMavenArchiverUsesBuildDirectory)
+      return false;
+    if(isWarOverlaysUsesLinkedFolders != other.isWarOverlaysUsesLinkedFolders)
       return false;
     return true;
   }

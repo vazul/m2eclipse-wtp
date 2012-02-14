@@ -42,5 +42,13 @@ public interface IMavenWtpPreferences {
   boolean isWebMavenArchiverUsesBuildDirectory();
  
   void setWebMavenArchiverUsesBuildDirectory(boolean isEnabled);
-  
+
+  /**
+   * Indicates if the OverlayConfigurator should use linked folders instead of overlay modules.
+   * 
+   * @return true if the OverlayConfigurator should use linked folders
+   */
+  boolean isWarOverlaysUsesLinkedFolders();
+
+  void setWarOverlaysUsesLinkedFolders(boolean isEnabled);
 }

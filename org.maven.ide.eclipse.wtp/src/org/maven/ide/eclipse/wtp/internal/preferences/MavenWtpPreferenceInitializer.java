@@ -28,6 +28,7 @@ public class MavenWtpPreferenceInitializer extends AbstractPreferenceInitializer
     IPreferenceStore store = MavenWtpPlugin.getDefault().getPreferenceStore();
     store.setDefault(MavenWtpPreferencesConstants.P_APPLICATION_XML_IN_BUILD_DIR, true);
     store.setDefault(MavenWtpPreferencesConstants.P_WEB_MAVENARCHIVER_IN_BUILD_DIR, true);
+    store.setDefault(MavenWtpPreferencesConstants.P_WAR_OVERLAY_WITH_LINKED_FOLDERS, false);
   }
 
 }
