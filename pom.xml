@@ -24,7 +24,7 @@
   <name>Maven Integration for Eclipse WTP (Parent)</name>
 
   <properties>
-    <tycho-version>0.13.0</tycho-version>
+    <tycho-version>0.14.0</tycho-version>
     <m2eclipse-core.version>1.0.100.201108040103</m2eclipse-core.version>
     <m2eclipse-core.site>1.0.100/N/${m2eclipse-core.version}</m2eclipse-core.site>
     <target.platform>m2e-wtp-e371</target.platform>        
