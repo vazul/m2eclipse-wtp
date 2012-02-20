@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -364,19 +365,23 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
               }
 
               final IFolder webResources = overlayContainer.getFolder(artifact.getArtifactId() + LinkedOverlaysConstants.WEB_RESOURCES_LINK_POSTFIX);
-
-              webResources.createLink(new Path("WORKSPACE_LOC/" + workspaceDependency.getProject().getName())
-                  .append(WebResourceFilteringConfiguration.getTargetFolder(workspaceDependency.getMavenProject(),
-                      workspaceDependency.getProject())),
-                  IResource.ALLOW_MISSING_LOCAL | IResource.REPLACE, null);
+              
+              IPath webResourcesPath = workspaceDependency.getProject().getLocation().append((WebResourceFilteringConfiguration.getTargetFolder(workspaceDependency.getMavenProject(),
+                      workspaceDependency.getProject()))).makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
+              if(!webResourcesPath.isAbsolute()) {
+                webResourcesPath = new Path("WORKSPACE_LOC/" + webResourcesPath.toString());
+              }
+              webResources.createLink(webResourcesPath, IResource.ALLOW_MISSING_LOCAL | IResource.REPLACE, null);
               
               //add web-resources to the linked folders
               linkedOverlays.add(webResources.getProjectRelativePath().toString());
 
               final IFolder warSource = overlayContainer.getFolder(artifact.getArtifactId() + LinkedOverlaysConstants.WEBAPP_LINK_POSTFIX);
-              final IPath warSourcePath = workspaceDependency.getProject().getFolder(depConfig.getWarSourceDirectory()).getFullPath();
-              warSource.createLink(new Path("WORKSPACE_LOC" + warSourcePath.toString()), IResource.ALLOW_MISSING_LOCAL
-                  | IResource.REPLACE, null);
+              IPath warSourcePath = workspaceDependency.getProject().getFolder(depConfig.getWarSourceDirectory()).getLocation().makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
+              if(!warSourcePath.isAbsolute()) {
+                warSourcePath = new Path("WORKSPACE_LOC/" + warSourcePath.toString());
+              }
+              warSource.createLink(warSourcePath, IResource.ALLOW_MISSING_LOCAL | IResource.REPLACE, null);
               
               //add webapp to the linked folders
               linkedOverlays.add(warSource.getProjectRelativePath().toString());
