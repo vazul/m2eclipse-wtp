@@ -14,7 +14,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractCustomizableLifecycleMa
 /**
  * WarLifecycleMapping
  * 
- * @author fbricon
+ * @author Fred Bricon
  */
 public class WarLifecycleMapping extends AbstractCustomizableLifecycleMapping {
 

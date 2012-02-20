@@ -13,7 +13,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractCustomizableLifecycleMa
 /**
  * RarLifecycleMapping
  *
- * @author fbricon
+ * @author Fred Bricon
  */
 public class RarLifecycleMapping extends AbstractCustomizableLifecycleMapping {
 
