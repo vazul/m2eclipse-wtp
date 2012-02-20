@@ -48,6 +48,7 @@ import org.eclipse.wst.common.project.facet.core.IFacetedProject.Action;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.maven.ide.eclipse.wtp.earmodules.EarModule;
+import org.maven.ide.eclipse.wtp.internal.utilities.PathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,7 @@ class EarProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     Set<Action> actions = new LinkedHashSet<Action>();
 
     String contentDir = config.getEarContentDirectory(project);
+    contentDir = PathUtil.toPortablePath(contentDir);
     IFolder contentFolder = project.getFolder(contentDir);
 
     ResourceCleaner fileCleaner = new ResourceCleaner(project);

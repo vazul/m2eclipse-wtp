@@ -1964,7 +1964,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     waitForJobsToComplete();
     assertNoErrors(project);
     List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
-    assertHasMarker(NLS.bind(Messages.markers_inclusion_patterns_problem, "warSourceIncludes"), severityMarkers);
+    String warning = NLS.bind(Messages.markers_inclusion_patterns_problem, "warSourceIncludes");
+    assertHasMarker(warning, severityMarkers);
     
     IVirtualComponent comp = ComponentCore.createComponent(project);
     Properties p = comp.getMetaProperties();
@@ -1976,7 +1977,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     comp = ComponentCore.createComponent(project);
     severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
-    assertEquals(toString(severityMarkers), 0, severityMarkers.size());
+    assertMissingMarker(warning, severityMarkers);
 
     p = comp.getMetaProperties();
     assertEquals("warSourceIncludes1,warSourceIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
@@ -2028,6 +2029,17 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(JavaFacet.VERSION_1_5, jarFp.getProjectFacetVersion(JavaFacet.FACET));
   }
 
+  public void testMECLIPSEWTP233_EarSourceSeparator() throws Exception {
+      IProject ear = importProject("projects/MECLIPSEWTP-233/pom.xml");
+      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+      waitForJobsToComplete();
+
+      IResource[] underlyingResources = getUnderlyingResources(ear);
+      assertEquals(2, underlyingResources.length);
+      IFolder customFolder = ear.getFolder("/some/CustomEarSourceDirectory");
+      assertEquals(customFolder, underlyingResources[1]);
+  }
+  
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";
