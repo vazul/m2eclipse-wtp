@@ -275,4 +275,15 @@
       <super type="org.eclipse.m2e.core.maven2Problem"/>
       <persistent value="true"/>      
    </extension>
+   
+   
+   <extension
+         point="org.eclipse.m2e.core.projectConversionParticipants">
+      <projectConversionParticipant
+            class="org.maven.ide.eclipse.wtp.conversion.WebProjectConverter"
+            id="org.maven.ide.eclipse.wtp.conversion.WebProjectConverter"
+            name="WTP Web Project conversion participant"
+            nature="org.eclipse.wst.common.modulecore.ModuleCoreNature">
+      </projectConversionParticipant>   
+   </extension>
 </plugin>
