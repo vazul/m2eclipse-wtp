@@ -622,6 +622,18 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-junit-3.8.1.jar", junitRef.getArchiveName());
 
   }
+  
+  @Test
+  public void testMECLIPSEWTP233_EarSourceSeparator() throws Exception {
+    IProject ear = importProject("projects/MECLIPSEWTP-233/pom.xml");
+    ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+    waitForJobsToComplete();
+
+    IResource[] underlyingResources = getUnderlyingResources(ear);
+    assertEquals(2, underlyingResources.length);
+    IFolder customFolder = ear.getFolder("/some/CustomEarSourceDirectory");
+    assertEquals(customFolder, underlyingResources[1]);
+  }
 
   @Test
   public void testMNGECLIPSE984_errorMarkers() throws Exception {
@@ -2029,17 +2041,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals(JavaFacet.VERSION_1_5, jarFp.getProjectFacetVersion(JavaFacet.FACET));
   }
 
-  public void testMECLIPSEWTP233_EarSourceSeparator() throws Exception {
-      IProject ear = importProject("projects/MECLIPSEWTP-233/pom.xml");
-      ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
-      waitForJobsToComplete();
-
-      IResource[] underlyingResources = getUnderlyingResources(ear);
-      assertEquals(2, underlyingResources.length);
-      IFolder customFolder = ear.getFolder("/some/CustomEarSourceDirectory");
-      assertEquals(customFolder, underlyingResources[1]);
-  }
-  
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
       return "Null modules";

@@ -18,7 +18,59 @@ import org.junit.Test;
 
 @SuppressWarnings("restriction")
 public class ManifestConfiguratorTest extends AbstractWTPTestCase {
+  
+  @Test
+  public void testMECLIPSEWTP66_unWantedManifests() throws Exception {
 
+    IProject[] projects = importProjects("projects/manifests/MECLIPSEWTP-66/", 
+        new String[]{"pom.xml", 
+                     "jar/pom.xml", 
+                     "jar2/pom.xml", 
+                     "jar3/pom.xml", 
+                     "jar4/pom.xml",
+                     "war/pom.xml"}, 
+        new ResolverConfiguration());
+
+    //10 to 30% of my test runs, jar2 is not updated 'cause
+    //The worker thread is gone like : 
+    //Worker thread ended job: Updating Maven Dependencies(76), but still holds rule: ThreadJob(Updating Maven Dependencies(76),[R/,])
+    //Let's add an ugly delay, see if it improves the situation
+    long delay = 5000;
+    System.err.println("Waiting an extra "+delay + " ms");
+    Thread.sleep(delay);
+    waitForJobsToComplete();
+   
+    String expectedManifest = "target/classes/META-INF/MANIFEST.MF";
+    IProject jar =  projects[1];
+    assertNoErrors(jar);    
+    assertMissingMetaInf(jar);
+    assertTrue(jar.getFile(expectedManifest).exists());;
+    
+    IProject jar2 =  projects[2];
+    assertNoErrors(jar2);
+    assertMissingMetaInf(jar2);
+    assertTrue(jar2.getFile(expectedManifest).exists());;
+    
+    IProject jar3 =  projects[3];
+    assertNoErrors(jar3);    
+    assertMissingMetaInf(jar3);
+    assertTrue(jar3.getFile(expectedManifest).exists());;
+
+    //Check the existing folder hasn't been deleted
+    IProject jar4 =  projects[4];
+    assertNoErrors(jar4);
+    IFolder metaInf = jar4.getFolder("src/main/resources/META-INF/");
+    assertTrue(metaInf.exists());
+    //But no Manifest should be there
+    assertFalse(metaInf.getFile("MANIFEST.MF").exists());
+    assertTrue(jar4.getFile(expectedManifest).exists());;
+
+    IProject war =  projects[5];
+    assertNoErrors(war);
+    assertMissingMetaInf(war);
+    
+  }
+  
   @Test
   public void testMECLIPSEWTP45_JarManifest() throws Exception {
 
@@ -132,59 +184,7 @@ public class ManifestConfiguratorTest extends AbstractWTPTestCase {
     assertFalse(earManifestFile.exists());
   }
   
-  
-  @Test
-  public void testMECLIPSEWTP66_unWantedManifests() throws Exception {
 
-    IProject[] projects = importProjects("projects/manifests/MECLIPSEWTP-66/", 
-        new String[]{"pom.xml", 
-                     "jar/pom.xml", 
-                     "jar2/pom.xml", 
-                     "jar3/pom.xml", 
-                     "jar4/pom.xml",
-                     "war/pom.xml"}, 
-        new ResolverConfiguration());
-
-    //10 to 30% of my test runs, jar2 is not updated 'cause
-    //The worker thread is gone like : 
-    //Worker thread ended job: Updating Maven Dependencies(76), but still holds rule: ThreadJob(Updating Maven Dependencies(76),[R/,])
-    //Let's add an ugly delay, see if it improves the situation
-    long delay = 5000;
-    System.err.println("Waiting an extra "+delay + " ms");
-    Thread.sleep(delay);
-    waitForJobsToComplete();
-   
-    String expectedManifest = "target/classes/META-INF/MANIFEST.MF";
-    IProject jar =  projects[1];
-    assertNoErrors(jar);    
-    assertMissingMetaInf(jar);
-    assertTrue(jar.getFile(expectedManifest).exists());;
-    
-    IProject jar2 =  projects[2];
-    assertNoErrors(jar2);
-    assertMissingMetaInf(jar2);
-    assertTrue(jar2.getFile(expectedManifest).exists());;
-    
-    IProject jar3 =  projects[3];
-    assertNoErrors(jar3);    
-    assertMissingMetaInf(jar3);
-    assertTrue(jar3.getFile(expectedManifest).exists());;
-
-    //Check the existing folder hasn't been deleted
-    IProject jar4 =  projects[4];
-    assertNoErrors(jar4);
-    IFolder metaInf = jar4.getFolder("src/main/resources/META-INF/");
-    assertTrue(metaInf.exists());
-    //But no Manifest should be there
-    assertFalse(metaInf.getFile("MANIFEST.MF").exists());
-    assertTrue(jar4.getFile(expectedManifest).exists());;
-
-    IProject war =  projects[5];
-    assertNoErrors(war);
-    assertMissingMetaInf(war);
-    
-  }
-  
   @Test
   public void testMECLIPSEWTP136_WarManifestInSource() throws Exception {
     useBuildDirforGeneratingFiles(false);
