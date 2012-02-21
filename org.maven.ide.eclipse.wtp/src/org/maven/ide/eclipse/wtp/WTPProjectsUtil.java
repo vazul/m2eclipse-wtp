@@ -578,8 +578,7 @@ public class WTPProjectsUtil {
 
 
   /**
-   * @param facade
-   * @return
+   * @return true if the Maven project associated ArtifactHandler's language is java.
    */
   public static boolean isJavaProject(IMavenProjectFacade facade) {
     //Java rocks ... not
@@ -593,9 +592,13 @@ public class WTPProjectsUtil {
     return "java".equals(language);
   }
   
+  /**
+   * Sets the default deployment descriptor folder for Eclipse > Indigo
+   */
   public static void setDefaultDeploymentDescriptorFolder(IVirtualFolder folder, IPath aProjectRelativeLocation, IProgressMonitor monitor) {
     try {
-      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", IVirtualFolder.class);
+      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", 
+                                                                                               IVirtualFolder.class);
       IPath currentDefaultLocation =(IPath) getDefaultDeploymentDescriptorFolder.invoke(null, folder);
       if (aProjectRelativeLocation.equals(currentDefaultLocation)) {
         return;
