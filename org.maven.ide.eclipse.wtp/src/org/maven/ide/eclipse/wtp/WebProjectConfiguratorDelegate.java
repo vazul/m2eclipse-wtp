@@ -127,6 +127,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         addFilesToClean(fileCleaner, facade.getResourceLocations());
         addFilesToClean(fileCleaner, facade.getCompileSourceLocations());
         IFolder libDir = project.getFolder(warSourceDirectory).getFolder("WEB-INF/lib");
+        fileCleaner.addFiles(contentFolder.getFile("META-INF/MANIFEST.MF").getProjectRelativePath());
         fileCleaner.addFolder(libDir, false);
         if (customWebXml != null) {
           IFile defaultWebXml = project.getFolder(warSourceDirectory).getFile("WEB-INF/web.xml");
