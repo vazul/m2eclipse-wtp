@@ -98,25 +98,6 @@ public class WTPProjectsUtil {
   public static final IProjectFacet EAR_FACET = ProjectFacetsManager
       .getProjectFacet(IJ2EEFacetConstants.ENTERPRISE_APPLICATION);
 
-  private static boolean javaEE6Available;
-
-  static {
-    try {
-      IJ2EEFacetConstants.class.getField("ENTERPRISE_APPLICATION_60");
-      javaEE6Available = true;
-    } catch(Exception e) {
-      javaEE6Available = false;
-    }
-  }
-  
-  /**
-   * @return Returns the javaEE6Available.
-   */
-  public static boolean isJavaEE6Available() {
-    return javaEE6Available;
-  }
-  
-  
   /**
    * Checks if a project has a given class in its classpath 
    * @param project : the workspace project

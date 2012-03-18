@@ -1239,17 +1239,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IProjectFacetVersion expectedEjbFacet = null;
     IProjectFacetVersion expectedEarFacet = null;
 
-    if(WTPProjectsUtil.isJavaEE6Available()) {
-      //check we assigned the correct, JavaEE 6, facet versions, for WTP >= 3.2
-      expectedEjbFacet = EJB_FACET.getVersion("3.1");
-      expectedWebFacet = WebFacetUtils.WEB_FACET.getVersion("3.0");
-      expectedEarFacet = EAR_FACET.getVersion("6.0");
-    } else {
-      //check we downgraded WTP Facets versions to a compatible level
-      expectedEjbFacet = IJ2EEFacetConstants.EJB_30;
-      expectedWebFacet = WebFacetUtils.WEB_25;
-      expectedEarFacet = IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50;
-    }
+    //check we assigned the correct, JavaEE 6, facet versions
+    expectedEjbFacet = EJB_FACET.getVersion("3.1");
+    expectedWebFacet = WebFacetUtils.WEB_FACET.getVersion("3.0");
+    expectedEarFacet = EAR_FACET.getVersion("6.0");
+
     assertEquals(expectedEjbFacet, fpEjb.getInstalledVersion(EJB_FACET));
     assertEquals(expectedWebFacet, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
     assertEquals(expectedEarFacet, fpEar.getInstalledVersion(EAR_FACET));
@@ -1415,10 +1409,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE2393_Libs_SkinnyWars() throws Exception {
 
-    if(!WTPProjectsUtil.isJavaEE6Available()) {
-      //This feature is bugged on WTP < 3.2, so we skip the test
-      return;
-    }
     IProject[] projects = importProjects(
         "projects/MNGECLIPSE-2393/", //
         new String[] {"ear/pom.xml", "utility1/pom.xml", "ejb/pom.xml", "skinny-war/pom.xml", "utility2/pom.xml"},

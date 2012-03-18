@@ -20,6 +20,7 @@ import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
+import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
 
 /**
  * Converts Eclipse WTP Dynamic Web project settings into maven-war-plugin configuration 
