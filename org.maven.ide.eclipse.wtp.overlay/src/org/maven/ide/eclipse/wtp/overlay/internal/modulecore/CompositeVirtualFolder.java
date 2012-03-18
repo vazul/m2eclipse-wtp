@@ -160,168 +160,166 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 	}
 
 	public void create(int arg0, IProgressMonitor arg1) throws CoreException {
-		// TODO Auto-generated method stub
+		// ignore
 	}
 
 	public boolean exists(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public IVirtualResource findMember(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource findMember(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource findMember(String arg0, int arg1) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource findMember(IPath arg0, int arg1) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFile getFile(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFile getFile(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFolder getFolder(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFolder getFolder(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource[] getResources(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource[] members(int arg0) throws CoreException {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public void createLink(IPath arg0, int arg1, IProgressMonitor arg2)
 			throws CoreException {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void delete(int arg0, IProgressMonitor arg1) throws CoreException {
-		// TODO Auto-generated method stub
-		
+		// ignore		
 	}
 
 	public boolean exists() {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public IVirtualComponent getComponent() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public String getFileExtension() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public String getName() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualContainer getParent() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IPath getProjectRelativePath() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public String getResourceType() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public int getType() {
-		// TODO Auto-generated method stub
+		// ignore
 		return 0;
 	}
 
 	public IResource getUnderlyingResource() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IResource[] getUnderlyingResources() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IPath getWorkspaceRelativePath() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public boolean isAccessible() {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public void removeLink(IPath arg0, int arg1, IProgressMonitor arg2)
 			throws CoreException {
-		// TODO Auto-generated method stub
+		// ignore
 		
 	}
 
 	public void setResourceType(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		
 	}
 
 	public boolean contains(ISchedulingRule rule) {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public boolean isConflicting(ISchedulingRule rule) {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IContainer getUnderlyingFolder() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IContainer[] getUnderlyingFolders() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 

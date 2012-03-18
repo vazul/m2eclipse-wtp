@@ -22,8 +22,7 @@ public class OverlayPublishingPreferencePage  extends FieldEditorPreferencePage 
   }
 
   public void init(IWorkbench workbench) {
-    // TODO Auto-generated method stub
-    
+    // Nothing to do
   }
 
 

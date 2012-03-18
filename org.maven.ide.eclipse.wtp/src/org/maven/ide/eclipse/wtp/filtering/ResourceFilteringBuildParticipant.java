@@ -114,13 +114,13 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
   }
 
   /**
-   * Super bad hack to retrieve the buildParticipantId that is not exposed by AbstractEclipseBuildContext
+   * Workaround to retrieve the buildParticipantId that is not exposed by AbstractEclipseBuildContext
    */
   private String getBuildParticipantId() {
     BuildContext originalContext = super.getBuildContext();
     String id = "org.apache.maven.plugins:maven-resources:copy-resources:::-"+getClass().getName(); 
     if (originalContext != null && (originalContext instanceof AbstractEclipseBuildContext)) {
-      //That hack allows us to avoid doing some introspection
+      //That allows us to avoid doing some introspection
       AbstractEclipseBuildContext eclipseContext = ((AbstractEclipseBuildContext)originalContext); 
       Map<String, List<Message>> map = eclipseContext.getMessages();
       if (map == null || map.isEmpty()) {
@@ -300,7 +300,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       request.setRecursive(false);
       request.setOffline(true);
 
-      //Execute our hacked mojo 
+      //Execute our modified mojo 
       copyFilteredResourcesMojo.setConfiguration(configuration);
       copyFilteredResourcesMojo.getMojoDescriptor().setGoal("copy-resources");
 
@@ -370,7 +370,7 @@ public class ResourceFilteringBuildParticipant extends AbstractBuildParticipant 
       
       for (String filter : filters) {
         Xpp3Dom filterNode = new Xpp3Dom("filter");
-        //HACK When run via the BuildParticipant, the maven-resource-plugin won't 
+        //Workaround : when run via the BuildParticipant, the maven-resource-plugin won't 
         //find a filter defined with a relative path, so we turn it into an absolute one
         IPath filterPath = new Path(filter);
         boolean isAbsolute = false;
