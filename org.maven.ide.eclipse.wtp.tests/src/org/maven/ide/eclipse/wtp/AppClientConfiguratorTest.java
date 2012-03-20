@@ -36,9 +36,9 @@ public class AppClientConfiguratorTest extends AbstractWTPTestCase {
     IVirtualComponent appClientComp = ComponentCore.createComponent(project);
     IVirtualFolder root = appClientComp.getRootFolder();
     IResource[] acResources = root.getUnderlyingResources();
-    assertEquals(1, acResources.length);
+    assertEquals(2, acResources.length);
     assertEquals(project.getFolder("/src/main/resources"), acResources[0]);
-    
+    assertEquals(project.getFolder("/src/main/java"), acResources[1]);
     assertFalse("application-client.xml should not have been created", project.getFile("/src/main/resources/META-INF/application-client.xml").exists());
   }
   

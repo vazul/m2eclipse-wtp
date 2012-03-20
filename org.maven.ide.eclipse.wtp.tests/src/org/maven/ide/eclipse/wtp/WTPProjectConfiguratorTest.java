@@ -1156,17 +1156,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject = JavaCore.create(web);
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals("/MNGECLIPSE-1878-web/src/main/java", rawClasspath[0].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-web/src/test/java", rawClasspath[1].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
     }
     {
       IJavaProject ejbProject = JavaCore.create(ejb);
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-ejb/src/test/java", rawClasspath[1].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
     }
     {
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
@@ -1181,11 +1184,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject = JavaCore.create(web);
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals("/MNGECLIPSE-1878-web/src/main/java", rawClasspath[0].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-web/src/test/java", rawClasspath[1].getPath().toString());
+       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
 
       assertNull(getWebLibClasspathContainer(webProject));
     }
@@ -1196,11 +1199,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject ejbProject = JavaCore.create(ejb);
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 5, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("/MNGECLIPSE-1878-ejb/src/main/resources", rawClasspath[1].getPath().toString());//TODO Resources folder appear after config update (WTP added MANIFEST.MF)
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-ejb/src/test/java", rawClasspath[1].getPath().toString());
+      //TODO Resources folder appear after config update (WTP added MANIFEST.MF)
+      assertEquals("/MNGECLIPSE-1878-ejb/src/main/resources", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[3].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[4].getPath().toString());
       //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
     }
 
