@@ -17,10 +17,15 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jst.j2ee.project.facet.IJ2EEFacetConstants;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.wst.common.componentcore.ComponentCore;
 import org.eclipse.wst.common.componentcore.resources.IVirtualComponent;
+import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
+import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
+import org.maven.ide.eclipse.wtp.WTPProjectsUtil;
 
 /**
  * Converts Eclipse WTP Dynamic Web project settings into maven-war-plugin configuration 
@@ -47,24 +52,33 @@ public class WebProjectConverter extends AbstractWtpProjectConversionParticipant
     setWarPlugin(component, model);
   }
 
-  private void setWarPlugin(IVirtualComponent component, Model model) {
+  private void setWarPlugin(IVirtualComponent component, Model model) throws CoreException {
     Build build = getOrCreateBuild(model);
     Plugin warPlugin = setPlugin(build, "org.apache.maven.plugins", "maven-war-plugin", "2.2");
   
+    // Set  <warSourceDirectory>WebContent</warSourceDirectory>
     IFolder webContentFolder = findWebRootFolder(component);
-    String webContent = webContentFolder.getProjectRelativePath().toPortableString();
-    
-    if (!DEFAULT_WAR_SOURCE_FOLDER.equals(webContent)) {
-      configure(warPlugin, WAR_SOURCE_DIRECTORY_KEY, webContent);
+    if (webContentFolder != null) {
+      String webContent = webContentFolder.getProjectRelativePath().toPortableString();
+      if (!DEFAULT_WAR_SOURCE_FOLDER.equals(webContent)) {
+        configure(warPlugin, WAR_SOURCE_DIRECTORY_KEY, webContent);
+      }
     }
     
-    configure(warPlugin, FAIL_IF_MISSING_WEBXML_KEY, "false");
+    //Set <failOnMissingWebXml>false</failOnMissingWebXml> for web > 2.4
+    IFacetedProject fProject = ProjectFacetsManager.create(component.getProject());
+    if (fProject != null) {
+      IProjectFacetVersion webVersion = fProject.getProjectFacetVersion(IJ2EEFacetConstants.DYNAMIC_WEB_FACET);
+      if (webVersion != null && webVersion.compareTo(IJ2EEFacetConstants.DYNAMIC_WEB_24) > 0) {
+        configure(warPlugin, FAIL_IF_MISSING_WEBXML_KEY, "false");
+      }
+    }
 
     model.setBuild(build);
   }
 
   private IFolder findWebRootFolder(IVirtualComponent component) {
-    return component.getProject().getFolder("WebContent");
+    return WTPProjectsUtil.getDefaultDeploymentDescriptorFolder(component.getRootFolder());
   }
 
   protected IProjectFacet getRequiredFaced() {

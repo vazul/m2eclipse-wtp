@@ -597,4 +597,32 @@ public class WTPProjectsUtil {
     } 
   }
 
+  
+  /**
+   * Gets the default deployment descriptor folder's relative path. 
+   */
+  public static IFolder getDefaultDeploymentDescriptorFolder(IVirtualFolder vFolder) {
+    IPath defaultPath = null;
+    try {
+      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", 
+                                                                                               IVirtualFolder.class);
+      defaultPath =(IPath) getDefaultDeploymentDescriptorFolder.invoke(null, vFolder);
+      
+    } catch (NoSuchMethodException nsme) {
+      //Not available in this WTP version, let's ignore it
+    } catch(Exception ex) {
+      //The exception shouldn't halt the configuration process.
+      ex.printStackTrace();
+    }
+    
+    IFolder folder;
+    IVirtualComponent component = vFolder.getComponent();
+    if (defaultPath == null) {
+      folder = (IFolder)vFolder.getUnderlyingFolder();
+    } else {
+      folder = component.getProject().getFolder(defaultPath);
+    }
+    
+    return folder;
+  }  
 }
