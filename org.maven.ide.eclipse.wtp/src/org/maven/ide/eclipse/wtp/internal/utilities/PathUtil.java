@@ -11,14 +11,18 @@ import java.io.File;
 
 public class PathUtil {
 
-	public static String toOsPath(String path) {
+  private static final char BACKSLASH = '\\';
+
+  private static final char SLASH = '/';
+
+  public static String toOsPath(String path) {
 		if (path == null) return null;
-		return path.replace('/', File.separatorChar)
-	            .replace('\\', File.separatorChar);
+		return path.replace(SLASH, File.separatorChar)
+	            .replace(BACKSLASH, File.separatorChar);
 	}
 	
 	public static String toPortablePath(String path) {
 	  if (path == null) return null;
-	  return path.replace('\\', '/');
+	  return path.replace(BACKSLASH, SLASH);
 	}
 }
