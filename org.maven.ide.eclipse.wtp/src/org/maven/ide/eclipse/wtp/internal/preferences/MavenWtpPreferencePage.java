@@ -248,6 +248,8 @@ public class MavenWtpPreferencePage extends PropertyPage implements IWorkbenchPr
     if(!newPreferences.equals(preferences)) {
       preferencesManager.savePreferences(newPreferences, getProject());
 
+      MavenWtpPlugin.getDefault().setupWebXmlChangeListener(newPreferences.isWarOverlaysUsesLinkedFolders());
+
       boolean res = MessageDialog.openQuestion(getShell(), "Maven WTP Integration Settings", //
           "Maven WTP integration settings have changed. Do you want to update project configuration?");
       if(res) {

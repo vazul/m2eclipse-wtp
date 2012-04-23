@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
@@ -70,6 +71,10 @@ import org.maven.ide.eclipse.wtp.overlay.modulecore.OverlayComponentCore;
  */
 @SuppressWarnings("restriction")
 public class OverlayConfigurator extends WTPProjectConfigurator {
+
+  public static final QualifiedName WEBXML_PATH = new QualifiedName(MavenWtpPlugin.ID, "web-xml-path");
+
+  public static final QualifiedName WEBXML_TARGET_PATH = new QualifiedName(MavenWtpPlugin.ID, "web-xml-target-path");
 
   @Override
   public void configure(ProjectConfigurationRequest request, IProgressMonitor monitor)
@@ -338,6 +343,10 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
               } else {
                 webXml = project.getFolder(config.getWarSourceDirectory()).getFile("WEB-INF/web.xml");
               }
+
+              project.setPersistentProperty(WEBXML_PATH, webXml.getFullPath().toPortableString());
+              project.setPersistentProperty(WEBXML_TARGET_PATH, defaultWebInf.getProjectRelativePath()
+                  .toPortableString());
 
               try {
                 FileUtils.copyFileIfModified(webXml.getLocation().toFile(), new File(defaultWebInf.getLocation()
