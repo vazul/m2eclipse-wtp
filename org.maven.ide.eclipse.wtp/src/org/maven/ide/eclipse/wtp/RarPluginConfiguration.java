@@ -128,11 +128,7 @@ public class RarPluginConfiguration {
 
       //If no ra.xml found and the project depends and WTP >= 3.2, then set connector facet to 1.6
       //TODO see if other conditions might apply to differentiate JCA 1.6 from 1.5
-      if (WTPProjectsUtil.isJavaEE6Available()) {
-        return IJ2EEFacetConstants.JCA_FACET.getVersion("1.6");
-      }
-     
-      return IJ2EEFacetConstants.JCA_15;
+      return IJ2EEFacetConstants.JCA_FACET.getVersion("1.6");
     }
 
   /**

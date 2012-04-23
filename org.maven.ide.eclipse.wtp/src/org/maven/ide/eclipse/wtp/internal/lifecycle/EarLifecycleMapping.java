@@ -13,7 +13,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractCustomizableLifecycleMa
 /**
  * EarLifecycleMapping
  *
- * @author fbricon
+ * @author Fred Bricon
  */
 public class EarLifecycleMapping extends AbstractCustomizableLifecycleMapping {
 

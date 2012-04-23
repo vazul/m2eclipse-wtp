@@ -123,8 +123,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
     
     //MECLIPSEWTP-66 delete extra MANIFEST.MF
-    // 1 - predict where the MANIFEST.MF will be created
-    IFolder firstInexistentfolder = null;
     IPath[] sourceRoots = MavenProjectUtils.getSourceLocations(project, mavenProject.getCompileSourceRoots());
     IPath[] resourceRoots = MavenProjectUtils.getResourceLocations(project, mavenProject.getResources());
     
@@ -147,13 +145,8 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       sourceFolder = sourceRoots[0];
     }
     IContainer contentFolder = sourceFolder == null? project : project.getFolder(sourceFolder);
-    IFile manifest = contentFolder.getFile(new Path("META-INF/MANIFEST.MF"));
 
     // 2 - check if the manifest already exists, and its parent folder
-    boolean manifestAlreadyExists =manifest.exists(); 
-    if (!manifestAlreadyExists) {
-      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
-    }
     
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
     Set<Action> actions = new LinkedHashSet<Action>();
@@ -167,7 +160,15 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
     }
     
     if (!actions.isEmpty()) {
-      facetedProject.modify(actions, monitor);      
+      ResourceCleaner fileCleaner = new ResourceCleaner(project);
+      try {
+        addFilesToClean(fileCleaner, facade.getResourceLocations());
+        addFilesToClean(fileCleaner, facade.getCompileSourceLocations());
+        facetedProject.modify(actions, monitor);      
+      } finally {
+        //Remove any unwanted MANIFEST.MF the Facet installation has created
+        fileCleaner.cleanUp();
+      } 
     }
     
     fixMissingModuleCoreNature(project, monitor);
@@ -185,15 +186,6 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
 
     setNonDependencyAttributeToContainer(project, monitor);
     
-    //MECLIPSEWTP-66 delete extra MANIFEST.MF
-    // 3 - Remove extra manifest if necessary and its the parent hierarchy 
-    if (firstInexistentfolder != null && firstInexistentfolder.exists()) {
-      firstInexistentfolder.delete(true, monitor);
-    }
-    if (!manifestAlreadyExists && manifest.exists()) {
-      manifest.delete(true, monitor);
-    }
-
     WTPProjectsUtil.removeWTPClasspathContainer(project);
   }
 
@@ -216,15 +208,19 @@ abstract class AbstractProjectConfiguratorDelegate implements IProjectConfigurat
       }
     }
     for(IPath mavenSource : sourceRoots) {
-        IFolder sourceFolder = project.getFolder(mavenSource);
-        if (sourceFolder.exists() && !currentPaths.contains(mavenSource)) {
-          return false;
+        if (mavenSource != null && !mavenSource.isEmpty()) {
+          IFolder sourceFolder = project.getFolder(mavenSource);
+          if (sourceFolder.exists() && !currentPaths.contains(mavenSource)) {
+            return false;
+          }
         }
     }
     for(IPath mavenSource : resourceRoots) {
-      IFolder resourceFolder = project.getFolder(mavenSource);
-      if (resourceFolder.exists() && !currentPaths.contains(mavenSource)) {
-        return false;
+      if (mavenSource != null && !mavenSource.isEmpty()) {
+        IFolder resourceFolder = project.getFolder(mavenSource);
+        if (resourceFolder.exists() && !currentPaths.contains(mavenSource)) {
+          return false;
+        }
       }
   }
     return true;

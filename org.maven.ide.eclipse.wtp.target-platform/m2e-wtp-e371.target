@@ -4,23 +4,23 @@
 <target name="m2e-wtp-e371" sequenceNumber="29">
 <locations>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="ch.qos.logback.core" version="0.9.27.v20110224-1110"/>
-<unit id="org.slf4j.api" version="1.6.1.v20100831-0715"/>
-<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20110907174232/repository/"/>
+<unit id="ch.qos.logback.core" version="1.0.0.v20111214-2030"/>
+<unit id="org.slf4j.api" version="1.6.4.v20120130-2120"/>
+<repository location="http://download.eclipse.org/tools/orbit/downloads/drops/S20120308061416/repository/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.platform.sdk" version="3.7.1.M20110909-1335"/>
 <repository location="http://download.eclipse.org/eclipse/updates/3.7"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="1.0.100.20110804-1717"/>
-<unit id="org.eclipse.m2e.feature.feature.group" version="1.0.100.20110804-1717"/>
-<unit id="org.eclipse.m2e.logback.feature.feature.group" version="1.0.100.20110804-1717"/>
-<repository location="http://download.eclipse.org/technology/m2e/releases/1.0"/>
+<unit id="org.eclipse.m2e.sdk.feature.feature.group" version="1.1.0.20120315-1002"/>
+<unit id="org.eclipse.m2e.feature.feature.group" version="1.1.0.20120315-1002"/>
+<unit id="org.eclipse.m2e.logback.feature.feature.group" version="1.1.0.20120315-1002"/>
+<repository location="https://repository.sonatype.org/content/sites/forge-sites/m2e/1.1.0/N/1.1.0.20120315-1002/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.sonatype.m2e.mavenarchiver.feature.feature.group" version="0.14.0.201109102204"/>
-<repository location="http://repository.sonatype.org/content/repositories/forge-sites/m2e-extras/0.14.0/N/0.14.0.201109102204/"/>
+<unit id="org.sonatype.m2e.mavenarchiver.feature.feature.group" version="0.15.0.201202141716"/>
+<repository location="https://repository.sonatype.org/content/sites/forge-sites/m2e-extras/0.15.0/N/0.15.0.201202141716/"/>
 </location>
 <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.wst.common.fproj.feature.group" version="3.3.0.v201102150115-377DF8s7355397B4B9B"/>

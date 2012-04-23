@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>MECLIPSEWTP-227</artifactId>
+    <groupId>foo.bar</groupId>
+    <version>1.0</version>
+  </parent>
+  <groupId>foo.bar</groupId>
+  <artifactId>utility</artifactId>
+  <version>1.0</version>
+  <name>utility</name>
+  <url>http://maven.apache.org</url>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+  <resources>
+  <resource>
+  <directory>${basedir}</directory>
+  <includes>
+  <include>LICENSE, *.txt</include>
+  </includes>
+  <targetPath>META-INF/</targetPath>
+  </resource>
+  </resources>
+  </build>
+</project>

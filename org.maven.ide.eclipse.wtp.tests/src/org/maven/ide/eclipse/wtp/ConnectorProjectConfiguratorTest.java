@@ -143,11 +143,6 @@ public class ConnectorProjectConfiguratorTest extends AbstractWTPTestCase {
 
   @Test
   public void testMNGECLIPSE1949_CustomRarXml() throws Exception {
-    if (!WTPProjectsUtil.isJavaEE6Available()) {
-      //WTP < 3.2 is just stupid and finds 2 underlying files for virtualRaXml instead of 1.
-      //Skip it.
-      return;
-    }
     
     IProject project = importProject("projects/MNGECLIPSE-1949/rar4/pom.xml", new ResolverConfiguration());
     waitForJobsToComplete();

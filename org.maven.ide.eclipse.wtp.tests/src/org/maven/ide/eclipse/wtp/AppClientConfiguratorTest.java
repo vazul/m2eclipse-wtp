@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Red Hat, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 
 package org.maven.ide.eclipse.wtp;
 
@@ -36,9 +43,9 @@ public class AppClientConfiguratorTest extends AbstractWTPTestCase {
     IVirtualComponent appClientComp = ComponentCore.createComponent(project);
     IVirtualFolder root = appClientComp.getRootFolder();
     IResource[] acResources = root.getUnderlyingResources();
-    assertEquals(1, acResources.length);
+    assertEquals(2, acResources.length);
     assertEquals(project.getFolder("/src/main/resources"), acResources[0]);
-    
+    assertEquals(project.getFolder("/src/main/java"), acResources[1]);
     assertFalse("application-client.xml should not have been created", project.getFile("/src/main/resources/META-INF/application-client.xml").exists());
   }
   

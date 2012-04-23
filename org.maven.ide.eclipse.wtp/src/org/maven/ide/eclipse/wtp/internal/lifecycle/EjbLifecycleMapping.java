@@ -13,7 +13,7 @@ import org.eclipse.m2e.core.project.configurator.AbstractCustomizableLifecycleMa
 /**
  * EjbLifecycleMapping
  *
- * @author fbricon
+ * @author Fred Bricon
  */
 public class EjbLifecycleMapping extends AbstractCustomizableLifecycleMapping {
 

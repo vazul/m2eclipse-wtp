@@ -42,6 +42,7 @@ import org.eclipse.jst.j2ee.web.project.facet.WebFacetInstallDataModelProvider;
 import org.eclipse.jst.j2ee.web.project.facet.WebFacetUtils;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.ArtifactKey;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.jdt.IClasspathDescriptor;
 import org.eclipse.m2e.jdt.IClasspathEntryDescriptor;
@@ -89,24 +90,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
   protected void configure(IProject project, MavenProject mavenProject, IProgressMonitor monitor)
       throws CoreException {
     IFacetedProject facetedProject = ProjectFacetsManager.create(project, true, monitor);
+    IMavenProjectFacade facade = MavenPlugin.getMavenProjectRegistry().create(project.getFile(IMavenConstants.POM_FILE_NAME), true, monitor);
 
     // make sure to update the main deployment folder
     WarPluginConfiguration config = new WarPluginConfiguration(mavenProject, project);
     String warSourceDirectory = config.getWarSourceDirectory();
-    IFile defaultWebXml = project.getFolder(warSourceDirectory).getFile("WEB-INF/web.xml");
-    IFolder libDir = project.getFolder(warSourceDirectory).getFolder("WEB-INF/lib");
     
-    IFolder firstInexistentfolder = null;
     IFolder contentFolder = project.getFolder(warSourceDirectory);
-    IFile manifest = contentFolder.getFile("META-INF/MANIFEST.MF");
-    boolean manifestAlreadyExists =manifest.exists(); 
-    if (!manifestAlreadyExists) {
-      firstInexistentfolder = findFirstInexistentFolder(project, contentFolder, manifest);
-    }   
 
-    boolean alreadyHasWebXml = defaultWebXml.exists();
-    boolean alreadyHasLibDir = libDir.exists();
-        
     Set<Action> actions = new LinkedHashSet<Action>();
 
     installJavaFacet(actions, project, facetedProject);
@@ -128,8 +119,26 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       }
     }
 
+    String customWebXml = config.getCustomWebXml(project);
+    
     if(!actions.isEmpty()) {
-      facetedProject.modify(actions, monitor);
+      ResourceCleaner fileCleaner = new ResourceCleaner(project);
+      try {
+        addFilesToClean(fileCleaner, facade.getResourceLocations());
+        addFilesToClean(fileCleaner, facade.getCompileSourceLocations());
+        IFolder libDir = project.getFolder(warSourceDirectory).getFolder("WEB-INF/lib");
+        fileCleaner.addFiles(contentFolder.getFile("META-INF/MANIFEST.MF").getProjectRelativePath());
+        fileCleaner.addFolder(libDir, false);
+        if (customWebXml != null) {
+          IFile defaultWebXml = project.getFolder(warSourceDirectory).getFile("WEB-INF/web.xml");
+          fileCleaner.addFiles(defaultWebXml.getProjectRelativePath());
+        }
+        
+        facetedProject.modify(actions, monitor);
+      } finally {
+        //Remove any unwanted MANIFEST.MF the Facet installation has created
+        fileCleaner.cleanUp();
+      }
     }
     
     //MECLIPSEWTP-41 Fix the missing moduleCoreNature
@@ -145,22 +154,14 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
       J2EEProjectUtilities.setServerContextRoot(project, contextRoot);
     }
 
-    //MNGECLIPSE-2357 support custom location of web.xml
-    String customWebXml = config.getCustomWebXml(project);
     //If we have a custom web.xml but WTP created one against our will, we delete it 
-    if (customWebXml != null && !alreadyHasWebXml && defaultWebXml.exists()) {
-      defaultWebXml.delete(true, monitor);
-    }
-    //Maven /m2eclipse doesn't need a new lib dir. 
-    if (!alreadyHasLibDir && libDir.exists()) {
-      libDir.delete(true, monitor);
+    if (customWebXml != null) {
+      linkFileFirst(project, customWebXml, "/WEB-INF/web.xml", monitor);
     }
 
-    linkFileFirst(project, customWebXml, "/WEB-INF/web.xml", monitor);
     
     component = ComponentCore.createComponent(project, true);
     if(component != null) {      
-
       IPath warPath = new Path("/").append(contentFolder.getProjectRelativePath());
       List<IPath> sourcePaths = new ArrayList<IPath>();
       sourcePaths.add(warPath);
@@ -188,25 +189,16 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
         component.getRootFolder().removeLink(filteredFolder,IVirtualResource.NONE, monitor);
       }
 
-      WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(component.getRootFolder(), warPath, monitor);
-      
       WTPProjectsUtil.deleteLinks(project, ROOT_PATH, sourcePaths, monitor);
-    }
-    
+      
+      WTPProjectsUtil.setDefaultDeploymentDescriptorFolder(component.getRootFolder(), warPath, monitor);
 
-    
-    if (!manifestAlreadyExists && manifest.exists()) {
-      manifest.delete(true, monitor);
-    }
-    if (firstInexistentfolder != null && firstInexistentfolder.exists() && firstInexistentfolder.members().length == 0 )
-    {
-      firstInexistentfolder.delete(true, monitor);
+      addComponentExclusionPatterns(component, config);
     }
     
     WTPProjectsUtil.removeWTPClasspathContainer(project);
 
     //MECLIPSEWTP-214 : add (in|ex)clusion patterns as .component metadata
-    addComponentExclusionPatterns(component, config);
   }
 
   private IDataModel getWebModelConfig(String warSourceDirectory, String contextRoot) {
@@ -234,7 +226,7 @@ class WebProjectConfiguratorDelegate extends AbstractProjectConfiguratorDelegate
     FileNameMapping fileNameMapping = config.getFileNameMapping();
     
     List<AbstractDependencyConfigurator> depConfigurators = ExtensionReader.readDependencyConfiguratorExtensions(projectManager, 
-        MavenPlugin.getDefault().getMavenRuntimeManager(), mavenMarkerManager);
+        MavenPlugin.getMavenRuntimeManager(), mavenMarkerManager);
     
     Set<IVirtualReference> references = new LinkedHashSet<IVirtualReference>();
     List<IMavenProjectFacade> exportedDependencies = getWorkspaceDependencies(project, mavenProject);

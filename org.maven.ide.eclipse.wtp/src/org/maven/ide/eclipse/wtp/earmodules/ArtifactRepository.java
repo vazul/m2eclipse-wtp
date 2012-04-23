@@ -2,30 +2,15 @@
  * Copyright (c) 2008 Sonatype, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * and Apache License v2.0 which accompanies this distribution.
+ * The Eclipse Public License is available at
+ *   http://www.eclipse.org/legal/epl-v10.html
+ * The Apache License v2.0 is available at
+ *   http://www.apache.org/licenses/LICENSE-2.0.html
+ * You may elect to redistribute this code under either of these licenses.
  *******************************************************************************/
 
 package org.maven.ide.eclipse.wtp.earmodules;
-
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -34,6 +19,8 @@ import org.apache.maven.artifact.Artifact;
 
 
 /**
+ * This class was derived from maven-ear-plugin's org.apache.maven.plugin.ear.util.ArtifactRepository
+ * 
  * An artifact repository used to resolve {@link org.maven.ide.eclipse.wtp.earmodules.EarModule}. This is a Java 5 port
  * of org.apache.maven.plugin.ear.ArtifactRepository from maven-ear-plugin
  * 

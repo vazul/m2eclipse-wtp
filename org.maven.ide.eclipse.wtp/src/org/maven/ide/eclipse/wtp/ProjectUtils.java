@@ -21,14 +21,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IClasspathContainer;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 
 /**
- * ProjectUtils
+ * Project Utility class
  *
  * @author Fred Bricon
  */
@@ -55,16 +50,9 @@ public class ProjectUtils {
     return relative.replace('\\', '/'); //$NON-NLS-1$ //$NON-NLS-2$
   }
   
-  /*
-  public static IPath getM2eclipseWtpFolder(IMavenProjectFacade facade) {
-    return getM2eclipseWtpFolder(facade.getMavenProject(), facade.getProject());
-  }
-  */
-  
+
   /**
-   * @param mavenProject
-   * @param project
-   * @return
+   * @return the &lt;project&gt;/&lt;buildOutputDir&gt;/m2e-wtp/ folder
    */
   public static IPath getM2eclipseWtpFolder(MavenProject mavenProject, IProject project) {
     String buildOutputDir = mavenProject.getBuild().getDirectory();
@@ -73,8 +61,7 @@ public class ProjectUtils {
   }
 
   /**
-   * @param project
-   * @throws CoreException 
+   * Hides and derives &lt;project&gt;/&lt;buildOutputDir&gt;/m2e-wtp/ folder
    */
   public static void hideM2eclipseWtpFolder(MavenProject mavenProject, IProject project) throws CoreException {
     IPath m2eclipseWtpPath = getM2eclipseWtpFolder(mavenProject, project);
@@ -91,6 +78,9 @@ public class ProjectUtils {
     }
   }
   
+  /**
+   * Creates an IFolder and its parent hierarchy recursively. 
+   */
   public static void createFolder(IFolder folder, IProgressMonitor monitor) throws CoreException {
     if (folder == null || folder.exists()) {
       return;
@@ -102,6 +92,9 @@ public class ProjectUtils {
     folder.create(true, true, monitor);
   }
   
+  /**
+   * Removes the nature of a project.
+   */
   public static void removeNature(IProject project, String natureId, IProgressMonitor monitor) throws CoreException {
     if (project.hasNature(natureId)) {
       IProjectDescription description = project.getDescription();
@@ -115,22 +108,6 @@ public class ProjectUtils {
       description.setNatureIds(newNatures);
       project.setDescription(description, monitor);
     }
-  }
-  
-  public static IClasspathEntry[] getEarContainerEntries(IJavaProject javaProject) {
-    IClasspathEntry[] entries = null;
-    if(javaProject != null) {
-      try {
-        IClasspathContainer earContainer = 
-            JavaCore.getClasspathContainer(new Path("org.eclipse.jst.j2ee.internal.module.container"), javaProject);
-        if (earContainer != null) {
-          entries = earContainer.getClasspathEntries();
-        }
-      } catch(JavaModelException ex) {
-        //Ignore
-      }
-    }
-    return entries;
   }
   
 }

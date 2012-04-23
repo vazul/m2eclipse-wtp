@@ -13,7 +13,7 @@ m2eclipse-wtp provides a set of m2e connectors used for the configuration of Jav
 * Support for jar dependency projects : adds the Java and Utility Facets.
 * Support for web-fragment projects : adds the Java and Web Fragment Facets if a web-fragment.xml file is detected in the resource folders.
 
-Note that m2e-wtp requires m2e-wtp > 1.0. You must make sure m2e's update site (http://download.eclipse.org/technology/m2e/releases/) is defined in :
+Note that m2e-wtp requires m2e > 1.0. You must make sure m2e's update site (http://download.eclipse.org/technology/m2e/releases/) is defined in :
 Window > Preferences > Install / Update > Available Software Sites
 Since m2e 1.0 is incompatible with previous versions, you may have to uninstall old m2e and m2e-wtp versions before proceeding with the installation.
 

@@ -13,7 +13,6 @@ package org.maven.ide.eclipse.wtp;
  * 
  * @author Fred Bricon
  */
-//XXX enum should most probably be refactored to another project. 
 public enum JEEPackaging {
   /**
    * Web project.
@@ -39,7 +38,6 @@ public enum JEEPackaging {
    * Unknown packaging.
    */
   UNKNOWN(null);
-  //XXX add support for other packaging types.
 
   private String name;
 
@@ -56,7 +54,7 @@ public enum JEEPackaging {
 
   /**
    * Gets a JEEPackaging from maven packaging name. Supported values are <i>war</i>, <i>ejb</i>, <i>ear</i>,
-   * <i>rar</i>.
+   * <i>rar</i>, <i>app-client</i>.
    * 
    * @param packaging of a maven artifact.
    * @return the corresponding JEEPackaging or UNKNOWN if the package type is not supported.

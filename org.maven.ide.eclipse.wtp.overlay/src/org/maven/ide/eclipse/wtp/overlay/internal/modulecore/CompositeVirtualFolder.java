@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Sonatype, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package org.maven.ide.eclipse.wtp.overlay.internal.modulecore;
 
 import java.io.File;
@@ -95,6 +102,7 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 		} else if (flatResource instanceof IFlatFile){
 			virtualResource = convertFile((IFlatFile) flatResource);
 		}
+		
 		return virtualResource;
 	}
 
@@ -127,7 +135,6 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 			//Not a workspace file, we assume it's an external reference
 			File underlyingFile = (File)flatFile.getAdapter(File.class);
 			if (underlyingFile != null && underlyingFile.exists()) {
-				//TODO test inclusion/exclusion before doing anything
 				filePath = flatFile.getModuleRelativePath().toPortableString() + Path.SEPARATOR + underlyingFile.getName();
 				if (filter == null || filter.accepts(filePath, true)) {
 					IVirtualReference reference = createReference(underlyingFile, flatFile.getModuleRelativePath());
@@ -135,11 +142,18 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 				}
 			}
 		} else {
-			vf = new VirtualFile(project, flatFile.getModuleRelativePath(), f);
-			filePath = vf.getRuntimePath().toPortableString() + Path.SEPARATOR + f.getName();
+			final String fileName = f.getName(); 
+			vf = new VirtualFile(project, flatFile.getModuleRelativePath(), f) {
+				public String getName() {
+					return fileName;
+				}
+			};
+			
+			filePath = vf.getRuntimePath().toPortableString() + Path.SEPARATOR + fileName;
 			if (filter == null || filter.accepts(filePath, true)) {
 				return vf;
 			}
+			
 		}
 		return null;
 	}
@@ -153,168 +167,166 @@ public class CompositeVirtualFolder implements IFilteredVirtualFolder {
 	}
 
 	public void create(int arg0, IProgressMonitor arg1) throws CoreException {
-		// TODO Auto-generated method stub
+		// ignore
 	}
 
 	public boolean exists(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public IVirtualResource findMember(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource findMember(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource findMember(String arg0, int arg1) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource findMember(IPath arg0, int arg1) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFile getFile(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFile getFile(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFolder getFolder(IPath arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualFolder getFolder(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource[] getResources(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualResource[] members(int arg0) throws CoreException {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public void createLink(IPath arg0, int arg1, IProgressMonitor arg2)
 			throws CoreException {
-		// TODO Auto-generated method stub
-		
+		// ignore
 	}
 
 	public void delete(int arg0, IProgressMonitor arg1) throws CoreException {
-		// TODO Auto-generated method stub
-		
+		// ignore		
 	}
 
 	public boolean exists() {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public IVirtualComponent getComponent() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public String getFileExtension() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public String getName() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IVirtualContainer getParent() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IPath getProjectRelativePath() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public String getResourceType() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public int getType() {
-		// TODO Auto-generated method stub
+		// ignore
 		return 0;
 	}
 
 	public IResource getUnderlyingResource() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IResource[] getUnderlyingResources() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IPath getWorkspaceRelativePath() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public boolean isAccessible() {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public void removeLink(IPath arg0, int arg1, IProgressMonitor arg2)
 			throws CoreException {
-		// TODO Auto-generated method stub
+		// ignore
 		
 	}
 
 	public void setResourceType(String arg0) {
-		// TODO Auto-generated method stub
+		// ignore
 		
 	}
 
 	public boolean contains(ISchedulingRule rule) {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public boolean isConflicting(ISchedulingRule rule) {
-		// TODO Auto-generated method stub
+		// ignore
 		return false;
 	}
 
 	public Object getAdapter(Class adapter) {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IContainer getUnderlyingFolder() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 
 	public IContainer[] getUnderlyingFolders() {
-		// TODO Auto-generated method stub
+		// ignore
 		return null;
 	}
 

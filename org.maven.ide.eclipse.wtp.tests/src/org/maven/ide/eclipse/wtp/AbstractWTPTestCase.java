@@ -115,6 +115,16 @@ public abstract class AbstractWTPTestCase extends AbstractMavenProjectTestCase {
     fail("[" + expectedMessage + "] is not a marker. Existing markers are :"+toString(markers));
   }
 
+  protected void assertMissingMarker(String expectedMessage, List<IMarker> markers) throws CoreException {
+    Pattern p = Pattern.compile(expectedMessage);
+    for (IMarker marker : markers) {
+      String markerMsg = marker.getAttribute(IMarker.MESSAGE).toString(); 
+      if (p.matcher(markerMsg).find()) {
+        fail("[" + expectedMessage + "] was found but should be missing. Existing markers are :"+toString(markers)) ;
+      }
+    }
+  }
+  
   protected void assertNotDeployable(IClasspathEntry entry) {
     assertDeployable(entry, false);
   }

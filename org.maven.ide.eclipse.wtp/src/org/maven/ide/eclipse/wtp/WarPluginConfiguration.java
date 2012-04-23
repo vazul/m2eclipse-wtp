@@ -208,8 +208,8 @@ public class WarPluginConfiguration extends AbstractFilteringSupportMavenPlugin 
       }
     }
    
-    //MNGECLIPSE-1978 If no web.xml found and the project depends on some java EE 6 jar and WTP >= 3.2, then set web facet to 3.0
-    if (WTPProjectsUtil.isJavaEE6Available() && WTPProjectsUtil.hasInClassPath(project, "javax.servlet.annotation.WebServlet")) {
+    //MNGECLIPSE-1978 If no web.xml found and the project depends on some java EE 6 jar, then set web facet to 3.0
+    if (WTPProjectsUtil.hasInClassPath(project, "javax.servlet.annotation.WebServlet")) {
       return WebFacetUtils.WEB_30;
     }
     

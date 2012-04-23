@@ -98,25 +98,6 @@ public class WTPProjectsUtil {
   public static final IProjectFacet EAR_FACET = ProjectFacetsManager
       .getProjectFacet(IJ2EEFacetConstants.ENTERPRISE_APPLICATION);
 
-  private static boolean javaEE6Available;
-
-  static {
-    try {
-      IJ2EEFacetConstants.class.getField("ENTERPRISE_APPLICATION_60");
-      javaEE6Available = true;
-    } catch(Exception e) {
-      javaEE6Available = false;
-    }
-  }
-  
-  /**
-   * @return Returns the javaEE6Available.
-   */
-  public static boolean isJavaEE6Available() {
-    return javaEE6Available;
-  }
-  
-  
   /**
    * Checks if a project has a given class in its classpath 
    * @param project : the workspace project
@@ -578,8 +559,7 @@ public class WTPProjectsUtil {
 
 
   /**
-   * @param facade
-   * @return
+   * @return true if the Maven project associated ArtifactHandler's language is java.
    */
   public static boolean isJavaProject(IMavenProjectFacade facade) {
     //Java rocks ... not
@@ -593,9 +573,13 @@ public class WTPProjectsUtil {
     return "java".equals(language);
   }
   
+  /**
+   * Sets the default deployment descriptor folder for Eclipse > Indigo
+   */
   public static void setDefaultDeploymentDescriptorFolder(IVirtualFolder folder, IPath aProjectRelativeLocation, IProgressMonitor monitor) {
     try {
-      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", IVirtualFolder.class);
+      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", 
+                                                                                               IVirtualFolder.class);
       IPath currentDefaultLocation =(IPath) getDefaultDeploymentDescriptorFolder.invoke(null, folder);
       if (aProjectRelativeLocation.equals(currentDefaultLocation)) {
         return;
@@ -612,4 +596,33 @@ public class WTPProjectsUtil {
       ex.printStackTrace();
     } 
   }
+
+  
+  /**
+   * Gets the default deployment descriptor folder's relative path. 
+   */
+  public static IFolder getDefaultDeploymentDescriptorFolder(IVirtualFolder vFolder) {
+    IPath defaultPath = null;
+    try {
+      Method getDefaultDeploymentDescriptorFolder = J2EEModuleVirtualComponent.class.getMethod("getDefaultDeploymentDescriptorFolder", 
+                                                                                               IVirtualFolder.class);
+      defaultPath =(IPath) getDefaultDeploymentDescriptorFolder.invoke(null, vFolder);
+      
+    } catch (NoSuchMethodException nsme) {
+      //Not available in this WTP version, let's ignore it
+    } catch(Exception ex) {
+      //The exception shouldn't halt the configuration process.
+      ex.printStackTrace();
+    }
+    
+    IFolder folder;
+    IVirtualComponent component = vFolder.getComponent();
+    if (defaultPath == null) {
+      folder = (IFolder)vFolder.getUnderlyingFolder();
+    } else {
+      folder = component.getProject().getFolder(defaultPath);
+    }
+    
+    return folder;
+  }  
 }

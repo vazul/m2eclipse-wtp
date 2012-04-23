@@ -622,6 +622,18 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     assertEquals("junit-junit-3.8.1.jar", junitRef.getArchiveName());
 
   }
+  
+  @Test
+  public void testMECLIPSEWTP233_EarSourceSeparator() throws Exception {
+    IProject ear = importProject("projects/MECLIPSEWTP-233/pom.xml");
+    ear.build(IncrementalProjectBuilder.AUTO_BUILD, monitor);
+    waitForJobsToComplete();
+
+    IResource[] underlyingResources = getUnderlyingResources(ear);
+    assertEquals(2, underlyingResources.length);
+    IFolder customFolder = ear.getFolder("/some/CustomEarSourceDirectory");
+    assertEquals(customFolder, underlyingResources[1]);
+  }
 
   @Test
   public void testMNGECLIPSE984_errorMarkers() throws Exception {
@@ -1144,17 +1156,20 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject = JavaCore.create(web);
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals("/MNGECLIPSE-1878-web/src/main/java", rawClasspath[0].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-web/src/test/java", rawClasspath[1].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
     }
     {
       IJavaProject ejbProject = JavaCore.create(ejb);
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 3, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[1].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[2].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-ejb/src/test/java", rawClasspath[1].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
     }
     {
       IFacetedProject fpEar = ProjectFacetsManager.create(ear);
@@ -1169,11 +1184,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject webProject = JavaCore.create(web);
       IClasspathEntry[] rawClasspath = webProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 2, rawClasspath.length);
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[0].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[1].getPath().toString());
-      //assertEquals("org.eclipse.jst.j2ee.internal.web.container", rawClasspath[2].getPath().toString());
-      //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[3].getPath().toString());
+      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals("/MNGECLIPSE-1878-web/src/main/java", rawClasspath[0].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-web/src/test/java", rawClasspath[1].getPath().toString());
+       assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
 
       assertNull(getWebLibClasspathContainer(webProject));
     }
@@ -1184,11 +1199,13 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     {
       IJavaProject ejbProject = JavaCore.create(ejb);
       IClasspathEntry[] rawClasspath = ejbProject.getRawClasspath();
-      assertEquals(Arrays.toString(rawClasspath), 4, rawClasspath.length);
+      assertEquals(Arrays.toString(rawClasspath), 5, rawClasspath.length);
       assertEquals("/MNGECLIPSE-1878-ejb/src/main/java", rawClasspath[0].getPath().toString());
-      assertEquals("/MNGECLIPSE-1878-ejb/src/main/resources", rawClasspath[1].getPath().toString());//TODO Resources folder appear after config update (WTP added MANIFEST.MF)
-      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[2].getPath().toString());
-      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[3].getPath().toString());
+      assertEquals("/MNGECLIPSE-1878-ejb/src/test/java", rawClasspath[1].getPath().toString());
+      //TODO Resources folder appear after config update (WTP added MANIFEST.MF)
+      assertEquals("/MNGECLIPSE-1878-ejb/src/main/resources", rawClasspath[2].getPath().toString());
+      assertEquals(JRE_CONTAINER_J2SE_1_5, rawClasspath[3].getPath().toString());
+      assertEquals(MAVEN_CLASSPATH_CONTAINER, rawClasspath[4].getPath().toString());
       //assertEquals("org.eclipse.jst.j2ee.internal.module.container", rawClasspath[4].getPath().toString());
     }
 
@@ -1227,17 +1244,11 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     IProjectFacetVersion expectedEjbFacet = null;
     IProjectFacetVersion expectedEarFacet = null;
 
-    if(WTPProjectsUtil.isJavaEE6Available()) {
-      //check we assigned the correct, JavaEE 6, facet versions, for WTP >= 3.2
-      expectedEjbFacet = EJB_FACET.getVersion("3.1");
-      expectedWebFacet = WebFacetUtils.WEB_FACET.getVersion("3.0");
-      expectedEarFacet = EAR_FACET.getVersion("6.0");
-    } else {
-      //check we downgraded WTP Facets versions to a compatible level
-      expectedEjbFacet = IJ2EEFacetConstants.EJB_30;
-      expectedWebFacet = WebFacetUtils.WEB_25;
-      expectedEarFacet = IJ2EEFacetConstants.ENTERPRISE_APPLICATION_50;
-    }
+    //check we assigned the correct, JavaEE 6, facet versions
+    expectedEjbFacet = EJB_FACET.getVersion("3.1");
+    expectedWebFacet = WebFacetUtils.WEB_FACET.getVersion("3.0");
+    expectedEarFacet = EAR_FACET.getVersion("6.0");
+
     assertEquals(expectedEjbFacet, fpEjb.getInstalledVersion(EJB_FACET));
     assertEquals(expectedWebFacet, fpWar.getInstalledVersion(WebFacetUtils.WEB_FACET));
     assertEquals(expectedEarFacet, fpEar.getInstalledVersion(EAR_FACET));
@@ -1403,10 +1414,6 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
   @Test
   public void testMNGECLIPSE2393_Libs_SkinnyWars() throws Exception {
 
-    if(!WTPProjectsUtil.isJavaEE6Available()) {
-      //This feature is bugged on WTP < 3.2, so we skip the test
-      return;
-    }
     IProject[] projects = importProjects(
         "projects/MNGECLIPSE-2393/", //
         new String[] {"ear/pom.xml", "utility1/pom.xml", "ejb/pom.xml", "skinny-war/pom.xml", "utility2/pom.xml"},
@@ -1964,7 +1971,8 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     waitForJobsToComplete();
     assertNoErrors(project);
     List<IMarker> severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
-    assertHasMarker(NLS.bind(Messages.markers_inclusion_patterns_problem, "warSourceIncludes"), severityMarkers);
+    String warning = NLS.bind(Messages.markers_inclusion_patterns_problem, "warSourceIncludes");
+    assertHasMarker(warning, severityMarkers);
     
     IVirtualComponent comp = ComponentCore.createComponent(project);
     Properties p = comp.getMetaProperties();
@@ -1976,7 +1984,7 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
     comp = ComponentCore.createComponent(project);
     severityMarkers = findMarkers(project, IMarker.SEVERITY_WARNING);
-    assertEquals(toString(severityMarkers), 0, severityMarkers.size());
+    assertMissingMarker(warning, severityMarkers);
 
     p = comp.getMetaProperties();
     assertEquals("warSourceIncludes1,warSourceIncludes2", p.get(MavenWtpConstants.COMPONENT_INCLUSION_PATTERNS));
@@ -2010,6 +2018,23 @@ public class WTPProjectConfiguratorTest extends AbstractWTPTestCase {
     
   }  
   
+
+  @Test
+  public void testMECLIPSEWTP227_invalidResourceInUtility() throws Exception {
+    IProject[] projects = importProjects("projects/MECLIPSEWTP-227", //
+        new String[] {"pom.xml", "webapp/pom.xml", "utility/pom.xml"}, new ResolverConfiguration());
+    waitForJobsToComplete();
+    IProject web = projects[1];
+    IProject jar = projects[2];
+    
+    assertNoErrors(web);
+    assertNoErrors(jar);
+    
+    IFacetedProject jarFp = ProjectFacetsManager.create(jar);
+    assertNotNull(jar.getName() + " is not a faceted project", jarFp);
+
+    assertEquals(JavaFacet.VERSION_1_5, jarFp.getProjectFacetVersion(JavaFacet.FACET));
+  }
 
   private static String dumpModules(List<Module> modules) {
     if(modules == null)
