@@ -300,10 +300,6 @@ public class OverlayConfigurator extends WTPProjectConfigurator {
               "The '" + LinkedOverlaysConstants.OVERLAYS_FOLDER + "' folder exists and is not virtual in project " + project.getName()));
         }
 
-        //Component order must be inverted to follow maven's overlay order behaviour
-        //as in WTP, last components supersede the previous ones
-        Collections.reverse(overlays);
-
         for(final Overlay overlay : overlays) {
 
           if(overlay.shouldSkip()) {
