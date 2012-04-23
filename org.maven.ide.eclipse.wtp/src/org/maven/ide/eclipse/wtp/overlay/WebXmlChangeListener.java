@@ -108,7 +108,6 @@ public class WebXmlChangeListener implements IResourceChangeListener {
         }
       }
 
-      System.out.println("UPDATE REQUIRED: " + needsToBeConfigured);
       if(needsToBeConfigured.size() > 0) {
         final IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
 
