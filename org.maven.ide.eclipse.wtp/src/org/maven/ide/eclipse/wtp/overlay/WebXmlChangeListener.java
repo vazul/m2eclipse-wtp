@@ -9,12 +9,15 @@
 package org.maven.ide.eclipse.wtp.overlay;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -90,21 +93,32 @@ public class WebXmlChangeListener implements IResourceChangeListener {
           IProject project = webXmlChanged.getResource().getProject();
           String targetPath = project.getPersistentProperty(OverlayConfigurator.WEBXML_TARGET_PATH);
           final IFolder targetFolder = project.getFolder(targetPath);
+          boolean shouldCopy = true;
           try {
-            FileUtils.copyFileIfModified(webXmlChanged.getResource().getLocation().toFile(), new File(targetFolder
-                .getLocation().toFile(), "web.xml"));
+            File targetFile = new File(targetFolder.getLocation().toFile(), "web.xml");
+            if(targetFile.exists()) {
+              byte[] targetContent = IOUtil.toByteArray(new FileInputStream(targetFile));
+              byte[] sourceContent = IOUtil.toByteArray(new FileInputStream(webXmlChanged.getResource().getLocation()
+                  .toFile()));
+              shouldCopy = !Arrays.equals(sourceContent, targetContent);
+            }
+            if(shouldCopy) {
+              FileUtils.copyFile(webXmlChanged.getResource().getLocation().toFile(), targetFile);
+            }
           } catch(IOException ex) {
             throw new CoreException(new Status(Status.ERROR, MavenWtpPlugin.ID,
                 "Cannot copy web.xml to default source root from: " + webXmlPath, ex));
           }
-          WorkspaceJob job = new WorkspaceJob("Refresh " + targetFolder.getFullPath().toPortableString()) {
+          if(shouldCopy) {
+            WorkspaceJob job = new WorkspaceJob("Refresh " + targetFolder.getFullPath().toPortableString()) {
 
-            public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+              public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
                 targetFolder.refreshLocal(IResource.DEPTH_INFINITE, null);
                 return Status.OK_STATUS;
-            }
-          };
-          job.schedule();
+              }
+            };
+            job.schedule();
+          }
         }
       }
 
